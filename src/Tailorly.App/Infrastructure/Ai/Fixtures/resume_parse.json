@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "contact": { "name": "Test Candidate", "email": "candidate@example.test", "phone": null, "location": "Hyderabad, India", "links": [] },
+  "summary": "Backend engineer with 6 years of experience building .NET services.",
+  "skills": [ { "name": "C#", "category": "language" }, { "name": ".NET", "category": "framework" }, { "name": "PostgreSQL", "category": "database" } ],
+  "experience": [ { "company": "Example Corp", "title": "Senior Software Engineer", "start": "2021-01", "end": null, "bullets": [ "Built REST APIs for the payments team." ] } ],
+  "education": [ { "institution": "Example University", "degree": "B.Tech, Computer Science", "year": "2018" } ],
+  "certifications": [],
+  "totalYears": 6,
+  "domains": [ "payments" ]
+}
