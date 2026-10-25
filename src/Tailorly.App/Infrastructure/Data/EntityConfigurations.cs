@@ -166,3 +166,163 @@ internal sealed class AiTaskConfigConfig : IEntityTypeConfiguration<AiTaskConfig
         e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UpdatedBy).OnDelete(DeleteBehavior.SetNull);
     }
 }
+
+// DatabaseDesign §3.3
+
+internal sealed class UserPreferencesConfig : IEntityTypeConfiguration<UserPreferences>
+{
+    public void Configure(EntityTypeBuilder<UserPreferences> e)
+    {
+        e.ToTable("user_preferences", t =>
+        {
+            t.HasCheckConstraint("ck_user_preferences_search_scope",
+                "search_scope IN ('india_only','india_plus_global_remote','global_remote_only')");
+            t.HasCheckConstraint("ck_user_preferences_salary_min", "salary_min IS NULL OR salary_min >= 0");
+            t.HasCheckConstraint("ck_user_preferences_salary_max", "salary_max IS NULL OR salary_max >= 0");
+            t.HasCheckConstraint("ck_user_preferences_salary_currency", "salary_currency IN ('INR','USD')");
+            t.HasCheckConstraint("ck_user_preferences_min_match_score", "min_match_score BETWEEN 1 AND 10");
+            t.HasCheckConstraint("ck_user_preferences_salary_range",
+                "salary_max IS NULL OR salary_min IS NULL OR salary_max >= salary_min");
+        });
+        e.HasKey(x => x.UserId);
+        e.Property(x => x.UserId).ValueGeneratedNever();
+        e.Property(x => x.SearchScope).HasDefaultValue(SearchScopes.IndiaPlusGlobalRemote);
+        e.Property(x => x.TargetRoles).HasDefaultValueSql("'{}'");
+        e.Property(x => x.Locations).HasDefaultValueSql("'{}'");
+        e.Property(x => x.WorkModes).HasDefaultValueSql("'{remote}'");
+        e.Property(x => x.JobTypes).HasDefaultValueSql("'{full_time}'");
+        e.Property(x => x.HiringModels).HasDefaultValueSql("'{employee,contractor}'");
+        e.Property(x => x.ExcludedCompanies).HasDefaultValueSql("'{}'");
+        e.Property(x => x.ExcludedKeywords).HasDefaultValueSql("'{}'");
+        e.Property(x => x.SalaryCurrency).HasDefaultValue("INR");
+        e.Property(x => x.MinMatchScore).HasDefaultValue((short)8);
+        e.Property(x => x.IncludeUnspecifiedSalary).HasDefaultValue(true);
+        e.Property(x => x.ShowUnclearEligibility).HasDefaultValue(false);
+        e.Property(x => x.ScheduleEnabled).HasDefaultValue(true);
+        e.Property(x => x.ScheduleLocalTime).HasDefaultValueSql("'18:00'");
+        e.Property(x => x.DigestWhenEmpty).HasDefaultValue(false);
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.Version).IsRowVersion();
+        e.HasOne<AppUser>().WithOne().HasForeignKey<UserPreferences>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class UserWatchedCompanyConfig : IEntityTypeConfiguration<UserWatchedCompany>
+{
+    public void Configure(EntityTypeBuilder<UserWatchedCompany> e)
+    {
+        e.ToTable("user_watched_companies");
+        e.HasKey(x => new { x.UserId, x.CompanyAtsLinkId });
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<CompanyAtsLink>().WithMany().HasForeignKey(x => x.CompanyAtsLinkId).OnDelete(DeleteBehavior.Cascade)
+            .HasConstraintName("fk_watched_link");
+    }
+}
+
+// DatabaseDesign §3.4
+
+internal sealed class JobSourceConfig : IEntityTypeConfiguration<JobSource>
+{
+    public void Configure(EntityTypeBuilder<JobSource> e)
+    {
+        e.ToTable("job_sources", t =>
+        {
+            t.HasCheckConstraint("ck_job_sources_kind", "kind IN ('feed','board','user')");
+            t.HasCheckConstraint("ck_job_sources_poll_interval", "poll_interval_minutes > 0");
+        });
+        e.HasKey(x => x.Key);
+        e.Property(x => x.Enabled).HasDefaultValue(true);
+        e.Property(x => x.RequiresAttribution).HasDefaultValue(false);
+        e.Property(x => x.RequireSourceApplyUrl).HasDefaultValue(false);
+        e.Property(x => x.ForbidThirdPartyResolution).HasDefaultValue(false);
+        e.Property(x => x.PurgeOnExpiry).HasDefaultValue(false);
+        e.Property(x => x.RequiresLogoAttribution).HasDefaultValue(false);
+        e.Property(x => x.PollIntervalMinutes).HasDefaultValue(360);
+    }
+}
+
+internal sealed class SourceHealthConfig : IEntityTypeConfiguration<SourceHealth>
+{
+    public void Configure(EntityTypeBuilder<SourceHealth> e)
+    {
+        e.ToTable("source_health");
+        e.HasKey(x => x.SourceKey);
+        e.Property(x => x.ConsecutiveFailures).HasDefaultValue(0);
+        e.Property(x => x.CallsThisMonth).HasDefaultValue(0);
+        e.Property(x => x.LastRunStats).HasColumnType("jsonb");
+        e.HasOne<JobSource>().WithOne().HasForeignKey<SourceHealth>(x => x.SourceKey).OnDelete(DeleteBehavior.Cascade);
+    }
+}
+
+internal sealed class CompanyConfig : IEntityTypeConfiguration<Company>
+{
+    public void Configure(EntityTypeBuilder<Company> e)
+    {
+        e.ToTable("companies");
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasIndex(x => x.NormalizedName).IsUnique().HasDatabaseName("ux_companies_normalized");
+        e.HasIndex(x => x.WebsiteDomain).HasFilter("website_domain IS NOT NULL").HasDatabaseName("ix_companies_domain");
+    }
+}
+
+internal sealed class CompanyAtsLinkConfig : IEntityTypeConfiguration<CompanyAtsLink>
+{
+    public void Configure(EntityTypeBuilder<CompanyAtsLink> e)
+    {
+        e.ToTable("company_ats_links", t =>
+        {
+            t.HasCheckConstraint("ck_company_ats_links_platform", "platform IN ('greenhouse','lever','ashby')");
+            t.HasCheckConstraint("ck_company_ats_links_board_token", "board_token ~ '^[a-z0-9_-]{2,60}$'");
+            t.HasCheckConstraint("ck_company_ats_links_status", "status IN ('resolved','not_found','blocked')");
+            t.HasCheckConstraint("ck_company_ats_links_origin", "origin IN ('seed','user','discovered','guessed','admin')");
+            t.HasCheckConstraint("ck_company_ats_links_confidence", "confidence IN ('high','medium','low')");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.Status).HasDefaultValue(LinkStatus.Resolved);
+        e.Property(x => x.Confidence).HasDefaultValue("high");
+        e.Property(x => x.FailureCount).HasDefaultValue(0);
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.Cascade);
+        e.HasIndex(x => new { x.Platform, x.BoardToken }).IsUnique().HasDatabaseName("ux_company_ats_links_platform_token");
+        e.HasIndex(x => x.CompanyId).HasDatabaseName("ix_company_ats_links_company");
+        e.HasIndex(x => new { x.Status, x.NextRetryAt }).HasDatabaseName("ix_company_ats_links_poll");
+    }
+}
+
+internal sealed class JobConfig : IEntityTypeConfiguration<Job>
+{
+    public void Configure(EntityTypeBuilder<Job> e)
+    {
+        e.ToTable("jobs", t =>
+        {
+            t.HasCheckConstraint("ck_jobs_work_mode", "work_mode IN ('remote','hybrid','onsite')");
+            t.HasCheckConstraint("ck_jobs_employment_type", "employment_type IN ('full_time','contract','part_time','internship')");
+            t.HasCheckConstraint("ck_jobs_hiring_model_hint", "hiring_model_hint IN ('employee','contractor','unknown')");
+            t.HasCheckConstraint("ck_jobs_salary_kind", "salary_kind IN ('stated','estimated','unknown')");
+            t.HasCheckConstraint("ck_jobs_description_completeness", "description_completeness IN ('full','limited')");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.LocationClass).HasDefaultValue("unknown");
+        e.Property(x => x.SalaryCurrency).HasColumnType("char(3)");
+        e.Property(x => x.SalaryKind).HasDefaultValue("unknown");
+        e.Property(x => x.DescriptionCompleteness).HasDefaultValue(Completeness.Limited);
+        e.Property(x => x.SourceMeta).HasColumnType("jsonb");
+        e.Property(x => x.FetchedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasOne<JobSource>().WithMany().HasForeignKey(x => x.SourceKey).OnDelete(DeleteBehavior.Restrict);
+        e.HasOne<Job>().WithMany().HasForeignKey(x => x.DuplicateOfJobId).OnDelete(DeleteBehavior.SetNull);
+        e.HasOne<Company>().WithMany().HasForeignKey(x => x.CompanyId).OnDelete(DeleteBehavior.SetNull);
+        e.HasIndex(x => new { x.SourceKey, x.ExternalId }).IsUnique().HasDatabaseName("ux_jobs_source_external");
+        e.HasIndex(x => x.DedupeKey).HasDatabaseName("ix_jobs_dedupe");
+        e.HasIndex(x => x.CreatedAt).IsDescending().HasFilter("duplicate_of_job_id IS NULL AND closed_at IS NULL")
+            .HasDatabaseName("ix_jobs_created");
+        e.HasIndex(x => x.ExpiresAt).HasFilter("expires_at IS NOT NULL").HasDatabaseName("ix_jobs_expires");
+        // search_tsv (a generated tsvector) and its GIN index are created by raw SQL in the migration (DatabaseDesign §9).
+    }
+}
+

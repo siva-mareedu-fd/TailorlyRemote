@@ -194,3 +194,186 @@ public sealed class AiTaskConfig
     public DateTimeOffset UpdatedAt { get; set; }
     public Guid? UpdatedBy { get; set; }
 }
+
+// DatabaseDesign §3.3
+public static class SearchScopes
+{
+    public const string IndiaOnly = "india_only";
+    public const string IndiaPlusGlobalRemote = "india_plus_global_remote";
+    public const string GlobalRemoteOnly = "global_remote_only";
+    public static readonly string[] All = [IndiaOnly, IndiaPlusGlobalRemote, GlobalRemoteOnly];
+}
+
+public sealed class UserPreferences : IUserOwned
+{
+    public Guid UserId { get; set; }
+    public string SearchScope { get; set; } = SearchScopes.IndiaPlusGlobalRemote;
+    public List<string> TargetRoles { get; set; } = [];
+    public List<string> Locations { get; set; } = [];
+    public List<string> WorkModes { get; set; } = ["remote"];
+    public List<string> JobTypes { get; set; } = ["full_time"];
+    public List<string> HiringModels { get; set; } = ["employee", "contractor"];
+    public long? SalaryMin { get; set; }
+    public long? SalaryMax { get; set; }
+    public string SalaryCurrency { get; set; } = "INR";
+    public string? ExperienceLevel { get; set; }
+    public short MinMatchScore { get; set; } = 8;
+    public bool IncludeUnspecifiedSalary { get; set; } = true;
+    public bool ShowUnclearEligibility { get; set; }
+    public string? TimezoneOverlap { get; set; }
+    public List<string> ExcludedCompanies { get; set; } = [];
+    public List<string> ExcludedKeywords { get; set; } = [];
+    public bool ScheduleEnabled { get; set; } = true;
+    public TimeOnly ScheduleLocalTime { get; set; } = new(18, 0);
+    public bool DigestWhenEmpty { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>PostgreSQL <c>xmin</c>: the optimistic concurrency token (DatabaseDesign §1).</summary>
+    public uint Version { get; set; }
+}
+
+/// <summary>A board on the user's watch list (Path B feeder 2). The link itself is shared.</summary>
+public sealed class UserWatchedCompany : IUserOwned
+{
+    public Guid UserId { get; set; }
+    public Guid CompanyAtsLinkId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+// DatabaseDesign §3.4 (shared tables; no user data)
+public static class SourceKinds
+{
+    public const string Feed = "feed";
+    public const string Board = "board";
+    public const string User = "user";
+}
+
+/// <summary>One job source with its compliance flags (PRD §7.1a). Adapters and the UI read the flags; nothing is hard-coded.</summary>
+public sealed class JobSource
+{
+    public required string Key { get; set; }
+    public required string DisplayName { get; set; }
+    public required string Kind { get; set; }
+    public bool Enabled { get; set; } = true;
+    public bool RequiresAttribution { get; set; }
+    public string? AttributionText { get; set; }
+    public string? AttributionUrl { get; set; }
+    public string? TermsUrl { get; set; }
+    public DateTimeOffset? TermsReviewedAt { get; set; }
+    public bool RequireSourceApplyUrl { get; set; }
+    public bool ForbidThirdPartyResolution { get; set; }
+    public bool PurgeOnExpiry { get; set; }
+    public bool RequiresLogoAttribution { get; set; }
+    public int PollIntervalMinutes { get; set; } = 360;
+}
+
+public sealed class SourceHealth
+{
+    public required string SourceKey { get; set; }
+    public DateTimeOffset? LastSuccessAt { get; set; }
+
+    /// <summary>Where an unfinished walk stopped (per stream), so the next run can resume it (PRD §7.1b Path A).</summary>
+    public string? LastCursor { get; set; }
+
+    public DateTimeOffset? LastFailureAt { get; set; }
+
+    /// <summary>Short message with a status code; never a payload.</summary>
+    public string? LastError { get; set; }
+
+    public int ConsecutiveFailures { get; set; }
+    public DateTimeOffset? CircuitOpenUntil { get; set; }
+    public int CallsThisMonth { get; set; }
+    public string? CallsPeriod { get; set; }
+
+    /// <summary>jsonb: fetched/new/updated/duplicate/skipped/failed counts of the last run.</summary>
+    public string? LastRunStats { get; set; }
+}
+
+public sealed class Company
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public required string Name { get; set; }
+    public required string NormalizedName { get; set; }
+    public string? WebsiteDomain { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public static class LinkStatus
+{
+    public const string Resolved = "resolved";
+    public const string NotFound = "not_found";
+    public const string Blocked = "blocked";
+    public static readonly string[] All = [Resolved, NotFound, Blocked];
+}
+
+public static class LinkOrigin
+{
+    public const string Seed = "seed";
+    public const string User = "user";
+    public const string Discovered = "discovered";
+    public const string Guessed = "guessed";
+    public const string Admin = "admin";
+}
+
+/// <summary>A company's board on an ATS platform (PRD §7.3). The token is safe by CHECK constraint (SSRF guard).</summary>
+public sealed class CompanyAtsLink
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid CompanyId { get; set; }
+    public required string Platform { get; set; }
+    public required string BoardToken { get; set; }
+    public string Status { get; set; } = LinkStatus.Resolved;
+    public required string Origin { get; set; }
+    public string Confidence { get; set; } = "high";
+    public DateTimeOffset? LastCheckedAt { get; set; }
+    public DateTimeOffset? NextRetryAt { get; set; }
+    public int FailureCount { get; set; }
+    public int? OpenJobsCount { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+public static class Completeness
+{
+    public const string Full = "full";
+    public const string Limited = "limited";
+}
+
+/// <summary>One row per source listing (DatabaseDesign DB1). Duplicates are marked, never merged.</summary>
+public sealed class Job
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public required string SourceKey { get; set; }
+    public required string ExternalId { get; set; }
+    public required string DedupeKey { get; set; }
+    public Guid? DuplicateOfJobId { get; set; }
+    public Guid? CompanyId { get; set; }
+    public required string CompanyName { get; set; }
+    public required string Title { get; set; }
+    public string? LocationText { get; set; }
+    public string LocationClass { get; set; } = "unknown";
+    public string? WorkMode { get; set; }
+    public string? EmploymentType { get; set; }
+    public string? HiringModelHint { get; set; }
+    public long? SalaryMin { get; set; }
+    public long? SalaryMax { get; set; }
+    public string? SalaryCurrency { get; set; }
+    public string? SalaryPeriodOriginal { get; set; }
+    public string SalaryKind { get; set; } = "unknown";
+
+    /// <summary>Plain text only (HTML stripped). Never logged.</summary>
+    public string? DescriptionText { get; set; }
+
+    public string DescriptionCompleteness { get; set; } = Completeness.Limited;
+    public required string ApplyUrl { get; set; }
+    public required string SourceUrl { get; set; }
+
+    /// <summary>jsonb: structured source fields (countries, time zones, tags, departments…).</summary>
+    public string? SourceMeta { get; set; }
+
+    public string? ContentHash { get; set; }
+    public DateTimeOffset? PostedAt { get; set; }
+    public DateTimeOffset FetchedAt { get; set; }
+    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTimeOffset? ClosedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}

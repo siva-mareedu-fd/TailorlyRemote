@@ -27,6 +27,13 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ICurren
     public DbSet<UserConfirmedSkill> UserConfirmedSkills => Set<UserConfirmedSkill>();
     public DbSet<UserBudgetCounter> UserBudgetCounters => Set<UserBudgetCounter>();
     public DbSet<AiUsage> AiUsage => Set<AiUsage>();
+    public DbSet<UserPreferences> UserPreferences => Set<UserPreferences>();
+    public DbSet<UserWatchedCompany> UserWatchedCompanies => Set<UserWatchedCompany>();
+    public DbSet<JobSource> JobSources => Set<JobSource>();
+    public DbSet<SourceHealth> SourceHealth => Set<SourceHealth>();
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyAtsLink> CompanyAtsLinks => Set<CompanyAtsLink>();
+    public DbSet<Job> Jobs => Set<Job>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

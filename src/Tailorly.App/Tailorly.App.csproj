@@ -16,6 +16,8 @@
     <!-- Prompts and schemas are files in the repo (PRD Appendix C); git is their version history. -->
     <EmbeddedResource Include="Ai/Prompts/*.md" LogicalName="prompts/%(Filename)%(Extension)" />
     <EmbeddedResource Include="Ai/Schemas/*.json" LogicalName="schemas/%(Filename)%(Extension)" />
+    <!-- ATS boards verified against the live APIs (DatabaseDesign §5); loaded by POST /admin/companies/seed/load. -->
+    <EmbeddedResource Include="Features/Sources/watched_companies.seed.json" LogicalName="seed/watched_companies.seed.json" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Tailorly.Tests" />
@@ -37,6 +39,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
     <PackageReference Include="NJsonSchema" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Serilog.AspNetCore" />

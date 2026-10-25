@@ -7,7 +7,8 @@ namespace Tailorly.App.Infrastructure.Data;
 /// method says which system process uses it and why it must see all users. Keep this list short and review every
 /// addition.
 ///
-/// Allowed callers: digest dispatcher (M3), purge job, stuck-work sweep, budget service, admin queries (M6).
+/// Allowed callers: digest dispatcher (M3), purge job, stuck-work sweep, budget service, admin queries (M2 status and
+/// companies pages; more in M6).
 /// </summary>
 public sealed class SystemQueries(AppDbContext db)
 {
@@ -39,6 +40,19 @@ public sealed class SystemQueries(AppDbContext db)
             UPDATE resumes SET parse_status = 'failed', error_code = {timeoutCode}
             WHERE parse_status IN ('queued','running') AND created_at < {cutoff}
             """, ct);
+
+    /// <summary>Admin companies page: how many users watch each board (counts only, never who).</summary>
+    public async Task<Dictionary<Guid, int>> WatcherCountsAsync(IReadOnlyCollection<Guid> linkIds, CancellationToken ct) =>
+        await db.UserWatchedCompanies.IgnoreQueryFilters().AsNoTracking()
+            .Where(w => linkIds.Contains(w.CompanyAtsLinkId))
+            .GroupBy(w => w.CompanyAtsLinkId)
+            .Select(g => new { g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.Count, ct);
+
+    /// <summary>Admin status page: async resources still queued/running after the cutoff (what the sweep will fail).</summary>
+    public Task<int> StuckResourceCountAsync(DateTimeOffset cutoff, CancellationToken ct) =>
+        db.Resumes.IgnoreQueryFilters().AsNoTracking()
+            .CountAsync(r => (r.ParseStatus == WorkStatus.Queued || r.ParseStatus == WorkStatus.Running) && r.CreatedAt < cutoff, ct);
 
     /// <summary>Purge job (hourly): accounts confirmed for deletion that still exist.</summary>
     public Task<List<Guid>> UsersPendingDeletionAsync(CancellationToken ct) =>
