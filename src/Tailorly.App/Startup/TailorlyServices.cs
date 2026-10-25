@@ -13,6 +13,8 @@ using Tailorly.App.Api;
 using Tailorly.App.Features.Accounts;
 using Tailorly.App.Features.Health;
 using Tailorly.App.Features.Resumes;
+using Tailorly.App.Features.Sources;
+using Tailorly.App.Features.Sources.Adapters;
 using Tailorly.App.Infrastructure;
 using Tailorly.App.Infrastructure.Ai;
 using Tailorly.App.Infrastructure.Data;
@@ -156,9 +158,34 @@ public static class TailorlyServices
         services.AddScoped<PurgeDeletedAccountsJob>();
         services.AddScoped<ParseResumeJob>();
         services.AddScoped<SweepStuckWorkJob>();
-        // IJobSource adapters are registered in M2.
+        AddSources(services, config);
 
         return builder;
+    }
+
+    /// <summary>Job sourcing (SDD §8): one HTTP client per source, the adapters (the IJobSource seam), runners and jobs.</summary>
+    private static void AddSources(IServiceCollection services, IConfiguration config)
+    {
+        services.AddSourceHttpClients(config);
+        services.AddSingleton<IJobSource, HimalayasSource>();
+        services.AddSingleton<IJobSource, RemoteOkSource>();
+        services.AddSingleton<IJobSource, GreenhouseSource>();
+        services.AddSingleton<IJobSource, LeverSource>();
+        services.AddSingleton<IJobSource, AshbySource>();
+        services.AddSingleton<SourceRegistry>();
+        services.AddScoped<CompanyLinker>();
+        services.AddScoped<DedupeResolver>();
+        services.AddScoped<JobIngestor>();
+        services.AddScoped<FeedRunner>();
+        services.AddScoped<BoardPoller>();
+        services.AddScoped<FetchSourcesJob>();
+        services.AddScoped<FetchSourceJob>();
+        services.AddScoped<PollBoardJob>();
+        services.AddScoped<RetentionJob>();
+        services.AddScoped<BoardVerifier>();
+        services.AddScoped<SeedLoader>();
+        services.AddScoped<VerifyLinksJob>();
+        services.AddScoped<Tailorly.App.Features.Admin.CoverageReport>();
     }
 
     /// <summary>AI runner (SDD §9): routing from ai_task_config, prompt files, budgets, ledger, one provider.</summary>
