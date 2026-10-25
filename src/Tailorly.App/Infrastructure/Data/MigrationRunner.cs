@@ -1,5 +1,7 @@
 using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql;
 
 namespace Tailorly.App.Infrastructure.Data;
@@ -14,9 +16,10 @@ public sealed partial class MigrationRunner(AppDbContext db, Seeder seeder, ICon
 
     public async Task MigrateAsync(CancellationToken ct)
     {
-        var pending = (await db.Database.GetPendingMigrationsAsync(ct)).Count();
-        LogMigrating(logger, pending);
+        // Create the history table up front; otherwise EF logs an error for it on an empty database.
+        await db.GetService<IHistoryRepository>().CreateIfNotExistsAsync(ct);
         await db.Database.MigrateAsync(ct);
+        LogMigrated(logger, (await db.Database.GetAppliedMigrationsAsync(ct)).Count());
 
         await using (var conn = new NpgsqlConnection(config.GetConnectionString("Default")))
         {
@@ -33,8 +36,8 @@ public sealed partial class MigrationRunner(AppDbContext db, Seeder seeder, ICon
         LogSeeded(logger);
     }
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Applying {PendingCount} pending migration(s)")]
-    private static partial void LogMigrating(ILogger logger, int pendingCount);
+    [LoggerMessage(Level = LogLevel.Information, Message = "Database schema up to date ({AppliedCount} migration(s) applied)")]
+    private static partial void LogMigrated(ILogger logger, int appliedCount);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Seed data applied")]
     private static partial void LogSeeded(ILogger logger);

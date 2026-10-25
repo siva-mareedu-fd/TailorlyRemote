@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -56,6 +57,12 @@ public static class TailorlyServices
             o.SerializerOptions.NumberHandling = JsonNumberHandling.Strict;
             o.SerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
         });
+
+        // Keys for auth cookies, antiforgery and signed email links. Persisted on a volume in Docker so restarts
+        // and redeploys do not sign everyone out (SDD §16.3). Unset locally = default per-user key ring.
+        var dp = services.AddDataProtection().SetApplicationName("Tailorly");
+        if (config["DataProtection:KeysPath"] is { Length: > 0 } keysPath)
+            dp.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
         services.AddTailorlyProblemDetails();
         services.AddOpenApi("v1", o => o.AddDocumentTransformer((doc, _, _) =>
