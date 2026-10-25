@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk"><!-- All OpenXML work. Depends on the OpenXML SDK only. -->
+
+  <ItemGroup>
+    <PackageReference Include="DocumentFormat.OpenXml" />
+  </ItemGroup>
+</Project>

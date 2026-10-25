@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Pure rules and ports. Must not reference any I/O package. -->
+</Project>
