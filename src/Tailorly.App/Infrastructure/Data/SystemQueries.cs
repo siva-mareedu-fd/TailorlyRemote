@@ -11,13 +11,24 @@ namespace Tailorly.App.Infrastructure.Data;
 /// </summary>
 public sealed class SystemQueries(AppDbContext db)
 {
-    internal AppDbContext Db => db;
-
     /// <summary>Budget service: a user's counters for one period, by explicit user id (also used outside a request).</summary>
     public Task<List<UserBudgetCounter>> BudgetCountersAsync(Guid userId, string periodKey, CancellationToken ct) =>
         db.UserBudgetCounters.IgnoreQueryFilters().AsNoTracking()
             .Where(c => c.UserId == userId && c.PeriodKey == periodKey)
             .ToListAsync(ct);
+
+    /// <summary>
+    /// Budget service: atomically adds actual usage to a user's counter by explicit user id (the AI runner charges the user
+    /// a job acts for), creating the period row first if needed.
+    /// </summary>
+    public Task<int> AddBudgetUsageAsync(Guid userId, string periodKey, string bucket, long limitTokens, long countedTokens,
+        CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            INSERT INTO user_budget_counters (user_id, period_key, bucket, limit_tokens, used_tokens)
+            VALUES ({userId}, {periodKey}, {bucket}, {limitTokens}, {countedTokens})
+            ON CONFLICT (user_id, period_key, bucket)
+            DO UPDATE SET used_tokens = user_budget_counters.used_tokens + EXCLUDED.used_tokens
+            """, ct);
 
     /// <summary>
     /// Stuck-work sweep (every 15 min, DatabaseDesign §7): resources still queued/running after the cutoff are marked

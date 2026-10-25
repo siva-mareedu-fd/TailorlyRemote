@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Tailorly.App.Features.Resumes;
+using Tailorly.App.Infrastructure.Jobs;
 using Tailorly.Tests.Infrastructure;
 
 namespace Tailorly.Tests.Integration;
@@ -155,6 +157,97 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
             if (res.StatusCode != HttpStatusCode.Unauthorized) failures.Add($"{route} → {(int)res.StatusCode}");
         }
         failures.Should().BeEmpty();
+    }
+
+    /// <summary>Routes outside <c>/api/v1</c>: none serves user data except the admin-only job dashboard.</summary>
+    private static readonly Dictionary<string, string> NonApi = new()
+    {
+        ["/healthz"] = "liveness, no data",
+        ["/readyz"] = "readiness, no data",
+        [$"{HangfireSetup.DashboardPath}/{{**path}}"] = "Hangfire dashboard, Admin policy plus dashboard filter",
+    };
+
+    [Fact]
+    public void Every_non_api_route_is_known()
+    {
+        var routes = F.Services.GetRequiredService<EndpointDataSource>().Endpoints.OfType<RouteEndpoint>()
+            .Select(e => e.RoutePattern.RawText!)
+            .Where(p => !p.StartsWith("/api/v1", StringComparison.Ordinal))
+            .Distinct()
+            .ToList();
+        routes.Should().BeEquivalentTo(NonApi.Keys, "a new route outside /api/v1 is not covered by the isolation tests; classify it here");
+    }
+
+    [Fact]
+    public async Task Job_dashboard_is_forbidden_to_signed_in_non_admins()
+    {
+        var user = await TestUsers.CreateVerifiedAsync(F, "isolation-dash");
+        foreach (var path in new[] { HangfireSetup.DashboardPath, $"{HangfireSetup.DashboardPath}/jobs/enqueued" })
+        {
+            var res = await user.Api.GetAsync(path);
+            res.StatusCode.Should().Be(HttpStatusCode.Forbidden, path);
+        }
+    }
+
+    [Fact]
+    public async Task Usage_counts_only_the_callers_tokens()
+    {
+        var owner = await CreateOwnerAsync(); // its parse charged the Documents bucket
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+
+        static async Task<long> DocumentsUsed(TestUser u) => (await ApiClient.JsonAsync(await u.Api.GetAsync("/api/v1/usage")))
+            .GetProperty("buckets").EnumerateArray().Single(b => b.GetProperty("bucket").GetString() == "documents")
+            .GetProperty("used").GetInt64();
+
+        (await DocumentsUsed(owner.User)).Should().BePositive();
+        (await DocumentsUsed(intruder)).Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Own_data_actions_never_resolve_to_another_users_rows()
+    {
+        var owner = await CreateOwnerAsync();
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+
+        // The skill de-duplication lookup must not find A's row.
+        var skill = await intruder.Api.PostAsync("/api/v1/me/confirmed-skills", new { skill = owner.Skill.ToUpperInvariant() });
+        skill.StatusCode.Should().Be(HttpStatusCode.Created);
+        (await ApiClient.JsonAsync(skill)).GetProperty("id").GetGuid().Should().NotBe(owner.SkillId);
+
+        // A's parse is in flight; B's upload must not be "de-duplicated" onto A's résumé.
+        var aPending = await owner.User.Api.UploadAsync("/api/v1/resumes", owner.FileName, DocxBuilder.SampleResume());
+        aPending.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        var aPendingId = (await ApiClient.JsonAsync(aPending)).GetProperty("id").GetGuid();
+        var bUpload = await intruder.Api.UploadAsync("/api/v1/resumes", "b.docx", DocxBuilder.SampleResume());
+        bUpload.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(bUpload));
+        var bBody = await ApiClient.TextAsync(bUpload);
+        bBody.Should().NotContain(aPendingId.ToString()).And.NotContain(owner.FileName);
+
+        await F.Jobs.RunAllAsync();
+        (await ApiClient.JsonAsync(await owner.User.Api.GetAsync($"/api/v1/resumes/{aPendingId}")))
+            .GetProperty("parseStatus").GetString().Should().Be("ready");
+    }
+
+    [Fact]
+    public async Task A_parse_job_run_for_another_user_cannot_touch_the_resume()
+    {
+        var owner = await TestUsers.CreateVerifiedAsync(F, "isolation-a", "Isolation Owner A");
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+        var res = await owner.Api.UploadAsync("/api/v1/resumes", "a.docx", DocxBuilder.SampleResume());
+        var resumeId = (await ApiClient.JsonAsync(res)).GetProperty("id").GetGuid();
+
+        // Same job, A's résumé id, B's user id (what a tampered job argument would look like).
+        await using (var scope = F.Services.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<ParseResumeJob>()
+                .RunAsync(resumeId, intruder.Id, null, TestContext.Current.CancellationToken);
+
+        var a = await ApiClient.JsonAsync(await owner.Api.GetAsync($"/api/v1/resumes/{resumeId}"));
+        a.GetProperty("parseStatus").GetString().Should().Be("queued", "the job must not see A's résumé when acting as B");
+        (await owner.Api.GetAsync($"/api/v1/resumes/{resumeId}/profile")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        await F.Jobs.RunAllAsync(); // A's own job still parses it
+        (await ApiClient.JsonAsync(await owner.Api.GetAsync($"/api/v1/resumes/{resumeId}")))
+            .GetProperty("parseStatus").GetString().Should().Be("ready");
     }
 
     private async Task<Owner> CreateOwnerAsync()

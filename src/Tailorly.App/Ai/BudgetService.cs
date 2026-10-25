@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Tailorly.App.Infrastructure.Data;
 using Tailorly.Core.Budgets;
@@ -25,7 +24,7 @@ public sealed class BudgetOptions
 /// month needs no reset job. No reservations: a few concurrent calls may overshoot by at most their <c>max_tokens</c>.
 /// Takes explicit user ids (the budget service is on the approved list in <see cref="SystemQueries"/>).
 /// </summary>
-public sealed class BudgetService(AppDbContext db, SystemQueries system, IOptions<BudgetOptions> options, TimeProvider clock)
+public sealed class BudgetService(SystemQueries system, IOptions<BudgetOptions> options, TimeProvider clock)
 {
     private static readonly TimeZoneInfo India = TimeZones.RequireIana(TimeZones.India);
 
@@ -58,13 +57,6 @@ public sealed class BudgetService(AppDbContext db, SystemQueries system, IOption
     public async Task AddAsync(Guid userId, string bucket, long countedTokens, CancellationToken ct)
     {
         if (!BudgetBuckets.IsPerUser(bucket) || countedTokens <= 0) return;
-        var period = CurrentPeriod;
-        var limit = options.Value.LimitFor(bucket);
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            INSERT INTO user_budget_counters (user_id, period_key, bucket, limit_tokens, used_tokens)
-            VALUES ({userId}, {period}, {bucket}, {limit}, {countedTokens})
-            ON CONFLICT (user_id, period_key, bucket)
-            DO UPDATE SET used_tokens = user_budget_counters.used_tokens + EXCLUDED.used_tokens
-            """, ct);
+        await system.AddBudgetUsageAsync(userId, CurrentPeriod, bucket, options.Value.LimitFor(bucket), countedTokens, ct);
     }
 }
