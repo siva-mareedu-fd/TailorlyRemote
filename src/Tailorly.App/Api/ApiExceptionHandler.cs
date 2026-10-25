@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Npgsql;
 using Tailorly.Core;
 
 namespace Tailorly.App.Api;
@@ -25,6 +26,14 @@ public sealed partial class ApiExceptionHandler(IProblemDetailsService problems,
                 pd.Status = bad.StatusCode;
                 pd.Extensions["code"] = Problems.CodeForStatus(bad.StatusCode);
                 break;
+            case Exception when IsDatabaseUnavailable(exception):
+                // SDD §15.1: DB unavailable → 503; the client may retry.
+                LogDatabaseUnavailable(logger, exception, exception.GetType().Name);
+                pd.Status = StatusCodes.Status503ServiceUnavailable;
+                pd.Title = "Service temporarily unavailable";
+                pd.Detail = "Please try again in a moment.";
+                pd.Extensions["code"] = ErrorCodes.ServiceUnavailable;
+                break;
             default:
                 // Log the exception type and stack only through the exception object; no request bodies.
                 LogUnhandled(logger, exception, exception.GetType().Name);
@@ -44,6 +53,13 @@ public sealed partial class ApiExceptionHandler(IProblemDetailsService problems,
         });
     }
 
+    // Connection refused, timeouts and other transient Npgsql failures, raw or wrapped once by EF.
+    private static bool IsDatabaseUnavailable(Exception ex) =>
+        ex is NpgsqlException { IsTransient: true } || ex.InnerException is NpgsqlException { IsTransient: true };
+
     [LoggerMessage(Level = LogLevel.Error, Message = "Unhandled exception {ExceptionType}")]
     private static partial void LogUnhandled(ILogger logger, Exception ex, string exceptionType);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Database unavailable {ExceptionType}")]
+    private static partial void LogDatabaseUnavailable(ILogger logger, Exception ex, string exceptionType);
 }

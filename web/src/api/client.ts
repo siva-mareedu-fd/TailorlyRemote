@@ -1,5 +1,5 @@
 import createClient, { type Middleware } from 'openapi-fetch';
-import type { paths } from './schema';
+import type { components, paths } from './schema';
 
 const UNSAFE = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
@@ -28,14 +28,5 @@ export async function ensureCsrf() {
   await api.GET('/api/v1/auth/csrf');
 }
 
-/** RFC 7807 body returned by the API for every error. */
-export interface ApiProblem {
-  type: string;
-  title: string;
-  status: number;
-  code: string;
-  detail?: string;
-  traceId?: string;
-  errors?: Record<string, string[]>;
-  extra?: Record<string, unknown>;
-}
+/** RFC 7807 body returned by the API for every error (ApiDesign §1.1). */
+export type ApiProblem = components['schemas']['ApiProblem'];

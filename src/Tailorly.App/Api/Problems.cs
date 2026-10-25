@@ -14,6 +14,15 @@ public static class Problems
         {
             var pd = ctx.ProblemDetails;
             var status = pd.Status ?? ctx.HttpContext.Response.StatusCode;
+            if (status == StatusCodes.Status405MethodNotAllowed)
+            {
+                // A wrong method on an existing route is reported like an unknown route (405 is not in ApiDesign §1.2).
+                status = StatusCodes.Status404NotFound;
+                ctx.HttpContext.Response.StatusCode = status;
+                ctx.HttpContext.Response.Headers.Remove("Allow");
+                pd.Status = status;
+                pd.Title = TitleForStatus(status);
+            }
             if (!pd.Extensions.ContainsKey("code"))
                 pd.Extensions["code"] = CodeForStatus(status);
             var code = (string)pd.Extensions["code"]!;
@@ -43,7 +52,6 @@ public static class Problems
         401 => ErrorCodes.Unauthenticated,
         403 => ErrorCodes.Forbidden,
         404 => ErrorCodes.NotFound,
-        405 => ErrorCodes.NotFound,
         413 => ErrorCodes.FileTooLarge,
         415 => ErrorCodes.UnsupportedFileType,
         422 => ErrorCodes.ValidationFailed,
@@ -59,7 +67,6 @@ public static class Problems
         401 => "Sign in required",
         403 => "Forbidden",
         404 => "Not found",
-        405 => "Not found",
         413 => "Request too large",
         415 => "Unsupported media type",
         422 => "Validation failed",

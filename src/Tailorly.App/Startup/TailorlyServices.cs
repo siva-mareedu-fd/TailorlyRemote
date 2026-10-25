@@ -65,12 +65,14 @@ public static class TailorlyServices
             dp.PersistKeysToFileSystem(new DirectoryInfo(keysPath));
 
         services.AddTailorlyProblemDetails();
-        services.AddOpenApi("v1", o => o.AddDocumentTransformer((doc, _, _) =>
-        {
-            doc.Info.Title = "Tailorly Remote API";
-            doc.Info.Version = "v1";
-            return Task.CompletedTask;
-        }));
+        services.AddOpenApi("v1", o => o
+            .AddDocumentTransformer((doc, _, _) =>
+            {
+                doc.Info.Title = "Tailorly Remote API";
+                doc.Info.Version = "v1";
+                return Task.CompletedTask;
+            })
+            .AddDocumentTransformer<ProblemOpenApiTransformer>());
         services.AddHttpContextAccessor();
 
         // Data

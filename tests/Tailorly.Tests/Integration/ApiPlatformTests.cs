@@ -69,8 +69,12 @@ public sealed class ApiPlatformTests(PostgresAppFixture fx)
         req.Headers.Add("X-XSRF-TOKEN", token);
         var res = await client.SendAsync(req, Ct);
 
-        // CSRF passes; the route itself only allows GET.
-        res.StatusCode.Should().NotBe(HttpStatusCode.Forbidden);
+        // CSRF passes; the route itself only allows GET, and a wrong method is reported like an unknown route.
+        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        res.Content.Headers.Allow.Should().BeEmpty();
+        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync(Ct));
+        doc.RootElement.GetProperty("status").GetInt32().Should().Be(404);
+        doc.RootElement.GetProperty("code").GetString().Should().Be("NOT_FOUND");
     }
 
     [Fact]

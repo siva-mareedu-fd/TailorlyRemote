@@ -7,7 +7,8 @@ install.cmd
 
 # Local runtime data
 .data/
-storage/
+/storage/
+/src/Tailorly.App/storage/
 logs/
 
 # .NET

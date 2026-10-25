@@ -21,6 +21,16 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
           }
         }
       }
@@ -34,6 +44,16 @@
         "responses": {
           "204": {
             "description": "No Content"
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
           }
         }
       }
@@ -41,6 +61,50 @@
   },
   "components": {
     "schemas": {
+      "ApiProblem": {
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "traceId"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable error code (ApiDesign §10)"
+          },
+          "detail": {
+            "type": "string"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "extra": {
+            "type": "object"
+          }
+        }
+      },
       "MetaLimits": {
         "required": [
           "resumeMaxMb",

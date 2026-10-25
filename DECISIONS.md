@@ -28,6 +28,12 @@ applied to the docs until the owner agrees.
 | 2026-10-25 | `Ai:Provider` accepts only `Fake` in M0 (startup fails otherwise). | The Anthropic provider (official SDK vs thin HttpClient) is chosen and built in M1. |
 | 2026-10-25 | `IFxRateProvider` has a config-driven `StaticFxRateProvider` placeholder. | The daily-cached public provider is needed in M3 (salary display). |
 | 2026-10-25 | Dependabot enabled for NuGet, npm, Docker and Actions. | SDD §14.2 supply-chain control. |
+| 2026-10-25 | M0 docs-conformance audit. `.gitignore`/`.dockerignore` storage rules anchored to the runtime folders (`/storage/`, `/src/Tailorly.App/storage/`). | The unanchored `storage/` also matched `Infrastructure/Storage/` (Git on Windows ignores case), so `LocalFileStore.cs` was never committed and a clean checkout did not build. |
+| 2026-10-25 | A wrong HTTP method on an existing route returns **404 `NOT_FOUND`** (not 405); the `Allow` header is dropped. | ApiDesign §1.2 does not list 405. Before, the body said `status: 405` with `code: NOT_FOUND`. |
+| 2026-10-25 | A transient database failure (`NpgsqlException.IsTransient`, raw or wrapped once) returns **503 `SERVICE_UNAVAILABLE`** instead of 500. | SDD §15.1: "DB unavailable → API returns 503". The code is not in the catalogue yet (proposal 6). |
+| 2026-10-25 | OpenAPI declares the §1.1 error body as schema `ApiProblem` and adds it as the `default` response of every operation (`ProblemOpenApiTransformer`). The SPA uses the generated type. | The contract snapshot had no error shape, so the SPA kept a hand-written copy that could drift. |
+| 2026-10-25 | `/healthz` and `/readyz` stay **out of the OpenAPI document**. | They are outside `/api/v1`, take no input, and are called by Compose/Caddy/CI, not by the SPA. ApiDesign §4.1 lists them; their contract is the status code only. |
+| 2026-10-25 | The M0 seed covers `ai_task_config` and `feature_flags` only. `job_sources` + `source_health` seed rows (DatabaseDesign §5) arrive with their tables in M2. | M0 builds the account tables only (§3.1); the other tables do not exist yet. |
 
 ## Proposed doc changes (not applied)
 
@@ -36,3 +42,8 @@ applied to the docs until the owner agrees.
 3. **PRD §12** lists Dashboard and Jobs list as separate pages; the final design merges them into **Shortlist**. Propose: update §12 to the design's screen list.
 4. **SDD §14.4** says CSP has "no inline scripts" without exception. Propose: note the Admin-only Hangfire dashboard exception.
 5. **DatabaseDesign / SDD §16.3**: document where Data Protection keys live (volume `dpkeys`) and that they must be backed up with the documents volume.
+6. **ApiDesign §10**: add `SERVICE_UNAVAILABLE` (503): "A dependency other than the AI provider (the database) is unavailable; retry later." §1.2 already lists 503 as "dependency unavailable", but the only 503 code is `AI_UNAVAILABLE`.
+7. **ApiDesign §10**: say that `FILE_TOO_LARGE` (413) also covers any request body over its limit (1 MB JSON, §7), and `UNSUPPORTED_FILE_TYPE` (415) any unsupported `Content-Type`. These are the only 413/415 codes and the platform returns them for non-upload requests too.
+8. **ApiDesign §1.2**: state that a wrong method on an existing path returns `404 NOT_FOUND` (no 405).
+9. **DatabaseDesign §3.1 / §3.7**: add the two foreign-key indexes EF creates by convention, `ix_audit_log_actor_user_id` and `ix_ai_task_config_updated_by`. The first is needed anyway: deleting a user runs `ON DELETE SET NULL` on `audit_log`, which would otherwise scan the whole table. Also note that the Identity tables keep Identity's own column types (`varchar(256)` for names/emails), an exception to the "`text`, no length limits" rule in §1.
+10. **SDD §13.2 / §14.2** ("pinned base images"): the dev-only Mailpit service uses `axllent/mailpit:latest`, and Gotenberg is pinned only to major `8`. Propose: pin both to exact versions when Gotenberg is enabled (M7, PDF), and let Dependabot bump them.

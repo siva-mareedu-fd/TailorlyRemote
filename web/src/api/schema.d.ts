@@ -40,6 +40,20 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ApiProblem: {
+            type: string;
+            title: string;
+            /** Format: int32 */
+            status: number;
+            /** @description Stable error code (ApiDesign §10) */
+            code: string;
+            detail?: string;
+            traceId: string;
+            errors?: {
+                [key: string]: string[];
+            };
+            extra?: Record<string, never>;
+        };
         MetaLimits: {
             /** Format: int32 */
             resumeMaxMb: number;
@@ -80,6 +94,15 @@ export interface operations {
                     "application/json": components["schemas"]["MetaResponse"];
                 };
             };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
         };
     };
     GetCsrfToken: {
@@ -97,6 +120,15 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
             };
         };
     };

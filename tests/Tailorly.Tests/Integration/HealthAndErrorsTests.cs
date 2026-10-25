@@ -37,6 +37,19 @@ public sealed class HealthAndErrorsTests(PostgresAppFixture fx)
     }
 
     [Fact]
+    public async Task Api_returns_503_problem_when_database_is_unreachable()
+    {
+        await using var down = new TailorlyAppFactory("Host=127.0.0.1;Port=1;Database=x;Username=x;Password=x;Timeout=1");
+        var res = await down.CreateHttpsClient().GetAsync("/api/v1/meta", Ct);
+
+        res.StatusCode.Should().Be(HttpStatusCode.ServiceUnavailable);
+        res.Content.Headers.ContentType!.MediaType.Should().Be("application/problem+json");
+        using var doc = JsonDocument.Parse(await res.Content.ReadAsStringAsync(Ct));
+        doc.RootElement.GetProperty("code").GetString().Should().Be("SERVICE_UNAVAILABLE");
+        doc.RootElement.GetProperty("traceId").GetString().Should().NotBeNullOrWhiteSpace();
+    }
+
+    [Fact]
     public async Task Unknown_api_route_returns_problem_details_with_code_and_trace_id()
     {
         var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/does-not-exist");

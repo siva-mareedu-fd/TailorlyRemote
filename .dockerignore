@@ -10,6 +10,7 @@ web/dist/
 deploy/.env
 .docx/
 .data/
-**/storage/
+storage/
+src/Tailorly.App/storage/
 **/TestResults/
 install.cmd
