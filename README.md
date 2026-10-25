@@ -5,8 +5,22 @@
 Tailorly Remote helps developers in India find remote jobs that are actually open to them, and tailors their
 résumé (.docx) to each job without breaking formatting or inventing facts.
 
-**Status:** M1 (accounts and consent, résumé upload/parse/profile, AI runner, budgets). See
-`docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+**Status:** M2 (preferences, job sourcing, source compliance, admin sources/companies/coverage). See
+`docs/PRD_TailorlyRemote.md` §15 for the milestone plan. M3 starts only after the one-week coverage review.
+
+### What works (M2)
+- **Preferences** (`/preferences`, onboarding steps 3–4): search scope, roles, cities, work modes, job types, hiring
+  models, salary, match score, exclusions, digest schedule; saved with a concurrency token.
+- **Companies to watch**: paste a Greenhouse/Lever/Ashby board URL; the server checks it through the platform's fixed
+  public API (never the URL you typed), up to 25 per user, and polls it right away.
+- **Job sourcing**: a `FetchSources` dispatcher (every 10 min) runs each enabled source when its
+  `poll_interval_minutes` is due, isolated (one failure never stops the others) and recorded in `source_health`.
+  Remote OK (feed) and Greenhouse boards ship enabled; Himalayas, Jobicy, WWR, Lever and Ashby ship disabled.
+  Listings are normalised to plain text, de-duplicated (an employer ATS listing suppresses an aggregator copy, which
+  keeps its own apply link), linked to known companies, and purged on expiry/retention.
+- **Admin console** (`/admin`, Admin role): Status, Sources (terms-review guard, enable/disable, run now), Companies
+  (seed list of 169 verified boards, add/verify/override) and the **Coverage** report (India-eligible jobs per day by
+  source and role).
 
 ### What works (M1)
 Journey A up to profile review: sign up (consent, optional invite code) → verify email (link by email) → sign in →
@@ -64,6 +78,10 @@ TAILORLY_LOCAL_RESUMES=/path/to/docx-folder TAILORLY_LOCAL_RESUMES_REPORT=/tmp/r
   dotnet test --project tests/Tailorly.Tests --filter-method "*Real_resumes_in_a_local_folder*"
 ```
 
+Source tests never touch the network: every source `HttpClient` gets a fake handler that serves the real responses
+saved in `tests/Tailorly.Tests/Fixtures/Sources` (see its README) and records every outbound call, so tests assert the
+exact requests made (incremental fetches, SSRF cases with zero calls).
+
 Trust tests worth knowing: `IsolationTests` discovers every `/api/v1` route and fails on one that is not classified
 (new routes are covered automatically); `LogScanTests` runs the M1 flows with verbose logging and fails if résumé
 text, prompts, replies, emails, passwords or tokens appear in any log event; `UploadSafetyTests` and
@@ -103,8 +121,20 @@ docker compose -f deploy/docker-compose.yml run --rm migrate                    
 dotnet ef migrations add <Name> --project src/Tailorly.App --output-dir Infrastructure/Data/Migrations
 dotnet ef migrations has-pending-model-changes --project src/Tailorly.App           # CI check
 ```
-Seed data: `ai_task_config` (model per task), `feature_flags`, the `Admin` role, and the Admin role for
-`Admin__BootstrapEmail` once that account exists.
+Seed data: `ai_task_config` (model per task), `feature_flags`, `job_sources` + `source_health` (compliance flags,
+enabled state, poll intervals), the `Admin` role, and the Admin role for `Admin__BootstrapEmail` once that account
+exists. Existing rows are never overwritten, so admin changes survive redeploys.
+
+### Start sourcing (first run)
+1. Sign in as an Admin (register with `Admin__BootstrapEmail`, then re-run `--seed` / the `migrate` service).
+2. Admin console → **Companies** → **Load seed list** (169 boards from `watched_companies.seed.json`; verified in the
+   background).
+3. Admin console → **Sources** → **Run now** on Greenhouse (or wait for its 6-hour schedule). Remote OK runs on the
+   next 10-minute tick.
+4. Admin console → **Coverage** shows India-eligible jobs per day by source and role. Run for a week before M3.
+
+Enabling another source needs its terms reviewed first (tick **Terms reviewed**, then enable). Keep Himalayas off
+until Himalayas confirms in writing that a personal job-matching service is allowed.
 
 ### Regenerate the TypeScript API client
 ```bash
@@ -130,6 +160,12 @@ following PRD Appendix A). No secrets live in the repository. `Ai__Provider=Fake
 | `DeletionLog__Path` | Off-DB deletion log (Compose: volume `deletionlog`) |
 | `Consent__Version` | Current Privacy Notice version; users re-consent when it changes |
 | `RateLimits__{bucket}__PermitLimit` / `__WindowSeconds` | Rate limits (ApiDesign §6, plus `auth-register-email`, `auth-mail-email`, `auth-resend-user`) |
+| `Sources__UserAgent`, `Sources__TimeoutSeconds`, `Sources__CircuitOpenMinutes` | Source HTTP: user agent, per-attempt timeout (15 s), how long a 429/403 keeps a source off (60 min, or `Retry-After`) |
+| `Sources__DefaultRequestsPerMinute`, `Sources__{key}__RequestsPerMinute` | Per-source rate limit (default 60/min) |
+| `Sources__Himalayas__ApiKey` | Optional Himalayas key (higher limits) |
+| `Fetch__MaxPagesPerRun`, `Fetch__FirstRunBackfillDays`, `Fetch__BoardBulkDetailThreshold` | Feed page cap (50), first-run backfill (14 days), new-job count above which a board is read once with content (25) |
+
+Poll intervals are not configuration: they are `job_sources.poll_interval_minutes`, edited in Admin → Sources.
 
 To run the stack with the real model: set `Ai__Provider=Anthropic` and `Anthropic__ApiKey=...` in `deploy/.env`,
 then `docker compose -f deploy/docker-compose.yml --profile dev up -d`. Verification and reset emails land in Mailpit
@@ -157,6 +193,8 @@ otherwise come back (SDD §13.4). The full runbook arrives with M6.
 
 ## Open items before launch
 - Written reply from Himalayas on whether a per-user matching service is permitted. Keep Himalayas disabled until confirmed.
+- We Work Remotely's terms could not be read automatically (403); review them in a browser before building/enabling it.
+- One-week coverage report review with the owner before M3.
 - Adzuna is excluded from the MVP.
 - Confirm the default assumptions in PRD §17 (INR default, unclear-eligibility handling, tones, 600K/1.4M split).
 - Legal review of the privacy notice (résumé text is processed by an AI provider).
