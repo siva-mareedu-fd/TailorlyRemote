@@ -29,16 +29,3 @@ export function PlaceholderPage({
     </div>
   );
 }
-
-/** Content for the auth card (sign-in/sign-up), built in M1. */
-export function AuthPlaceholder({ title, lead }: { title: string; lead: string }) {
-  return (
-    <>
-      <h2 className="mb-1 text-[22px] tracking-[-0.02em]">{title}</h2>
-      <p className="mb-[18px] text-sm text-muted">{lead}</p>
-      <div className="empty">
-        Sign-in and sign-up are built in <span className="font-mono">M1</span>.
-      </div>
-    </>
-  );
-}

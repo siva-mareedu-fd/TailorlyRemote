@@ -2,15 +2,27 @@ import { Moon, Sun } from 'lucide-react';
 import { NavLink } from 'react-router';
 import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
-import { useMeta } from '@/api/queries';
+import { useMeta, type Me } from '@/api/queries';
 import { useTheme } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { adminNav, mainNav, type NavItem } from './routes';
 
-/** Percent used per budget bucket; null until the usage API exists (M1). */
+/** Percent used per budget bucket (from GET /usage); null while loading or before the email is verified. */
 export interface BudgetSnapshot {
   discovery: number | null;
   documents: number | null;
+}
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] ?? '·').slice(0, 2);
+  return letters.toUpperCase();
+}
+
+/** "Ravi Kumar" → "Ravi K." as in the prototype's user row. */
+function shortName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : name;
 }
 
 function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
@@ -55,10 +67,12 @@ function BudgetBar({ label, percent }: { label: string; percent: number | null }
 
 export function Sidebar({
   budget,
+  me,
   showAdmin,
   onNavigate,
 }: {
   budget: BudgetSnapshot;
+  me: Me;
   showAdmin: boolean;
   onNavigate?: () => void;
 }) {
@@ -99,12 +113,15 @@ export function Sidebar({
       </div>
 
       <div className="flex items-center gap-[9px] p-2">
-        <div className="grid size-7 flex-none place-items-center rounded-avatar bg-[#23221b] font-mono text-xs font-semibold text-signal">
-          ··
+        <div
+          className="grid size-7 flex-none place-items-center rounded-avatar bg-[#23221b] font-mono text-xs font-semibold text-signal"
+          aria-hidden="true"
+        >
+          {initials(me.displayName)}
         </div>
-        <div className="min-w-0 flex-1 text-[13px] leading-tight text-ink-text">
-          Not signed in
-          <small className="block text-[11px] text-ink-muted">Asia/Kolkata</small>
+        <div className="min-w-0 flex-1 truncate text-[13px] leading-tight text-ink-text">
+          {shortName(me.displayName)}
+          <small className="block text-[11px] text-ink-muted">{me.timeZone}</small>
         </div>
         <Button
           variant="icon"

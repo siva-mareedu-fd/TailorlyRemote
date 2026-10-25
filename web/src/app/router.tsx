@@ -1,15 +1,23 @@
-import { createBrowserRouter, Navigate } from 'react-router';
-import { AuthPlaceholder, PlaceholderPage } from '@/pages/Placeholder';
+import { createBrowserRouter } from 'react-router';
+import { AccountPage } from '@/pages/AccountPage';
+import { AuthPage } from '@/pages/auth/AuthPage';
+import { ConfirmDeletionPage, ResetPasswordPage, VerifyEmailPage } from '@/pages/auth/EmailLinkPages';
+import { PrivacyPage, TermsPage } from '@/pages/auth/LegalPages';
 import { NotFoundPage } from '@/pages/NotFound';
+import { OnboardingPage } from '@/pages/OnboardingPage';
+import { PlaceholderPage } from '@/pages/Placeholder';
+import { ResumePage } from '@/pages/ResumePage';
+import { UsagePage } from '@/pages/UsagePage';
 import { AppShell } from './AppShell';
 import { AuthLayout } from './AuthLayout';
+import { HomeRedirect, RequireAuth } from './RequireAuth';
 
-// One empty page per screen in design/tailorly-app.html, labelled with the milestone that builds it.
+// Screens from design/tailorly-app.html; those not built yet carry the milestone that builds them.
 export const router = createBrowserRouter([
   {
     element: <AppShell />,
     children: [
-      { index: true, element: <Navigate to="/shortlist" replace /> },
+      { index: true, element: <HomeRedirect /> },
       {
         path: 'shortlist',
         element: (
@@ -47,12 +55,7 @@ export const router = createBrowserRouter([
           />
         ),
       },
-      {
-        path: 'resume',
-        element: (
-          <PlaceholderPage title="Résumé" sub="Your .docx, its parsed profile and versions." milestone="M1" narrow />
-        ),
-      },
+      { path: 'resume', element: <ResumePage /> },
       {
         path: 'preferences',
         element: (
@@ -64,23 +67,8 @@ export const router = createBrowserRouter([
           />
         ),
       },
-      {
-        path: 'usage',
-        element: (
-          <PlaceholderPage title="Usage" sub="Discovery and Documents budgets this month." milestone="M5" narrow />
-        ),
-      },
-      {
-        path: 'account',
-        element: (
-          <PlaceholderPage
-            title="Account"
-            sub="Profile, password, consent and account deletion."
-            milestone="M1"
-            narrow
-          />
-        ),
-      },
+      { path: 'usage', element: <UsagePage /> },
+      { path: 'account', element: <AccountPage /> },
       {
         path: 'admin',
         element: (
@@ -93,24 +81,21 @@ export const router = createBrowserRouter([
   {
     path: 'onboarding',
     element: (
-      <div className="h-full overflow-auto">
-        <PlaceholderPage
-          title="Welcome to Tailorly"
-          sub="Consent → upload → review profile → preferences → schedule."
-          milestone="M1"
-          narrow
-        />
-      </div>
+      <RequireAuth>
+        <OnboardingPage />
+      </RequireAuth>
     ),
   },
   {
     element: <AuthLayout />,
     children: [
-      { path: 'signin', element: <AuthPlaceholder title="Welcome back" lead="Sign in to see today’s shortlist." /> },
-      {
-        path: 'signup',
-        element: <AuthPlaceholder title="Create your account" lead="Remote roles open to India, scored for you." />,
-      },
+      { path: 'signin', element: <AuthPage mode="signin" /> },
+      { path: 'signup', element: <AuthPage mode="signup" /> },
+      { path: 'verify-email', element: <VerifyEmailPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'confirm-deletion', element: <ConfirmDeletionPage /> },
+      { path: 'privacy', element: <PrivacyPage /> },
+      { path: 'terms', element: <TermsPage /> },
     ],
   },
 ]);
