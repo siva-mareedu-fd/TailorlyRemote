@@ -60,7 +60,8 @@ public sealed class FakeModelProviderTests
     public async Task Returns_the_task_fixture_with_deterministic_usage()
     {
         var provider = new FakeModelProvider();
-        var req = new ModelRequest("resume_parse", "claude-sonnet-5-5", "system", null, "user text", 4000, 0m);
+        var req = new ModelRequest("resume_parse", "claude-sonnet-5-5", "system", null,
+            [new ModelMessage(ModelRole.User, "user text")], 4000, null, null);
 
         var a = await provider.SendAsync(req, Ct);
         var b = await provider.SendAsync(req, Ct);
@@ -75,8 +76,25 @@ public sealed class FakeModelProviderTests
     [Fact]
     public async Task Unknown_task_returns_empty_json_object()
     {
-        var res = await new FakeModelProvider().SendAsync(new ModelRequest("nope", "m", "s", null, "u", 100, 0m), Ct);
+        var res = await new FakeModelProvider().SendAsync(
+            new ModelRequest("nope", "m", "s", null, [new ModelMessage(ModelRole.User, "u")], 100, null, null), Ct);
         res.Text.Should().Be("{}");
+    }
+
+    [Fact]
+    public async Task Scripted_replies_are_used_once_in_order_then_the_fixture()
+    {
+        var provider = new FakeModelProvider();
+        provider.Enqueue("resume_parse", "first");
+        provider.Enqueue("resume_parse", "second", stopReason: "max_tokens");
+        var req = new ModelRequest("resume_parse", "m", "s", null, [new ModelMessage(ModelRole.User, "u")], 4000, null, null);
+
+        (await provider.SendAsync(req, Ct)).Text.Should().Be("first");
+        var second = await provider.SendAsync(req, Ct);
+        second.Text.Should().Be("second");
+        second.StopReason.Should().Be("max_tokens");
+        (await provider.SendAsync(req, Ct)).Text.Should().Contain("totalYears");
+        provider.Requests.Should().HaveCount(3);
     }
 
     [Fact]

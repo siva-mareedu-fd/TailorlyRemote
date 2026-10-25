@@ -76,7 +76,110 @@ public sealed class AuditLog
     public string? Meta { get; set; }
 }
 
-// DatabaseDesign §3.7 (needed in M0 for the seed; budgets and usage tables arrive in M1)
+/// <summary>Status values of simple async resources (ApiDesign §3).</summary>
+public static class WorkStatus
+{
+    public const string Queued = "queued";
+    public const string Running = "running";
+    public const string Ready = "ready";
+    public const string Failed = "failed";
+}
+
+// DatabaseDesign §3.2
+public sealed class Resume : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserId { get; set; }
+    public int Version { get; set; }
+    public required string OriginalFilename { get; set; }
+    public int SizeBytes { get; set; }
+
+    /// <summary><c>{userId}/resumes/{id}/original.docx</c></summary>
+    public required string StorageKey { get; set; }
+
+    public required string Sha256 { get; set; }
+    public bool IsActive { get; set; }
+    public string ParseStatus { get; set; } = WorkStatus.Queued;
+    public string? ErrorCode { get; set; }
+
+    /// <summary>LayoutAnalyzer output (jsonb); no résumé text.</summary>
+    public string? FormatFindings { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public static string KeyFor(Guid userId, Guid resumeId) => $"{userId:D}/resumes/{resumeId:D}/original.docx";
+    public static string PrefixFor(Guid userId, Guid resumeId) => $"{userId:D}/resumes/{resumeId:D}/";
+}
+
+public sealed class ResumeProfile : IUserOwned
+{
+    public Guid ResumeId { get; set; }
+    public Guid UserId { get; set; }
+
+    /// <summary>AI output (jsonb), validated against the resume_parse schema.</summary>
+    public required string Parsed { get; set; }
+
+    /// <summary>User corrections (jsonb) laid over <see cref="Parsed"/>; null = none.</summary>
+    public string? UserEdited { get; set; }
+
+    public int SchemaVersion { get; set; } = 1;
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+public sealed class UserConfirmedSkill : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserId { get; set; }
+    public required string Skill { get; set; }
+
+    /// <summary>Lower-cased, trimmed; unique per user.</summary>
+    public required string SkillKey { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public static string KeyOf(string skill) => skill.Trim().ToLowerInvariant();
+}
+
+// DatabaseDesign §3.7
+public sealed class UserBudgetCounter : IUserOwned
+{
+    public Guid UserId { get; set; }
+
+    /// <summary><c>YYYY-MM</c> in Asia/Kolkata.</summary>
+    public required string PeriodKey { get; set; }
+
+    public required string Bucket { get; set; }
+    public long LimitTokens { get; set; }
+    public long UsedTokens { get; set; }
+}
+
+/// <summary>Per-call AI ledger. Written by the system; never holds prompts or replies.</summary>
+public sealed class AiUsage
+{
+    public long Id { get; set; }
+
+    /// <summary>Null for platform calls (enrichment) or after the user was deleted.</summary>
+    public Guid? UserId { get; set; }
+
+    public required string Task { get; set; }
+    public required string Model { get; set; }
+    public string? PromptVersion { get; set; }
+    public required string Bucket { get; set; }
+    public required string PeriodKey { get; set; }
+    public int InputTokens { get; set; }
+    public int OutputTokens { get; set; }
+    public int CacheCreateTokens { get; set; }
+    public int CacheReadTokens { get; set; }
+    public int CountedTokens { get; set; }
+    public decimal? EstCostUsd { get; set; }
+    public int? LatencyMs { get; set; }
+    public bool Success { get; set; }
+    public string? ErrorCode { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+// DatabaseDesign §3.7
 public sealed class AiTaskConfig
 {
     public required string Task { get; set; }

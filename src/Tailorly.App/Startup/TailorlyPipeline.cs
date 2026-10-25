@@ -3,6 +3,8 @@ using Tailorly.App.Api;
 using Tailorly.App.Features.Accounts;
 using Tailorly.App.Features.Health;
 using Tailorly.App.Features.Meta;
+using Tailorly.App.Features.Resumes;
+using Tailorly.App.Features.Usage;
 using Tailorly.App.Infrastructure.Jobs;
 
 namespace Tailorly.App.Startup;
@@ -18,8 +20,7 @@ public static class TailorlyPipeline
         if (!app.Environment.IsDevelopment())
             app.UseHsts();
 
-        app.UseExceptionHandler();
-        app.UseStatusCodePages();
+        // Outside the exception handler, so it logs the final status (expected 4xx problems are not errors).
         app.UseSerilogRequestLogging(o =>
         {
             // Method, path, status and elapsed time only; never bodies or query strings.
@@ -28,6 +29,8 @@ public static class TailorlyPipeline
                 ? Serilog.Events.LogEventLevel.Error
                 : Serilog.Events.LogEventLevel.Information;
         });
+        app.UseExceptionHandler();
+        app.UseStatusCodePages();
 
         app.UseRouting();
         app.UseAuthentication();
@@ -40,6 +43,11 @@ public static class TailorlyPipeline
         var api = app.MapGroup("/api/v1").RequireRateLimiting(RateLimiting.ApiDefault);
         api.MapMetaEndpoints();
         api.MapCsrfEndpoints();
+        api.MapAuthEndpoints();
+        api.MapMeEndpoints();
+        api.MapResumeEndpoints();
+        api.MapConfirmedSkillsEndpoints();
+        api.MapUsageEndpoints();
 
         app.MapTailorlyHangfireDashboard();
 

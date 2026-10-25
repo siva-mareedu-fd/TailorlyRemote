@@ -33,6 +33,9 @@ public static class ErrorCodes
     public const string FormatUnavailable = "FORMAT_UNAVAILABLE";
     public const string TermsNotReviewed = "TERMS_NOT_REVIEWED";
     public const string AiUnavailable = "AI_UNAVAILABLE";
+
+    /// <summary>Resource error code: the model's reply failed validation twice (after one repair). Not in ApiDesign §10 yet (DECISIONS.md).</summary>
+    public const string AiInvalidOutput = "AI_INVALID_OUTPUT";
     public const string Timeout = "TIMEOUT";
     public const string InternalError = "INTERNAL_ERROR";
     public const string ServiceUnavailable = "SERVICE_UNAVAILABLE";

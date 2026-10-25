@@ -4,10 +4,16 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Anthropic;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
 using Serilog.Formatting.Compact;
+using Tailorly.App.Ai;
 using Tailorly.App.Api;
+using Tailorly.App.Features.Accounts;
 using Tailorly.App.Features.Health;
+using Tailorly.App.Features.Resumes;
+using Tailorly.App.Infrastructure;
 using Tailorly.App.Infrastructure.Ai;
 using Tailorly.App.Infrastructure.Data;
 using Tailorly.App.Infrastructure.Email;
@@ -33,11 +39,12 @@ public static class TailorlyServices
         builder.WebHost.ConfigureKestrel(k =>
         {
             k.AddServerHeader = false;
-            k.Limits.MaxRequestBodySize = MaxJsonBodyBytes; // upload endpoint raises this to 5 MB (M1)
+            k.Limits.MaxRequestBodySize = MaxJsonBodyBytes; // POST /resumes raises it to 5 MB for that request
         });
 
         services.AddSerilog((sp, lc) => lc
             .ReadFrom.Configuration(config)
+            .ReadFrom.Services(sp) // extra sinks registered in DI (the log-scan test captures events this way)
             .Enrich.FromLogContext()
             .Destructure.With<PiiDestructuringPolicy>()
             .Enrich.With<PiiScrubbingEnricher>()
@@ -90,15 +97,24 @@ public static class TailorlyServices
             {
                 o.User.RequireUniqueEmail = true;
                 o.SignIn.RequireConfirmedEmail = false; // unverified users may sign in; protected actions check (M1)
+                // Length-based policy (NIST 800-63B): 10+ characters, passphrases welcome (design: auth-B sign-up hint).
                 o.Password.RequiredLength = 10;
+                o.Password.RequiredUniqueChars = 4;
                 o.Password.RequireNonAlphanumeric = false;
+                o.Password.RequireDigit = false;
+                o.Password.RequireUppercase = false;
+                o.Password.RequireLowercase = false;
                 o.Lockout.MaxFailedAccessAttempts = 5;
                 o.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                o.Tokens.PasswordResetTokenProvider = PasswordResetTokenProvider.ProviderName;
             })
             .AddRoles<AppRole>()
             .AddEntityFrameworkStores<AppDbContext>()
             .AddSignInManager()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<PasswordResetTokenProvider>(PasswordResetTokenProvider.ProviderName);
+        services.Configure<DataProtectionTokenProviderOptions>(o => o.TokenLifespan = TimeSpan.FromHours(24)); // verify link
+        services.Configure<PasswordResetTokenProviderOptions>(_ => { });
         services.ConfigureApplicationCookie(o =>
         {
             o.Cookie.Name = "__Host-tailorly";
@@ -125,12 +141,62 @@ public static class TailorlyServices
         services.AddSingleton<IFileStore, LocalFileStore>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
         services.AddSingleton<IFxRateProvider, StaticFxRateProvider>();
-        var aiProvider = config["Ai:Provider"] ?? "Fake";
-        if (!aiProvider.Equals("Fake", StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException($"Ai:Provider '{aiProvider}' is not available yet (the Anthropic provider arrives in M1).");
-        services.AddSingleton<IModelProvider, FakeModelProvider>();
+        AddAi(services, config);
+
+        // Features (plain classes; no interfaces outside the five ports)
+        services.Configure<AppOptions>(config.GetSection("App"));
+        services.Configure<DeletionLogOptions>(config.GetSection("DeletionLog"));
+        services.AddSingleton<AppLinks>();
+        services.AddSingleton<AccountRateLimits>();
+        services.AddSingleton<ConsentIpHasher>();
+        services.AddSingleton<AccountDeletionTokens>();
+        services.AddSingleton<DeletionLog>();
+        services.AddScoped<AuditWriter>();
+        services.AddScoped<AccountEmailJob>();
+        services.AddScoped<PurgeDeletedAccountsJob>();
+        services.AddScoped<ParseResumeJob>();
+        services.AddScoped<SweepStuckWorkJob>();
         // IJobSource adapters are registered in M2.
 
         return builder;
+    }
+
+    /// <summary>AI runner (SDD §9): routing from ai_task_config, prompt files, budgets, ledger, one provider.</summary>
+    private static void AddAi(IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<AiOptions>(config.GetSection("Ai"));
+        services.Configure<BudgetOptions>(config.GetSection("Budgets"));
+        services.AddMemoryCache();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<PromptRegistry>();
+        services.AddSingleton<TaskConfigCache>();
+        services.AddSingleton<AiConcurrency>();
+        services.AddScoped<BudgetService>();
+        services.AddScoped<UsageLedger>();
+        services.AddScoped<IAiTaskRunner, AiTaskRunner>();
+
+        var provider = config["Ai:Provider"] ?? "Fake";
+        if (provider.Equals("Fake", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddSingleton<FakeModelProvider>();
+            services.AddSingleton<IModelProvider>(sp => sp.GetRequiredService<FakeModelProvider>());
+        }
+        else if (provider.Equals("Anthropic", StringComparison.OrdinalIgnoreCase))
+        {
+            var o = config.GetSection("Anthropic").Get<AnthropicOptions>() ?? new AnthropicOptions();
+            if (string.IsNullOrWhiteSpace(o.ApiKey))
+                throw new InvalidOperationException("Ai:Provider is Anthropic but Anthropic:ApiKey (env Anthropic__ApiKey) is not set.");
+            services.AddSingleton(new AnthropicClient
+            {
+                ApiKey = o.ApiKey,
+                MaxRetries = o.MaxRetries,
+                Timeout = TimeSpan.FromSeconds(o.TimeoutSeconds),
+            });
+            services.AddSingleton<IModelProvider, AnthropicModelProvider>();
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown Ai:Provider '{provider}'. Use Fake or Anthropic.");
+        }
     }
 }

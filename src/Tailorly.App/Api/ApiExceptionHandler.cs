@@ -21,6 +21,7 @@ public sealed partial class ApiExceptionHandler(IProblemDetailsService problems,
                 pd.Extensions["code"] = api.Code;
                 if (api.Extra is not null) pd.Extensions["extra"] = api.Extra;
                 if (api.Errors is not null) pd.Extensions["errors"] = api.Errors;
+                foreach (var (name, value) in api.Headers) http.Response.Headers[name] = value;
                 break;
             case BadHttpRequestException bad:
                 pd.Status = bad.StatusCode;

@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "resume_parse v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contact", "summary", "skills", "experience", "education", "certifications", "totalYears", "domains"],
+  "properties": {
+    "contact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "email", "phone", "location", "links"],
+      "properties": {
+        "name": { "anyOf": [{ "type": "string", "maxLength": 200 }, { "type": "null" }] },
+        "email": { "anyOf": [{ "type": "string", "maxLength": 254 }, { "type": "null" }] },
+        "phone": { "anyOf": [{ "type": "string", "maxLength": 50 }, { "type": "null" }] },
+        "location": { "anyOf": [{ "type": "string", "maxLength": 200 }, { "type": "null" }] },
+        "links": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 500 } }
+      }
+    },
+    "summary": { "anyOf": [{ "type": "string", "maxLength": 4000 }, { "type": "null" }] },
+    "skills": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "category"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "category": {
+            "type": "string",
+            "enum": ["language", "framework", "database", "cloud", "devops", "tool", "methodology", "domain", "soft", "other"]
+          }
+        }
+      }
+    },
+    "experience": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["company", "title", "start", "end", "bullets"],
+        "properties": {
+          "company": { "type": "string", "maxLength": 200 },
+          "title": { "type": "string", "maxLength": 200 },
+          "start": { "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }] },
+          "end": { "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }] },
+          "bullets": { "type": "array", "maxItems": 60, "items": { "type": "string", "maxLength": 2000 } }
+        }
+      }
+    },
+    "education": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["institution", "degree", "field", "start", "end"],
+        "properties": {
+          "institution": { "anyOf": [{ "type": "string", "maxLength": 300 }, { "type": "null" }] },
+          "degree": { "anyOf": [{ "type": "string", "maxLength": 300 }, { "type": "null" }] },
+          "field": { "anyOf": [{ "type": "string", "maxLength": 300 }, { "type": "null" }] },
+          "start": { "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }] },
+          "end": { "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }] }
+        }
+      }
+    },
+    "certifications": {
+      "type": "array",
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "issuer", "year"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 300 },
+          "issuer": { "anyOf": [{ "type": "string", "maxLength": 300 }, { "type": "null" }] },
+          "year": { "anyOf": [{ "type": "string", "maxLength": 20 }, { "type": "null" }] }
+        }
+      }
+    },
+    "totalYears": { "anyOf": [{ "type": "number", "minimum": 0, "maximum": 60 }, { "type": "null" }] },
+    "domains": { "type": "array", "maxItems": 20, "items": { "type": "string", "maxLength": 100 } }
+  }
+}

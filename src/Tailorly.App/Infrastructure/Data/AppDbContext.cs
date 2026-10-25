@@ -22,6 +22,11 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ICurren
     public DbSet<FeatureFlag> FeatureFlags => Set<FeatureFlag>();
     public DbSet<AuditLog> AuditLog => Set<AuditLog>();
     public DbSet<AiTaskConfig> AiTaskConfig => Set<AiTaskConfig>();
+    public DbSet<Resume> Resumes => Set<Resume>();
+    public DbSet<ResumeProfile> ResumeProfiles => Set<ResumeProfile>();
+    public DbSet<UserConfirmedSkill> UserConfirmedSkills => Set<UserConfirmedSkill>();
+    public DbSet<UserBudgetCounter> UserBudgetCounters => Set<UserBudgetCounter>();
+    public DbSet<AiUsage> AiUsage => Set<AiUsage>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

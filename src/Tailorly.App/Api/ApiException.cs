@@ -18,4 +18,16 @@ public sealed class ApiException(
     public string? Detail { get; } = detail;
     public IReadOnlyDictionary<string, object?>? Extra { get; } = extra;
     public IDictionary<string, string[]>? Errors { get; } = errors;
+
+    /// <summary>
+    /// Response headers to send with the problem (e.g. <c>Retry-After</c>). Set here, not on the response, because the
+    /// exception handler clears the response before writing the problem.
+    /// </summary>
+    public Dictionary<string, string> Headers { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    public ApiException WithHeader(string name, string value)
+    {
+        Headers[name] = value;
+        return this;
+    }
 }

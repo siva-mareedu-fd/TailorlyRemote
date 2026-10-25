@@ -215,6 +215,109 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AiUsage", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Bucket")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("bucket");
+
+                    b.Property<int>("CacheCreateTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("cache_create_tokens");
+
+                    b.Property<int>("CacheReadTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("cache_read_tokens");
+
+                    b.Property<int>("CountedTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("counted_tokens");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("error_code");
+
+                    b.Property<decimal?>("EstCostUsd")
+                        .HasPrecision(10, 5)
+                        .HasColumnType("numeric(10,5)")
+                        .HasColumnName("est_cost_usd");
+
+                    b.Property<int>("InputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("input_tokens");
+
+                    b.Property<int?>("LatencyMs")
+                        .HasColumnType("integer")
+                        .HasColumnName("latency_ms");
+
+                    b.Property<string>("Model")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("model");
+
+                    b.Property<int>("OutputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("output_tokens");
+
+                    b.Property<string>("PeriodKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("period_key");
+
+                    b.Property<string>("PromptVersion")
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_version");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("boolean")
+                        .HasColumnName("success");
+
+                    b.Property<string>("Task")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("task");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ai_usage");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_ai_usage_platform_day")
+                        .HasFilter("user_id IS NULL");
+
+                    b.HasIndex("UserId", "PeriodKey", "Bucket")
+                        .HasDatabaseName("ix_ai_usage_user_period");
+
+                    b.ToTable("ai_usage", (string)null);
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AppRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -427,6 +530,206 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.Resume", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("error_code");
+
+                    b.Property<string>("FormatFindings")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("format_findings");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("OriginalFilename")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("original_filename");
+
+                    b.Property<string>("ParseStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("queued")
+                        .HasColumnName("parse_status");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("sha256");
+
+                    b.Property<int>("SizeBytes")
+                        .HasColumnType("integer")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("storage_key");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer")
+                        .HasColumnName("version");
+
+                    b.HasKey("Id")
+                        .HasName("pk_resumes");
+
+                    b.HasIndex("UserId", "Version")
+                        .IsUnique()
+                        .HasDatabaseName("ux_resumes_user_version");
+
+                    b.HasIndex(new[] { "UserId" }, "ux_resumes_one_active")
+                        .IsUnique()
+                        .HasDatabaseName("ux_resumes_one_active")
+                        .HasFilter("is_active");
+
+                    b.HasIndex(new[] { "UserId" }, "ux_resumes_parse_inflight")
+                        .IsUnique()
+                        .HasDatabaseName("ux_resumes_parse_inflight")
+                        .HasFilter("parse_status IN ('queued','running')");
+
+                    b.ToTable("resumes", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_resumes_parse_status", "parse_status IN ('queued','running','ready','failed')");
+                        });
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.ResumeProfile", b =>
+                {
+                    b.Property<Guid>("ResumeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resume_id");
+
+                    b.Property<string>("Parsed")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("parsed");
+
+                    b.Property<string>("PromptVersion")
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_version");
+
+                    b.Property<int>("SchemaVersion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1)
+                        .HasColumnName("schema_version");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("UserEdited")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("user_edited");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("ResumeId")
+                        .HasName("pk_resume_profiles");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_resume_profiles_user_id");
+
+                    b.ToTable("resume_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserBudgetCounter", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<string>("PeriodKey")
+                        .HasColumnType("text")
+                        .HasColumnName("period_key");
+
+                    b.Property<string>("Bucket")
+                        .HasColumnType("text")
+                        .HasColumnName("bucket");
+
+                    b.Property<long>("LimitTokens")
+                        .HasColumnType("bigint")
+                        .HasColumnName("limit_tokens");
+
+                    b.Property<long>("UsedTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L)
+                        .HasColumnName("used_tokens");
+
+                    b.HasKey("UserId", "PeriodKey", "Bucket")
+                        .HasName("pk_user_budget_counters");
+
+                    b.ToTable("user_budget_counters", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_user_budget_counters_bucket", "bucket IN ('discovery','documents')");
+
+                            t.HasCheckConstraint("ck_user_budget_counters_limit", "limit_tokens >= 0");
+
+                            t.HasCheckConstraint("ck_user_budget_counters_used", "used_tokens >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserConfirmedSkill", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Skill")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("skill");
+
+                    b.Property<string>("SkillKey")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("skill_key");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_confirmed_skills");
+
+                    b.HasIndex("UserId", "SkillKey")
+                        .IsUnique()
+                        .HasDatabaseName("ux_user_confirmed_skills_key");
+
+                    b.ToTable("user_confirmed_skills", (string)null);
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserProfile", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -556,6 +859,15 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasConstraintName("fk_ai_task_config_asp_net_users_updated_by");
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AiUsage", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_ai_usage_asp_net_users_user_id");
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AuditLog", b =>
                 {
                     b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
@@ -563,6 +875,53 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasForeignKey("ActorUserId")
                         .OnDelete(DeleteBehavior.SetNull)
                         .HasConstraintName("fk_audit_log_asp_net_users_actor_user_id");
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.Resume", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_resumes_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.ResumeProfile", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.Resume", null)
+                        .WithOne()
+                        .HasForeignKey("Tailorly.App.Infrastructure.Data.ResumeProfile", "ResumeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_resume_profiles_resumes_resume_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_resume_profiles_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserBudgetCounter", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_budget_counters_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserConfirmedSkill", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_confirmed_skills_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserProfile", b =>

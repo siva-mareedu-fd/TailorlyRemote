@@ -42,6 +42,7 @@ public static class HangfireSetup
                 o.WorkerCount = config.GetValue("Hangfire:WorkerCount", 4);
                 o.Queues = ["default"];
             });
+            services.AddHostedService<RecurringJobs>();
         }
     }
 
