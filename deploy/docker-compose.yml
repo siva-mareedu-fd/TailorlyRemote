@@ -1,0 +1,110 @@
+# Tailorly Remote: single-VM deployment (SDD §13.2).
+#   docker compose -f deploy/docker-compose.yml up -d --build           caddy + app + postgres
+#   ... --profile dev up -d                                               + Mailpit (http://localhost:8025)
+#   ... --profile pdf up -d                                               + Gotenberg (PDF export, off by default)
+# Configuration comes from deploy/.env (copy deploy/.env.example). Only caddy publishes ports.
+
+name: tailorly
+
+x-app-env: &app-env
+  ConnectionStrings__Default: "Host=postgres;Port=5432;Database=tailorly;Username=tailorly;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}"
+  ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tailorly
+      POSTGRES_USER: tailorly
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tailorly -d tailorly"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    networks: [internal]
+
+  # One-shot: EF migrations + Hangfire schema + idempotent seed (`Tailorly.App --migrate`).
+  # The app itself never migrates on startup; it waits for this to finish.
+  migrate:
+    image: tailorly-app:${TAG:-local}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    command: ["--migrate"]
+    restart: "no"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+      Hangfire__ServerEnabled: "false"
+    volumes:
+      - dpkeys:/data/keys
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [internal]
+
+  app:
+    image: tailorly-app:${TAG:-local}
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      <<: *app-env
+    volumes:
+      - documents:/data/storage
+      - dpkeys:/data/keys       # cookie/antiforgery keys survive restarts and redeploys
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    networks: [internal]
+
+  caddy:
+    image: tailorly-web:${TAG:-local}
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    networks: [internal]
+
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    profiles: [pdf]
+    restart: unless-stopped
+    networks: [internal]
+
+  mailpit:
+    image: axllent/mailpit:latest
+    profiles: [dev]
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8025:8025"   # web UI, local machine only
+    networks: [internal]
+
+networks:
+  internal:
+
+volumes:
+  pgdata:
+  documents:
+  dpkeys:
+  caddy_data:
+  caddy_config:

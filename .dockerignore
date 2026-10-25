@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/node_modules/
+web/dist/
+.git/
+.github/
+.vs/
+.idea/
+.env
+deploy/.env
+.docx/
+.data/
+**/storage/
+**/TestResults/
+install.cmd
