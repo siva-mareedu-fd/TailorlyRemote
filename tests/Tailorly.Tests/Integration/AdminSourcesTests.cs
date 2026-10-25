@@ -97,6 +97,9 @@ public sealed class AdminSourcesTests(PostgresAppFixture fx) : IAsyncLifetime
         var gh = await ApiClient.JsonAsync(await admin.Api.GetAsync("/api/v1/admin/companies?platform=greenhouse&origin=seed&pageSize=5"));
         gh.GetProperty("total").GetInt32().Should().BeGreaterThanOrEqualTo(100, "the Greenhouse seed alone covers the ≥ 100 boards of M2");
         gh.GetProperty("items").GetArrayLength().Should().Be(5);
+        var capped = await ApiClient.JsonAsync(await admin.Api.GetAsync("/api/v1/admin/companies?pageSize=500"));
+        capped.GetProperty("pageSize").GetInt32().Should().Be(50, "ApiDesign §1 caps pageSize at 50");
+        capped.GetProperty("items").GetArrayLength().Should().Be(50);
         var search = await ApiClient.JsonAsync(await admin.Api.GetAsync("/api/v1/admin/companies?q=gitlab"));
         search.GetProperty("items").EnumerateArray().Should().ContainSingle(i => i.GetProperty("boardToken").GetString() == "gitlab");
     }

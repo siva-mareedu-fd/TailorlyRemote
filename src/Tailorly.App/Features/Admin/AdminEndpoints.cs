@@ -136,7 +136,7 @@ public static partial class AdminEndpoints
         string? status, string? origin, string? q, int? page, int? pageSize, CancellationToken ct)
     {
         var p = Math.Max(1, page ?? 1);
-        var size = Math.Clamp(pageSize ?? 20, 1, 100);
+        var size = Math.Clamp(pageSize ?? 20, 1, 50); // ApiDesign §1: default 20, max 50
         var query = from l in db.CompanyAtsLinks.AsNoTracking()
                     join c in db.Companies.AsNoTracking() on l.CompanyId equals c.Id
                     select new { l, c };
