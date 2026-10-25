@@ -1,8 +1,10 @@
 using Serilog;
 using Tailorly.App.Api;
 using Tailorly.App.Features.Accounts;
+using Tailorly.App.Features.Admin;
 using Tailorly.App.Features.Health;
 using Tailorly.App.Features.Meta;
+using Tailorly.App.Features.Preferences;
 using Tailorly.App.Features.Resumes;
 using Tailorly.App.Features.Usage;
 using Tailorly.App.Infrastructure.Jobs;
@@ -48,6 +50,9 @@ public static class TailorlyPipeline
         api.MapResumeEndpoints();
         api.MapConfirmedSkillsEndpoints();
         api.MapUsageEndpoints();
+        api.MapPreferencesEndpoints();
+        api.MapWatchedCompaniesEndpoints();
+        api.MapAdminGroup().MapAdminReports();
 
         app.MapTailorlyHangfireDashboard();
 

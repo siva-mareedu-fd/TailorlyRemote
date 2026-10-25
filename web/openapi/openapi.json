@@ -950,10 +950,682 @@
           }
         }
       }
+    },
+    "/api/v1/preferences": {
+      "get": {
+        "tags": [
+          "Preferences"
+        ],
+        "operationId": "GetPreferences",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Preferences"
+        ],
+        "operationId": "UpdatePreferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreferencesDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/watched-companies": {
+      "get": {
+        "tags": [
+          "Preferences"
+        ],
+        "operationId": "ListWatchedCompanies",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WatchedCompanyDto"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Preferences"
+        ],
+        "operationId": "AddWatchedCompany",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWatchedCompanyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchedCompanyDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WatchedCompanyDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/watched-companies/{id}": {
+      "delete": {
+        "tags": [
+          "Preferences"
+        ],
+        "operationId": "RemoveWatchedCompany",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sources": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminListSources",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AdminSourceDto"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sources/{key}": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminUpdateSource",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSourceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminSourceDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/sources/{key}/run": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminRunSource",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunStartedDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/companies": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminListCompanies",
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "origin",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCompanyPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminAddCompany",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddCompanyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCompanyDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCompanyDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/companies/{linkId}": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminUpdateCompany",
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCompanyRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCompanyDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/companies/{linkId}/verify": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminVerifyCompany",
+        "parameters": [
+          {
+            "name": "linkId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminCompanyDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/companies/seed/load": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminLoadSeedCompanies",
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedLoadResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/coverage": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminCoverage",
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "roles",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoverageReportDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/status": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminStatus",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminStatusDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
+      "AddCompanyRequest": {
+        "required": [
+          "name",
+          "websiteDomain",
+          "platform",
+          "boardToken"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "websiteDomain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "platform": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "boardToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "AddConfirmedSkillRequest": {
         "required": [
           "skill"
@@ -964,6 +1636,316 @@
             "type": [
               "null",
               "string"
+            ]
+          }
+        }
+      },
+      "AddWatchedCompanyRequest": {
+        "required": [
+          "boardUrl",
+          "platform",
+          "boardToken",
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "boardUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "platform": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "boardToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "AdminCompanyDto": {
+        "required": [
+          "id",
+          "companyId",
+          "name",
+          "websiteDomain",
+          "platform",
+          "boardToken",
+          "status",
+          "origin",
+          "confidence",
+          "failureCount",
+          "openJobsCount",
+          "lastCheckedAt",
+          "nextRetryAt",
+          "watchers",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "websiteDomain": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "platform": {
+            "type": "string"
+          },
+          "boardToken": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "origin": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "failureCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openJobsCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "lastCheckedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "nextRetryAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "watchers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AdminCompanyPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminCompanyDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "AdminSourceDto": {
+        "required": [
+          "key",
+          "displayName",
+          "kind",
+          "enabled",
+          "hasAdapter",
+          "requiresAttribution",
+          "attributionText",
+          "attributionUrl",
+          "termsUrl",
+          "termsReviewedAt",
+          "requireSourceApplyUrl",
+          "forbidThirdPartyResolution",
+          "purgeOnExpiry",
+          "requiresLogoAttribution",
+          "pollIntervalMinutes",
+          "openJobs",
+          "health"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "hasAdapter": {
+            "type": "boolean"
+          },
+          "requiresAttribution": {
+            "type": "boolean"
+          },
+          "attributionText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attributionUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "termsUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "termsReviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "requireSourceApplyUrl": {
+            "type": "boolean"
+          },
+          "forbidThirdPartyResolution": {
+            "type": "boolean"
+          },
+          "purgeOnExpiry": {
+            "type": "boolean"
+          },
+          "requiresLogoAttribution": {
+            "type": "boolean"
+          },
+          "pollIntervalMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "health": {
+            "$ref": "#/components/schemas/SourceHealthDto"
+          }
+        }
+      },
+      "AdminStatusDto": {
+        "required": [
+          "sources",
+          "jobs",
+          "boards",
+          "queue",
+          "stuckResources",
+          "ai",
+          "platformEnrichmentTokensToday",
+          "platformEnrichmentCeiling",
+          "disk"
+        ],
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatusSourceDto"
+            }
+          },
+          "jobs": {
+            "$ref": "#/components/schemas/StatusJobsDto"
+          },
+          "boards": {
+            "$ref": "#/components/schemas/StatusBoardsDto"
+          },
+          "queue": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatusQueueDto"
+              }
+            ]
+          },
+          "stuckResources": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ai": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatusAiRowDto"
+            }
+          },
+          "platformEnrichmentTokensToday": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "platformEnrichmentCeiling": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "disk": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/StatusDiskDto"
+              }
             ]
           }
         }
@@ -1103,6 +2085,148 @@
           }
         }
       },
+      "CoverageDayDto": {
+        "required": [
+          "date",
+          "total",
+          "openToIndia",
+          "sources",
+          "roles"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openToIndia": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CoverageSourceDto"
+            }
+          },
+          "roles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        }
+      },
+      "CoverageReportDto": {
+        "required": [
+          "from",
+          "to",
+          "roles",
+          "basis",
+          "total",
+          "openToIndia",
+          "openToIndiaPerDay",
+          "sources",
+          "roleTotals",
+          "days"
+        ],
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date"
+          },
+          "to": {
+            "type": "string",
+            "format": "date"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "basis": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openToIndia": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openToIndiaPerDay": {
+            "type": "number",
+            "format": "double"
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CoverageSourceDto"
+            }
+          },
+          "roleTotals": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CoverageDayDto"
+            }
+          }
+        }
+      },
+      "CoverageSourceDto": {
+        "required": [
+          "sourceKey",
+          "total",
+          "worldwide",
+          "indiaEligible",
+          "restricted",
+          "unclear"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "worldwide": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "indiaEligible": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "restricted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unclear": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openToIndia": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "DeletionStatusResponse": {
         "required": [
           "status"
@@ -1203,6 +2327,7 @@
         "type": "string",
         "format": "binary"
       },
+      "JsonElement": { },
       "LoginRequest": {
         "required": [
           "email",
@@ -1546,6 +2671,129 @@
           }
         }
       },
+      "PreferencesDto": {
+        "required": [
+          "searchScope",
+          "targetRoles",
+          "locations",
+          "workModes",
+          "jobTypes",
+          "hiringModels",
+          "salaryMin",
+          "salaryMax",
+          "salaryCurrency",
+          "experienceLevel",
+          "minMatchScore",
+          "includeUnspecifiedSalary",
+          "showUnclearEligibility",
+          "timezoneOverlap",
+          "excludedCompanies",
+          "excludedKeywords",
+          "scheduleEnabled",
+          "scheduleLocalTime",
+          "digestWhenEmpty",
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "searchScope": {
+            "type": "string"
+          },
+          "targetRoles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "workModes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "jobTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hiringModels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "salaryMin": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "salaryMax": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "salaryCurrency": {
+            "type": "string"
+          },
+          "experienceLevel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "minMatchScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "includeUnspecifiedSalary": {
+            "type": "boolean"
+          },
+          "showUnclearEligibility": {
+            "type": "boolean"
+          },
+          "timezoneOverlap": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "excludedCompanies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludedKeywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scheduleEnabled": {
+            "type": "boolean"
+          },
+          "scheduleLocalTime": {
+            "type": "string"
+          },
+          "digestWhenEmpty": {
+            "type": "boolean"
+          },
+          "concurrencyToken": {
+            "type": "string"
+          }
+        }
+      },
       "ProfileEdits": {
         "type": "object",
         "properties": {
@@ -1805,6 +3053,263 @@
           }
         }
       },
+      "RunStartedDto": {
+        "required": [
+          "runId"
+        ],
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          }
+        }
+      },
+      "SeedLoadResult": {
+        "required": [
+          "added",
+          "skipped"
+        ],
+        "type": "object",
+        "properties": {
+          "added": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "skipped": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SourceHealthDto": {
+        "required": [
+          "lastSuccessAt",
+          "lastFailureAt",
+          "lastError",
+          "consecutiveFailures",
+          "circuitOpenUntil",
+          "callsThisMonth",
+          "lastRunStats"
+        ],
+        "type": "object",
+        "properties": {
+          "lastSuccessAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastFailureAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "lastError": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "consecutiveFailures": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "circuitOpenUntil": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "callsThisMonth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastRunStats": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JsonElement"
+              }
+            ]
+          }
+        }
+      },
+      "StatusAiRowDto": {
+        "required": [
+          "task",
+          "model",
+          "calls",
+          "tokens",
+          "errors"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "errors": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatusBoardsDto": {
+        "required": [
+          "resolved",
+          "notFound",
+          "blocked"
+        ],
+        "type": "object",
+        "properties": {
+          "resolved": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notFound": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "blocked": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatusDiskDto": {
+        "required": [
+          "totalBytes",
+          "freeBytes",
+          "usedPercent"
+        ],
+        "type": "object",
+        "properties": {
+          "totalBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "freeBytes": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usedPercent": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatusJobsDto": {
+        "required": [
+          "total",
+          "openCanonical",
+          "firstSeenLast24h",
+          "limited",
+          "full"
+        ],
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "openCanonical": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "firstSeenLast24h": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "limited": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "full": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "StatusQueueDto": {
+        "required": [
+          "enqueued",
+          "processing",
+          "scheduled",
+          "failed"
+        ],
+        "type": "object",
+        "properties": {
+          "enqueued": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "processing": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "scheduled": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "StatusSourceDto": {
+        "required": [
+          "key",
+          "displayName",
+          "enabled",
+          "health"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "health": {
+            "$ref": "#/components/schemas/SourceHealthDto"
+          }
+        }
+      },
+      "UpdateCompanyRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UpdateMeRequest": {
         "required": [
           "displayName",
@@ -1833,6 +3338,177 @@
           }
         }
       },
+      "UpdatePreferencesRequest": {
+        "required": [
+          "searchScope",
+          "targetRoles",
+          "locations",
+          "workModes",
+          "jobTypes",
+          "hiringModels",
+          "salaryMin",
+          "salaryMax",
+          "salaryCurrency",
+          "experienceLevel",
+          "minMatchScore",
+          "includeUnspecifiedSalary",
+          "showUnclearEligibility",
+          "timezoneOverlap",
+          "excludedCompanies",
+          "excludedKeywords",
+          "scheduleEnabled",
+          "scheduleLocalTime",
+          "digestWhenEmpty",
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "searchScope": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "targetRoles": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "locations": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "workModes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "jobTypes": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "hiringModels": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "salaryMin": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "salaryMax": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "salaryCurrency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "experienceLevel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "minMatchScore": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "includeUnspecifiedSalary": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "showUnclearEligibility": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "timezoneOverlap": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "excludedCompanies": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "excludedKeywords": {
+            "type": [
+              "null",
+              "array"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "scheduleEnabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "scheduleLocalTime": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "digestWhenEmpty": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "concurrencyToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UpdateProfileRequest": {
         "required": [
           "userEdited"
@@ -1847,6 +3523,57 @@
               {
                 "$ref": "#/components/schemas/ProfileEdits"
               }
+            ]
+          }
+        }
+      },
+      "UpdateSourceRequest": {
+        "required": [
+          "enabled",
+          "pollIntervalMinutes",
+          "termsReviewedAt",
+          "clearTermsReview",
+          "attributionText",
+          "attributionUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "pollIntervalMinutes": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "termsReviewedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "clearTermsReview": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "attributionText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attributionUrl": {
+            "type": [
+              "null",
+              "string"
             ]
           }
         }
@@ -1929,6 +3656,46 @@
             ]
           }
         }
+      },
+      "WatchedCompanyDto": {
+        "required": [
+          "id",
+          "name",
+          "platform",
+          "boardToken",
+          "status",
+          "openJobsCount",
+          "origin"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "platform": {
+            "type": "string"
+          },
+          "boardToken": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "openJobsCount": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "origin": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -1947,6 +3714,12 @@
     },
     {
       "name": "Resumes"
+    },
+    {
+      "name": "Preferences"
+    },
+    {
+      "name": "Admin"
     }
   ]
 }
