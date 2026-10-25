@@ -8,6 +8,8 @@ export type ParsedProfile = Schemas['ParsedProfile'];
 export type ProfileEdits = Schemas['ProfileEdits'];
 export type Usage = Schemas['UsageResponse'];
 export type ConfirmedSkill = Schemas['ConfirmedSkillDto'];
+export type Preferences = Schemas['PreferencesDto'];
+export type WatchedCompany = Schemas['WatchedCompanyDto'];
 
 export const keys = {
   meta: ['meta'] as const,
@@ -17,6 +19,8 @@ export const keys = {
   resume: (id: string) => ['resumes', id] as const,
   profile: (id: string) => ['resumes', id, 'profile'] as const,
   skills: ['confirmed-skills'] as const,
+  preferences: ['preferences'] as const,
+  watched: ['watched-companies'] as const,
 };
 
 /** `GET /api/v1/meta`: version, consent version, tones and limits for the SPA. */
@@ -247,5 +251,52 @@ export function useRemoveConfirmedSkill() {
     mutationFn: (id: string) =>
       call(() => api.DELETE('/api/v1/me/confirmed-skills/{id}', { params: { path: { id } } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.skills }),
+  });
+}
+
+// ---------- preferences and watch list (ApiDesign §4.5) ----------
+
+export function usePreferences(enabled = true) {
+  return useQuery({
+    queryKey: keys.preferences,
+    queryFn: () => call(() => api.GET('/api/v1/preferences')),
+    enabled,
+    staleTime: 30_000,
+  });
+}
+
+/** Full replacement with the concurrency token; `409 CONCURRENT_UPDATE` when another tab saved first. */
+export function useSavePreferences() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: Preferences) => call(() => api.PUT('/api/v1/preferences', { body })),
+    onSuccess: (saved) => qc.setQueryData(keys.preferences, saved),
+  });
+}
+
+export function useWatchedCompanies(enabled = true) {
+  return useQuery({
+    queryKey: keys.watched,
+    queryFn: () => call(() => api.GET('/api/v1/watched-companies')),
+    enabled,
+  });
+}
+
+export function useAddWatchedCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (boardUrl: string) =>
+      call(() =>
+        api.POST('/api/v1/watched-companies', { body: { boardUrl, platform: null, boardToken: null, name: null } }),
+      ),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.watched }),
+  });
+}
+
+export function useRemoveWatchedCompany() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => call(() => api.DELETE('/api/v1/watched-companies/{id}', { params: { path: { id } } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.watched }),
   });
 }

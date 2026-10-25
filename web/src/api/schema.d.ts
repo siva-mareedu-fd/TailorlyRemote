@@ -356,12 +356,286 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetPreferences"];
+        put: operations["UpdatePreferences"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/watched-companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListWatchedCompanies"];
+        put?: never;
+        post: operations["AddWatchedCompany"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/watched-companies/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["RemoveWatchedCompany"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminListSources"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sources/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminUpdateSource"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/sources/{key}/run": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminRunSource"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminListCompanies"];
+        put?: never;
+        post: operations["AdminAddCompany"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{linkId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["AdminUpdateCompany"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/{linkId}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminVerifyCompany"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/companies/seed/load": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AdminLoadSeedCompanies"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminCoverage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["AdminStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AddCompanyRequest: {
+            name: null | string;
+            websiteDomain: null | string;
+            platform: null | string;
+            boardToken: null | string;
+        };
         AddConfirmedSkillRequest: {
             skill: null | string;
+        };
+        AddWatchedCompanyRequest: {
+            boardUrl: null | string;
+            platform: null | string;
+            boardToken: null | string;
+            name: null | string;
+        };
+        AdminCompanyDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            name: string;
+            websiteDomain: null | string;
+            platform: string;
+            boardToken: string;
+            status: string;
+            origin: string;
+            confidence: string;
+            /** Format: int32 */
+            failureCount: number;
+            /** Format: int32 */
+            openJobsCount: null | number;
+            /** Format: date-time */
+            lastCheckedAt: null | string;
+            /** Format: date-time */
+            nextRetryAt: null | string;
+            /** Format: int32 */
+            watchers: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        AdminCompanyPage: {
+            items: components["schemas"]["AdminCompanyDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            total: number;
+        };
+        AdminSourceDto: {
+            key: string;
+            displayName: string;
+            kind: string;
+            enabled: boolean;
+            hasAdapter: boolean;
+            requiresAttribution: boolean;
+            attributionText: null | string;
+            attributionUrl: null | string;
+            termsUrl: null | string;
+            /** Format: date-time */
+            termsReviewedAt: null | string;
+            requireSourceApplyUrl: boolean;
+            forbidThirdPartyResolution: boolean;
+            purgeOnExpiry: boolean;
+            requiresLogoAttribution: boolean;
+            /** Format: int32 */
+            pollIntervalMinutes: number;
+            /** Format: int32 */
+            openJobs: number;
+            health: components["schemas"]["SourceHealthDto"];
+        };
+        AdminStatusDto: {
+            sources: components["schemas"]["StatusSourceDto"][];
+            jobs: components["schemas"]["StatusJobsDto"];
+            boards: components["schemas"]["StatusBoardsDto"];
+            queue: null | components["schemas"]["StatusQueueDto"];
+            /** Format: int32 */
+            stuckResources: number;
+            ai: components["schemas"]["StatusAiRowDto"][];
+            /** Format: int64 */
+            platformEnrichmentTokensToday: number;
+            /** Format: int64 */
+            platformEnrichmentCeiling: null | number;
+            disk: null | components["schemas"]["StatusDiskDto"];
         };
         ApiProblem: {
             type: string;
@@ -401,6 +675,52 @@ export interface components {
         ConsentRequest: {
             version: null | string;
         };
+        CoverageDayDto: {
+            /** Format: date */
+            date: string;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            openToIndia: number;
+            sources: components["schemas"]["CoverageSourceDto"][];
+            roles: {
+                [key: string]: number;
+            };
+        };
+        CoverageReportDto: {
+            /** Format: date */
+            from: string;
+            /** Format: date */
+            to: string;
+            roles: string[];
+            basis: string;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            openToIndia: number;
+            /** Format: double */
+            openToIndiaPerDay: number;
+            sources: components["schemas"]["CoverageSourceDto"][];
+            roleTotals: {
+                [key: string]: number;
+            };
+            days: components["schemas"]["CoverageDayDto"][];
+        };
+        CoverageSourceDto: {
+            sourceKey: string;
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            worldwide: number;
+            /** Format: int32 */
+            indiaEligible: number;
+            /** Format: int32 */
+            restricted: number;
+            /** Format: int32 */
+            unclear: number;
+            /** Format: int32 */
+            openToIndia?: number;
+        };
         DeletionStatusResponse: {
             status: string;
         };
@@ -431,6 +751,7 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        JsonElement: unknown;
         LoginRequest: {
             email: null | string;
             password: null | string;
@@ -501,6 +822,31 @@ export interface components {
             name: string;
             category: string;
         };
+        PreferencesDto: {
+            searchScope: string;
+            targetRoles: string[];
+            locations: string[];
+            workModes: string[];
+            jobTypes: string[];
+            hiringModels: string[];
+            /** Format: int64 */
+            salaryMin: null | number;
+            /** Format: int64 */
+            salaryMax: null | number;
+            salaryCurrency: string;
+            experienceLevel: null | string;
+            /** Format: int32 */
+            minMatchScore: number;
+            includeUnspecifiedSalary: boolean;
+            showUnclearEligibility: boolean;
+            timezoneOverlap: null | string;
+            excludedCompanies: string[];
+            excludedKeywords: string[];
+            scheduleEnabled: boolean;
+            scheduleLocalTime: string;
+            digestWhenEmpty: boolean;
+            concurrencyToken: string;
+        };
         ProfileEdits: {
             contact?: null | components["schemas"]["ParsedContact"];
             summary?: null | string;
@@ -555,13 +901,128 @@ export interface components {
         ResumeUploadForm: {
             file: components["schemas"]["IFormFile"];
         };
+        RunStartedDto: {
+            runId: string;
+        };
+        SeedLoadResult: {
+            /** Format: int32 */
+            added: number;
+            /** Format: int32 */
+            skipped: number;
+        };
+        SourceHealthDto: {
+            /** Format: date-time */
+            lastSuccessAt: null | string;
+            /** Format: date-time */
+            lastFailureAt: null | string;
+            lastError: null | string;
+            /** Format: int32 */
+            consecutiveFailures: number;
+            /** Format: date-time */
+            circuitOpenUntil: null | string;
+            /** Format: int32 */
+            callsThisMonth: number;
+            lastRunStats: null | components["schemas"]["JsonElement"];
+        };
+        StatusAiRowDto: {
+            task: string;
+            model: string;
+            /** Format: int32 */
+            calls: number;
+            /** Format: int64 */
+            tokens: number;
+            /** Format: int32 */
+            errors: number;
+        };
+        StatusBoardsDto: {
+            /** Format: int32 */
+            resolved: number;
+            /** Format: int32 */
+            notFound: number;
+            /** Format: int32 */
+            blocked: number;
+        };
+        StatusDiskDto: {
+            /** Format: int64 */
+            totalBytes: number;
+            /** Format: int64 */
+            freeBytes: number;
+            /** Format: int32 */
+            usedPercent: number;
+        };
+        StatusJobsDto: {
+            /** Format: int32 */
+            total: number;
+            /** Format: int32 */
+            openCanonical: number;
+            /** Format: int32 */
+            firstSeenLast24h: number;
+            /** Format: int32 */
+            limited: number;
+            /** Format: int32 */
+            full: number;
+        };
+        StatusQueueDto: {
+            /** Format: int64 */
+            enqueued: number;
+            /** Format: int64 */
+            processing: number;
+            /** Format: int64 */
+            scheduled: number;
+            /** Format: int64 */
+            failed: number;
+        };
+        StatusSourceDto: {
+            key: string;
+            displayName: string;
+            enabled: boolean;
+            health: components["schemas"]["SourceHealthDto"];
+        };
+        UpdateCompanyRequest: {
+            status: null | string;
+        };
         UpdateMeRequest: {
             displayName: null | string;
             timeZone: null | string;
             notificationEmail: null | string;
         };
+        UpdatePreferencesRequest: {
+            searchScope: null | string;
+            targetRoles: null | string[];
+            locations: null | string[];
+            workModes: null | string[];
+            jobTypes: null | string[];
+            hiringModels: null | string[];
+            /** Format: int64 */
+            salaryMin: null | number;
+            /** Format: int64 */
+            salaryMax: null | number;
+            salaryCurrency: null | string;
+            experienceLevel: null | string;
+            /** Format: int32 */
+            minMatchScore: null | number;
+            includeUnspecifiedSalary: null | boolean;
+            showUnclearEligibility: null | boolean;
+            timezoneOverlap: null | string;
+            excludedCompanies: null | string[];
+            excludedKeywords: null | string[];
+            scheduleEnabled: null | boolean;
+            scheduleLocalTime: null | string;
+            digestWhenEmpty: null | boolean;
+            concurrencyToken: null | string;
+        };
         UpdateProfileRequest: {
             userEdited: null | components["schemas"]["ProfileEdits"];
+        };
+        UpdateSourceRequest: {
+            enabled: null | boolean;
+            /** Format: int32 */
+            pollIntervalMinutes: null | number;
+            /** Format: date-time */
+            termsReviewedAt: null | string;
+            clearTermsReview: null | boolean;
+            attributionText: null | string;
+            attributionUrl: null | string;
         };
         UsageBucketDto: {
             bucket: string;
@@ -584,6 +1045,17 @@ export interface components {
             /** Format: uuid */
             userId: string;
             token: null | string;
+        };
+        WatchedCompanyDto: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            platform: string;
+            boardToken: string;
+            status: string;
+            /** Format: int32 */
+            openJobsCount: null | number;
+            origin: string;
         };
     };
     responses: never;
@@ -1423,6 +1895,498 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetPreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    UpdatePreferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdatePreferencesRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PreferencesDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    ListWatchedCompanies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchedCompanyDto"][];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AddWatchedCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddWatchedCompanyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchedCompanyDto"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WatchedCompanyDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    RemoveWatchedCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminListSources: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSourceDto"][];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminUpdateSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateSourceRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSourceDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminRunSource: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                key: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RunStartedDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminListCompanies: {
+        parameters: {
+            query?: {
+                platform?: string;
+                status?: string;
+                origin?: string;
+                q?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompanyPage"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminAddCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AddCompanyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompanyDto"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompanyDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminUpdateCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                linkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCompanyRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompanyDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminVerifyCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                linkId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminCompanyDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminLoadSeedCompanies: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SeedLoadResult"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminCoverage: {
+        parameters: {
+            query?: {
+                from?: string;
+                to?: string;
+                roles?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageReportDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AdminStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminStatusDto"];
+                };
             };
             /** @description Error (RFC 7807) */
             default: {
