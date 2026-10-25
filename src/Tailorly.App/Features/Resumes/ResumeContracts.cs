@@ -63,3 +63,6 @@ public sealed record ConfirmedSkillDto(Guid Id, string Skill, DateTimeOffset Cre
 }
 
 public sealed record AddConfirmedSkillRequest(string? Skill);
+
+/// <summary>OpenAPI shape of <c>POST /resumes</c>: multipart/form-data with one field <c>file</c> (read manually).</summary>
+public sealed record ResumeUploadForm(IFormFile File);

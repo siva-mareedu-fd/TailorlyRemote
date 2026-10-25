@@ -527,7 +527,7 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/IFormFile"
+                "$ref": "#/components/schemas/ResumeUploadForm"
               }
             }
           },
@@ -1791,6 +1791,17 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ResumeUploadForm": {
+        "required": [
+          "file"
+        ],
+        "type": "object",
+        "properties": {
+          "file": {
+            "$ref": "#/components/schemas/IFormFile"
           }
         }
       },

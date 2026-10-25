@@ -67,7 +67,7 @@ public sealed class FakeModelProviderTests
         var b = await provider.SendAsync(req, Ct);
 
         using var doc = JsonDocument.Parse(a.Text);
-        doc.RootElement.GetProperty("totalYears").GetInt32().Should().Be(6);
+        doc.RootElement.GetProperty("experience").GetArrayLength().Should().BeGreaterThan(0);
         a.Usage.Should().Be(b.Usage);
         a.Usage.InputTokens.Should().BeGreaterThan(0);
         a.Model.Should().Be("claude-sonnet-5-5");

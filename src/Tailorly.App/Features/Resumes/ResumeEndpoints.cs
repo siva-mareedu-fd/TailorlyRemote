@@ -30,7 +30,7 @@ public static partial class ResumeEndpoints
     {
         var g = api.MapGroup("/resumes").WithTags("Resumes").RequireAuthorization(AuthPolicies.User);
         g.MapPost("", Upload).WithName("UploadResume").RequireRateLimiting(RateLimiting.AiStart)
-            .Accepts<IFormFile>("multipart/form-data");
+            .Accepts<ResumeUploadForm>("multipart/form-data");
         g.MapGet("", List).WithName("ListResumes");
         g.MapGet("/{id:guid}", Get).WithName("GetResume");
         g.MapGet("/{id:guid}/download", Download).WithName("DownloadResume").RequireRateLimiting(RateLimiting.Download)
