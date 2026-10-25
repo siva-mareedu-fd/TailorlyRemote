@@ -3,6 +3,7 @@ import { Navigate, useLocation } from 'react-router';
 import { useLogout, useMe, useResumes } from '@/api/queries';
 import { Alert, LoadError, PageLoading } from '@/components/Feedback';
 import { Button } from '@/components/ui/button';
+import { SignedInContext } from './signedIn';
 
 /** Signed-in, active account required; otherwise to /signin with `?next=` (same-site only). */
 export function RequireAuth({ children }: { children: ReactNode }) {
@@ -36,7 +37,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
         </Alert>
       </div>
     );
-  return <>{children}</>;
+  return <SignedInContext.Provider value={me.data}>{children}</SignedInContext.Provider>;
 }
 
 /** `/`: new users go to onboarding until a résumé is parsed; everyone else to the shortlist. */

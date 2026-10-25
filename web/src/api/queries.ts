@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api, ApiError, call, ensureCsrf, uploadResume, type Schemas } from './client';
 
 export type Me = Schemas['MeResponse'];
@@ -122,13 +122,21 @@ export function useRegister() {
   });
 }
 
+/**
+ * Forget the signed-in user. `me` goes to null first, which notifies every `useMe` observer (so `RequireAuth`
+ * redirects), and only then is the rest of the cache dropped. `qc.clear()` first would detach those observers.
+ */
+function signedOut(qc: QueryClient) {
+  qc.setQueryData(keys.me, null);
+  qc.removeQueries({ predicate: (q) => q.queryKey[0] !== keys.me[0] });
+}
+
 export function useLogout() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: () => call(() => api.POST('/api/v1/auth/logout')),
     onSettled: async () => {
-      qc.clear();
-      qc.setQueryData(keys.me, null);
+      signedOut(qc);
       await ensureCsrf().catch(() => undefined);
     },
   });
@@ -193,10 +201,7 @@ export function useConfirmDeletion() {
   return useMutation({
     mutationFn: (body: { userId: string; token: string }) =>
       call(() => api.POST('/api/v1/account/confirm-deletion', { body })),
-    onSuccess: () => {
-      qc.clear();
-      qc.setQueryData(keys.me, null);
-    },
+    onSuccess: () => signedOut(qc),
   });
 }
 

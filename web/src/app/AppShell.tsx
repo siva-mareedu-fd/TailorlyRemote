@@ -1,12 +1,13 @@
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
 import { Outlet } from 'react-router';
-import { useMe, useUsage } from '@/api/queries';
+import { useUsage } from '@/api/queries';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { ConsentDialog, VerifyEmailBanner } from './AccountNotices';
 import { RequireAuth } from './RequireAuth';
 import { Sidebar, type BudgetSnapshot } from './Sidebar';
+import { useSignedInMe } from './signedIn';
 
 /**
  * App shell from design/tailorly-app.html: 224 px ink sidebar on desktop; below 861 px a top bar with a
@@ -22,7 +23,7 @@ export function AppShell() {
 
 function Shell() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const me = useMe().data!;
+  const me = useSignedInMe();
   const usage = useUsage(me.emailVerified);
   const percent = (bucket: string) => usage.data?.buckets.find((b) => b.bucket === bucket)?.percentUsed ?? null;
   const budget: BudgetSnapshot = { discovery: percent('discovery'), documents: percent('documents') };

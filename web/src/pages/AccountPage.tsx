@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { isApiError } from '@/api/client';
-import { useChangePassword, useLogout, useMe, useRequestDeletion, useUpdateMe } from '@/api/queries';
+import { useChangePassword, useLogout, useRequestDeletion, useUpdateMe } from '@/api/queries';
+import { useSignedInMe } from '@/app/signedIn';
 import { Alert } from '@/components/Feedback';
 import { PasswordField, TextField } from '@/components/Field';
 import { useToast } from '@/components/Toast';
@@ -44,7 +45,7 @@ export function AccountPage() {
 }
 
 function ProfileForm() {
-  const me = useMe().data!;
+  const me = useSignedInMe();
   const update = useUpdateMe();
   const say = useToast();
   const [name, setName] = useState(me.displayName);
@@ -165,7 +166,7 @@ function PasswordForm() {
 }
 
 function PrivacyCard() {
-  const me = useMe().data!;
+  const me = useSignedInMe();
   return (
     <div className="card">
       <h2>Privacy</h2>

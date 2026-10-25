@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import { useMe, useMeta, useRecordConsent, useResumes } from '@/api/queries';
+import { useMeta, useRecordConsent, useResumes } from '@/api/queries';
 import { VerifyEmailBanner } from '@/app/AccountNotices';
+import { useSignedInMe } from '@/app/signedIn';
 import { BrandMark } from '@/components/BrandMark';
 import { Alert, PageLoading } from '@/components/Feedback';
 import { useToast } from '@/components/Toast';
@@ -19,7 +20,7 @@ const STEPS = ['Résumé', 'Profile', 'Preferences', 'Schedule'];
  * preferences and schedule join in M2, so the wizard ends after step 2 for now.
  */
 export function OnboardingPage() {
-  const me = useMe().data!;
+  const me = useSignedInMe();
   const resumes = useResumes(me.emailVerified);
   const [step, setStep] = useState(1);
   const navigate = useNavigate();
@@ -77,7 +78,7 @@ export function OnboardingPage() {
 }
 
 function StepUpload({ activeName }: { activeName: string | null }) {
-  const me = useMe().data!;
+  const me = useSignedInMe();
   const meta = useMeta();
   const consent = useRecordConsent();
   const upload = useResumeUpload();

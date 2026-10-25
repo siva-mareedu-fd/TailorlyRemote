@@ -1,8 +1,9 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, type RouteObject } from 'react-router';
 import { AccountPage } from '@/pages/AccountPage';
 import { AuthPage } from '@/pages/auth/AuthPage';
 import { ConfirmDeletionPage, ResetPasswordPage, VerifyEmailPage } from '@/pages/auth/EmailLinkPages';
 import { PrivacyPage, TermsPage } from '@/pages/auth/LegalPages';
+import { ErrorPage } from '@/pages/ErrorPage';
 import { NotFoundPage } from '@/pages/NotFound';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { PlaceholderPage } from '@/pages/Placeholder';
@@ -13,7 +14,7 @@ import { AuthLayout } from './AuthLayout';
 import { HomeRedirect, RequireAuth } from './RequireAuth';
 
 // Screens from design/tailorly-app.html; those not built yet carry the milestone that builds them.
-export const router = createBrowserRouter([
+const routes: RouteObject[] = [
   {
     element: <AppShell />,
     children: [
@@ -98,4 +99,6 @@ export const router = createBrowserRouter([
       { path: 'terms', element: <TermsPage /> },
     ],
   },
-]);
+];
+
+export const router = createBrowserRouter([{ errorElement: <ErrorPage />, children: routes }]);
