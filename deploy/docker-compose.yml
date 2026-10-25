@@ -9,6 +9,8 @@ name: tailorly
 x-app-env: &app-env
   ConnectionStrings__Default: "Host=postgres;Port=5432;Database=tailorly;Username=tailorly;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}"
   ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+  App__PublicBaseUrl: https://${SITE_ADDRESS:-localhost}
+  DeletionLog__Path: /data/deletion-log/deletions.log
 
 services:
   postgres:
@@ -60,6 +62,7 @@ services:
     volumes:
       - documents:/data/storage
       - dpkeys:/data/keys       # cookie/antiforgery keys survive restarts and redeploys
+      - deletionlog:/data/deletion-log   # off-DB deletion log (SDD §13.4); shipped off-VM with the backups
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -106,5 +109,6 @@ volumes:
   pgdata:
   documents:
   dpkeys:
+  deletionlog:
   caddy_data:
   caddy_config:

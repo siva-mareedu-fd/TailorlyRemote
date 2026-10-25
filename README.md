@@ -5,7 +5,15 @@
 Tailorly Remote helps developers in India find remote jobs that are actually open to them, and tailors their
 résumé (.docx) to each job without breaking formatting or inventing facts.
 
-**Status:** M0 (scaffold, platform, app shell). See `docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+**Status:** M1 (accounts and consent, résumé upload/parse/profile, AI runner, budgets). See
+`docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+
+### What works (M1)
+Journey A up to profile review: sign up (consent, optional invite code) → verify email (link by email) → sign in →
+upload a `.docx` (every safety check of SDD §10.5) → the résumé is parsed in the background (`resume_parse`, fake or
+real Anthropic provider) → review and correct the parsed profile. Plus: password reset and change, profile and time
+zone, re-consent, résumé versions (download, activate, delete), confirmed skills, the monthly Usage page, and account
+deletion by email confirmation with a purge job.
 
 ## Prerequisites
 
@@ -40,10 +48,27 @@ dotnet build -warnaserror                # also regenerates web/openapi/openapi.
 dotnet test                              # all tests (needs Docker running for Testcontainers)
 dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Unit"          # unit only
 dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Integration"   # integration only
-dotnet run --project tests/Tailorly.Eval  # evaluation harness (no eval sets until M1)
+dotnet run --project tests/Tailorly.Eval  # evaluation harness (eval sets start in M3)
 
 cd web && npm ci && npm run lint && npm run build
 ```
+
+Opt-in test runs (skipped by default):
+```bash
+# Journey A against the real Anthropic API (one synthetic résumé, a few thousand Documents tokens)
+TAILORLY_LIVE_ANTHROPIC_KEY=sk-ant-... dotnet test --project tests/Tailorly.Tests --filter-class "*LiveAnthropicTests"
+# ...and re-record the fake provider's fixture from that real reply
+TAILORLY_RECORD_FIXTURES=1 TAILORLY_LIVE_ANTHROPIC_KEY=sk-ant-... dotnet test --project tests/Tailorly.Tests --filter-class "*LiveAnthropicTests"
+# Extractor check on your own résumés (never committed; asserts and reports counts only)
+TAILORLY_LOCAL_RESUMES=/path/to/docx-folder TAILORLY_LOCAL_RESUMES_REPORT=/tmp/report.txt \
+  dotnet test --project tests/Tailorly.Tests --filter-method "*Real_resumes_in_a_local_folder*"
+```
+
+Trust tests worth knowing: `IsolationTests` discovers every `/api/v1` route and fails on one that is not classified
+(new routes are covered automatically); `LogScanTests` runs the M1 flows with verbose logging and fails if résumé
+text, prompts, replies, emails, passwords or tokens appear in any log event; `UploadSafetyTests` and
+`DocxSafetyInspectorTests` cover macros, OLE, external links, zip bombs, nested archives, DOCTYPE, password protection
+and a PDF renamed to `.docx`.
 
 ### Run everything with Docker Compose (recommended)
 ```bash
@@ -93,6 +118,23 @@ CI fails if either file is out of date.
 Everything comes from environment variables (`deploy/.env` in Docker; see `deploy/.env.example` for every key,
 following PRD Appendix A). No secrets live in the repository. `Ai__Provider=Fake` works without an API key.
 
+| Key | Purpose |
+|---|---|
+| `Ai__Provider` | `Fake` (recorded fixtures, no key) or `Anthropic` (official .NET SDK; startup fails without a key) |
+| `Anthropic__ApiKey` | Anthropic API key (only with `Ai__Provider=Anthropic`) |
+| `Ai__Effort`, `Ai__Tasks__{task}__Effort` | Reasoning effort per call (`low` default). Model ids live only in `ai_task_config` |
+| `Ai__MaxConcurrentCalls` | Global limit on concurrent model calls (default 4) |
+| `Budgets__DiscoveryTokens`, `Budgets__DocumentsTokens` | Monthly per-user limits (600K / 1.4M); periods are `YYYY-MM` in Asia/Kolkata |
+| `App__PublicBaseUrl` | Origin used in email links (Compose sets `https://${SITE_ADDRESS}`) |
+| `Security__IpHashKey` | HMAC key for consent IP hashes (`openssl rand -hex 32`) |
+| `DeletionLog__Path` | Off-DB deletion log (Compose: volume `deletionlog`) |
+| `Consent__Version` | Current Privacy Notice version; users re-consent when it changes |
+| `RateLimits__{bucket}__PermitLimit` / `__WindowSeconds` | Rate limits (ApiDesign §6, plus `auth-register-email`, `auth-mail-email`, `auth-resend-user`) |
+
+To run the stack with the real model: set `Ai__Provider=Anthropic` and `Anthropic__ApiKey=...` in `deploy/.env`,
+then `docker compose -f deploy/docker-compose.yml --profile dev up -d`. Verification and reset emails land in Mailpit
+(http://localhost:8025).
+
 ## Source of truth
 
 | File | Authority |
@@ -107,6 +149,11 @@ following PRD Appendix A). No secrets live in the repository. `Ai__Provider=Fake
 Published prototypes: [app](https://claude.ai/artifact/4tG96dUJXB3AVjk7GLFSo3) ·
 [sign-in / sign-up](https://claude.ai/artifact/VD4jtxQ5wz4VPG1JCW2BYM).
 `CLAUDE.md` holds the standing instructions for Claude Code; `ClaudeCode_Prompts.md` has one prompt per milestone.
+
+## Restore runbook note (deletion log)
+After restoring a database backup, replay the purge for every user id in the deletion log
+(`/data/deletion-log/deletions.log`, copied by `backup.sh`): accounts deleted after the backup was taken would
+otherwise come back (SDD §13.4). The full runbook arrives with M6.
 
 ## Open items before launch
 - Written reply from Himalayas on whether a per-user matching service is permitted. Keep Himalayas disabled until confirmed.

@@ -14,6 +14,11 @@ $COMPOSE exec -T postgres pg_dump -U tailorly -d tailorly --format=custom --comp
 echo "[backup] archiving documents volume"
 $COMPOSE run --rm --no-deps -v "$OUT:/backup" --entrypoint tar app -czf /backup/documents.tgz -C /data storage
 
+# The deletion log lives outside the database on purpose (SDD §13.4): after restoring an older backup, replay the
+# purge for every id it lists. It must be stored off-VM separately from (and newer than) the dumps.
+echo "[backup] copying deletion log"
+$COMPOSE run --rm --no-deps -v "$OUT:/backup" --entrypoint sh app -c 'cp /data/deletion-log/deletions.log /backup/ 2>/dev/null || true'
+
 # TODO(M6): encrypt with a key held off-VM (e.g. age/gpg), upload to object storage, prune > 30 days,
 #           and email the admin on failure.
 echo "[backup] done: $OUT"

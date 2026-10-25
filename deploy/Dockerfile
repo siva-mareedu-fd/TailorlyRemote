@@ -18,13 +18,15 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 RUN apt-get update \
     && apt-get install -y --no-install-recommends tzdata curl \
     && rm -rf /var/lib/apt/lists/* \
-    && mkdir -p /data/storage /data/keys && chown "$APP_UID" /data/storage /data/keys
+    && mkdir -p /data/storage /data/keys /data/deletion-log \
+    && chown "$APP_UID" /data/storage /data/keys /data/deletion-log
 ENV ASPNETCORE_HTTP_PORTS=8080 \
     ASPNETCORE_ENVIRONMENT=Production \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     TZ=UTC \
     Storage__RootPath=/data/storage \
-    DataProtection__KeysPath=/data/keys
+    DataProtection__KeysPath=/data/keys \
+    DeletionLog__Path=/data/deletion-log/deletions.log
 WORKDIR /app
 COPY --from=build /app ./
 USER $APP_UID
