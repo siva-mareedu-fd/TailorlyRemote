@@ -64,7 +64,7 @@ public static class JobNormalizer
         {
             SourceKey = raw.SourceKey,
             ExternalId = raw.ExternalId,
-            DedupeKey = DedupeKey.Compute(company, title, locationClass, workMode),
+            DedupeKey = DedupeKey.Compute(company, title, locationClass),
             CompanyName = company,
             Title = title,
             LocationText = location,

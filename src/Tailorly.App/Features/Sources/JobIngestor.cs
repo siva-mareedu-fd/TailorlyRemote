@@ -61,7 +61,7 @@ public sealed class JobIngestor(AppDbContext db, DedupeResolver dedupe, CompanyL
                 continue;
             }
 
-            var changed = job.ContentHash != p.ContentHash || job.Title != p.Title || job.CompanyName != p.CompanyName
+            var changed = job.ContentHash != p.ContentHash || job.DedupeKey != p.DedupeKey || job.Title != p.Title || job.CompanyName != p.CompanyName
                           || job.LocationText != p.LocationText || job.ExpiresAt != p.ExpiresAt || job.ClosedAt is not null
                           || job.ApplyUrl != p.ApplyUrl || (company is not null && job.CompanyId != company);
             job.FetchedAt = now;

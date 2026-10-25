@@ -60,23 +60,17 @@ public static partial class NameNormalizer
 }
 
 /// <summary>
-/// <c>dedupe_key = sha1(norm(company) | norm(title) | location)</c> (SDD §8.3). The location part is coarse: every remote
-/// listing is <c>remote</c> and on-site/hybrid listings use their city, because sources describe the same remote role's
-/// region differently (Himalayas: a country list; Greenhouse: "Remote, India").
+/// <c>dedupe_key = sha1(norm(company) | norm(title) | location_class)</c> (SDD §8.3). The location class keeps the region
+/// (<c>remote-region:india</c>), so one role posted separately for several regions ("Remote - Canada", "Remote - USA")
+/// stays several listings and an India posting is never hidden behind a restricted one; Himalayas' country list and
+/// Greenhouse's "Remote, India" both classify as <c>remote-region:india</c> and still match.
 /// </summary>
 public static class DedupeKey
 {
-    public static string Compute(string company, string title, string locationClass, string? workMode)
+    public static string Compute(string company, string title, string locationClass)
     {
-        var loc = DedupeLocation(locationClass, workMode);
-        var input = $"{NameNormalizer.Company(company)}|{NameNormalizer.Title(title)}|{loc}";
+        var input = $"{NameNormalizer.Company(company)}|{NameNormalizer.Title(title)}|{locationClass}";
         return Convert.ToHexStringLower(SHA1.HashData(Encoding.UTF8.GetBytes(input)));
-    }
-
-    public static string DedupeLocation(string locationClass, string? workMode)
-    {
-        if (workMode == WorkModes.Remote || locationClass.StartsWith("remote", StringComparison.Ordinal)) return "remote";
-        return locationClass.StartsWith("city:", StringComparison.Ordinal) ? locationClass : "unknown";
     }
 }
 

@@ -21,22 +21,33 @@ public sealed class DedupeKeyTests
     [Fact]
     public void The_same_remote_role_gets_one_key_across_sources()
     {
-        // Himalayas: country list → remote-region:india; Greenhouse: "Remote, India" text; Remote OK: no location.
-        var himalayas = DedupeKey.Compute("Acme Cloud", "Senior Backend Engineer", "remote-region:india", WorkModes.Remote);
-        var greenhouse = DedupeKey.Compute("Acme Cloud Inc.", "Sr. Backend Engineer (Remote)", "remote-region:india", WorkModes.Remote);
-        var remoteOk = DedupeKey.Compute("ACME CLOUD", "Senior Back End Engineer", "unknown", WorkModes.Remote);
-        greenhouse.Should().Be(himalayas);
-        remoteOk.Should().Be(himalayas);
+        // Himalayas: country list ["India"]; Greenhouse: "Remote, India". Both classify as remote-region:india.
+        var himalayasClass = JobFields.LocationClass(WorkModes.Remote, ["India"], "India");
+        var greenhouseClass = JobFields.LocationClass(WorkModes.Remote, null, "Remote, India");
+        greenhouseClass.Should().Be(himalayasClass);
+        var himalayas = DedupeKey.Compute("Acme Cloud", "Senior Backend Engineer", himalayasClass);
+        DedupeKey.Compute("Acme Cloud Inc.", "Sr. Backend Engineer (Remote)", greenhouseClass).Should().Be(himalayas);
         himalayas.Should().MatchRegex("^[0-9a-f]{40}$");
+    }
+
+    [Fact]
+    public void One_role_posted_for_several_regions_stays_several_listings()
+    {
+        // Seen live: Abnormal posts "Senior Software Engineer - Model Platform" as "Remote - Canada" and "Remote - USA".
+        var canada = JobFields.LocationClass(WorkModes.Remote, null, "Remote - Canada");
+        var usa = JobFields.LocationClass(WorkModes.Remote, null, "Remote - USA");
+        var india = JobFields.LocationClass(WorkModes.Remote, null, "Remote - India");
+        var keys = new[] { canada, usa, india }.Select(c => DedupeKey.Compute("Abnormal", "Senior Software Engineer", c));
+        keys.Distinct().Should().HaveCount(3, "an India posting must never be hidden behind a restricted one");
     }
 
     [Fact]
     public void Different_cities_or_titles_get_different_keys()
     {
-        var a = DedupeKey.Compute("Acme", "Backend Engineer", "city:bengaluru", WorkModes.Onsite);
-        DedupeKey.Compute("Acme", "Backend Engineer", "city:pune", WorkModes.Onsite).Should().NotBe(a);
-        DedupeKey.Compute("Acme", "Frontend Engineer", "city:bengaluru", WorkModes.Onsite).Should().NotBe(a);
-        DedupeKey.Compute("Acme", "Backend Engineer", "unknown", WorkModes.Remote).Should().NotBe(a);
+        var a = DedupeKey.Compute("Acme", "Backend Engineer", "city:bengaluru");
+        DedupeKey.Compute("Acme", "Backend Engineer", "city:pune").Should().NotBe(a);
+        DedupeKey.Compute("Acme", "Frontend Engineer", "city:bengaluru").Should().NotBe(a);
+        DedupeKey.Compute("Acme", "Backend Engineer", "unknown").Should().NotBe(a);
     }
 }
 
