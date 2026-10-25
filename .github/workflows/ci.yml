@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'm*-*']
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+  DOTNET_NOLOGO: '1'
+
+jobs:
+  backend:
+    name: Backend (build, unit, integration)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore (NuGet audit fails the build on vulnerable packages)
+        run: |
+          dotnet tool restore
+          dotnet restore
+
+      - name: Build (warnings are errors)
+        run: dotnet build --no-restore -c Release -warnaserror
+
+      - name: OpenAPI contract snapshot is up to date
+        run: git diff --exit-code -- web/openapi/openapi.json
+
+      - name: EF model matches the migrations
+        run: dotnet ef migrations has-pending-model-changes --project src/Tailorly.App --no-build -c Release
+
+      - name: Unit tests
+        run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Unit"
+
+      - name: Integration tests (Testcontainers PostgreSQL)
+        run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Integration"
+
+      - name: Dependency vulnerability scan
+        run: |
+          dotnet list package --vulnerable --include-transitive 2>&1 | tee vuln.txt
+          if grep -q "has the following vulnerable packages" vuln.txt; then exit 1; fi
+
+  web:
+    name: Web (lint, build, audit)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+
+      - name: Generated API client matches openapi.json
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/api/schema.d.ts
+
+      - name: Lint
+        run: |
+          npm run lint
+          npx prettier --check "src/**/*.{ts,tsx,css}"
+
+      - name: Build
+        run: npm run build
+
+      - name: Dependency vulnerability scan
+        run: npm audit --audit-level=high
+
+  docker:
+    name: Container images
+    runs-on: ubuntu-latest
+    needs: [backend, web]
+    env:
+      POSTGRES_PASSWORD: ci-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build images
+        run: docker compose -f deploy/docker-compose.yml build
+      - name: Smoke test the stack
+        run: |
+          docker compose -f deploy/docker-compose.yml up -d --wait app caddy
+          curl -fsSk https://localhost/healthz
+          curl -fsSk https://localhost/readyz
+          curl -fsSk https://localhost/api/v1/meta
+          curl -fsSk https://localhost/ | grep -q '<div id="root">'
+      - name: Logs on failure
+        if: failure()
+        run: docker compose -f deploy/docker-compose.yml logs --no-color
