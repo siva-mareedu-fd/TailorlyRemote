@@ -44,7 +44,7 @@ public sealed partial class TenancyGuardTests
     {
         var owned = Model().GetEntityTypes().Where(e => typeof(IUserOwned).IsAssignableFrom(e.ClrType)).ToList();
         owned.Select(e => e.ClrType).Should().Contain([typeof(UserProfile), typeof(Resume), typeof(ResumeProfile),
-            typeof(UserConfirmedSkill), typeof(UserBudgetCounter)]);
+            typeof(UserConfirmedSkill), typeof(UserBudgetCounter), typeof(UserPreferences), typeof(UserWatchedCompany)]);
 
         foreach (var e in owned)
             e.GetDeclaredQueryFilters().Should().ContainSingle(f => f.Expression!.ToString().Contains("UserId", StringComparison.Ordinal),

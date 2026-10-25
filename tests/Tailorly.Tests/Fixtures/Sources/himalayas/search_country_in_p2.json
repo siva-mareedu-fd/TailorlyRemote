@@ -1,0 +1,277 @@
+{
+ "comments": "Search results come 20 to a page. Pass ?page=2, ?page=3 and so on for more; there is no cursor on search. Cursor pagination (nextCursor) is only on /jobs/api, the browse feed. 13/03/2026: The API has been updated to include the companySlug field in the response.",
+ "updatedAt": 1792866631,
+ "offset": 20,
+ "limit": 20,
+ "totalCount": 7629,
+ "jobs": [
+  {
+   "title": "Product Manager (Retention & Growth)",
+   "excerpt": "We are Clario, a consumer-focused company on a mission to make digital life easy.",
+   "companyName": "Clario",
+   "companySlug": "clario",
+   "companyLogo": "https://cdn-images.himalayas.app/df00e5vwoiy66nlfr8guvq7sytxr",
+   "employmentType": "Contractor",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [],
+   "timezoneRestrictions": [
+    -11,
+    -10,
+    -9.5,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    -4,
+    -3.5,
+    -3,
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    3,
+    3.5,
+    4,
+    4.5,
+    5,
+    5.5,
+    5.75,
+    6,
+    6.5,
+    7,
+    8,
+    8.75,
+    9,
+    9.5,
+    10,
+    10.5,
+    11,
+    12,
+    12.75,
+    13,
+    14
+   ],
+   "categories": [
+    "Product-Manager",
+    "Retention-Product-Manager",
+    "Growth-Product-Manager",
+    "Product-Owner",
+    "Senior-Growth-and-Retention-Product-Manager",
+    "Senior-Growth-Product-Manager",
+    "Senior-Product-Manager-For-Growth",
+    "Product-Growth-Manager",
+    "Product-Growth-and-Adoption-Manager",
+    "Growth-Strategy-Product-Manager"
+   ],
+   "parentCategories": [
+    "Product"
+   ],
+   "description": "<p><strong>We are <a href=\"https://himalayas.app/companies/clario\">Clario</a></strong>, a consumer-focused company on a mission to make digital life easy. We’re here to create smart yet simple apps with a human touch, empowering better productivity, security, and lifestyles. With mature products used by millions worldwide and years of in-house product development, we’re waiting to unleash your hidden talents and make you sparkle. Join us and let’s go together!</p><h4><strong>You’ll be responsible for</strong></h4><ul>\n<li><p>Optimize the entire user journey with a strong focus on user activation and the complete post-purchase lifecycle to drive retention and maximize key product metrics.</p></li>\n<li><p>Drive qualitative improvements and lead rigorous experimentation across a diverse portfolio of white-hat mobile products in various niches to achieve strategic goals, particularly focusing on Retention and LTV.</p></li>\n<li><p>Develop and test new user retention mechanics to ensure long-term engagement.</p></li>\n<li><p>Analyze user behavior to identify actionable opportunities for increasing retention and engagement, optimizing processes and driving qualitative changes.</p></li>\n<li><p>Evaluate competitors, user needs, and market trends, uncovering deep insights based on product analytics to drive strategic changes.</p></li>\n<li><p>Collaborate with cross-functional teams to delve into funnel and product analytics, identifying areas for improvement and implementing data-driven strategies to enhance overall performance.</p></li>\n<li><p>Work hands-on with Tableau and our Data Lake to find root causes, set up tracking control points, and automate reporting.</p></li>\n<li><p>Mentor and navigate teams by helping them spot bottlenecks, find actionable insights, and set clear objectives.</p></li>\n</ul><h4>What we expect from you</h4><ul>\n<li><p>5+ years of experience working as a Product Manager/Owner/Retention Manager in B2C products with mobile applications (subscription monetization models, w2a, Tier-1).</p></li>\n<li><p>Having focused, proven experience specifically working on user activation and retention mechanics – must have.</p></li>\n<li><p>Deep understanding of operating in a highly performance-marketing-driven environment.</p></li>\n<li><p>Solid experience in working with data, including conducting and analyzing A/B tests.</p></li>\n<li><p>Proven ability to effectively analyze user feedback and the competitive environment.</p></li>\n<li><p>Practical experience working directly with retention and engagement mechanics in mobile products.</p></li>\n<li><p>Strong team player with a proactive mindset and initiative in finding opportunities to improve.</p></li>\n<li><p>Data-driven approach combined with an ownership mindset, taking full responsibility for the results.</p></li>\n<li><p>You can demonstrate real-world case studies of successfully recovering product metrics during crises.</p></li>\n<li><p>Upper-Intermediate or higher level of English proficiency.</p></li>\n</ul><h4><strong>Hiring Process</strong></h4><p>Stage 1: Interview with HR (1h).</p><h3>Stage 2: Interview with C-level.</h3><h4><strong>What we offer for your success</strong></h4><ul>\n<li><p>Monthly bonus system based on key metrics.</p></li>\n<li><p>Very warm and friendly working environment and flexible working schedule.</p></li>\n<li><p>20 days off + paid national holidays, and 12 sick days paid by the company per year.</p></li>\n<li><p>Medical insurance, and health protection programs.</p></li>\n<li><p>Continuous professional development and growth opportunities.</p></li>\n</ul><p>We are not just a company, <strong>we are <a href=\"https://himalayas.app/companies/clario\">Clario</a></strong>! We put the customer at the heart of all that we do, we achieve our best together, take responsibility, and challenge our limits to create a difference!</p><p>To apply for this position, please send your CV (in English only) with a detailed description of your career, experience, skills, and projects. We guarantee the privacy of any information received.</p><h3>LET’S GO TOGETHER!</h3><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792866631,
+   "expiryDate": 1798050629,
+   "applicationLink": "https://himalayas.app/companies/clario/jobs/product-manager-retention-growth?utm_source=api",
+   "guid": "https://himalayas.app/companies/clario/jobs/product-manager-retention-growth"
+  },
+  {
+   "title": "Sound Designer & Editor",
+   "excerpt": "ABOUT CHANGING LIVES PRODUCTIONS:Changing Lives Productions is the video production company of Dhar Mann Studios, aimed at creating positive content for the social media generation.",
+   "companyName": "Changing Lives Productions LLC",
+   "companySlug": "changing-lives-productions-llc",
+   "companyLogo": "",
+   "employmentType": "Contractor",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "hourly",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": "INR",
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Sound-Designer",
+    "Audio-Editor",
+    "Audio-Engineer",
+    "Foley-Artist",
+    "Post-Production-Editor",
+    "Sound-Effects-Designer",
+    "Audio-Designer",
+    "Sound-Design",
+    "Freelance-Audio-Editor",
+    "Sound-Engineer",
+    "Post-Production-Sound-Mixer"
+   ],
+   "parentCategories": [],
+   "description": "<h3>ABOUT CHANGING LIVES PRODUCTIONS:</h3><p>Changing Lives Productions is the video production company of Dhar Mann Studios, aimed at creating positive content for the social media generation. Our short, motivational videos focused on life, business, and relationships receive over 1 Billion views monthly and have garnered over 60 Billion views on Facebook, YouTube, Instagram and TikTok. The team is led by Dhar Mann, a mission-driven entrepreneur with a global audience of over 170 Million social media followers and one of the highest viewed content creators in the world today. Our stories depict real life situations shown by actors that teach important life lessons, inspired by Dhar Mann's personal experience of success and failure. The company is driven by one founding principle: We’re not just telling stories, we’re changing lives.</p><h3>BIG PICTURE:</h3><p>Dhar Mann Studios is seeking a highly skilled and creative Sound Designer/Editor to join our dynamic Post-production team. This role is crucial for elevating our narrative content through expert sound design, Foley, and final audio mixing. The ideal candidate will have a deep understanding of audio post-production workflows, a meticulous ear for detail, and the ability to thrive in a fast-paced environment, contributing significantly to our high-volume output of scripted dramas and content.</p><h3>Sound Design &amp; Creation:</h3><ul>\n<li>Design and implement a wide range of sound effects to enhance the emotional impact and realism of our narrative content, including ambiences, hard effects, and creative sound design elements</li>\n<li>Record and edit Foley to sync with on-screen action, ensuring subtle, realistic sounds are captured and integrated seamlessly</li>\n<li>Clean up and edit dialogue tracks to remove background noise, improve clarity, and ensure consistency across all scenes</li>\n<li>Collaborate with the editorial team, directors, and composers to understand the creative vision and translate it into a compelling auditory experience</li>\n</ul><h3>Mixing &amp; Mastering:</h3><ul>\n<li>Perform final audio mixes for all projects, balancing dialogue, music, sound effects, and Foley to create a cohesive and professional final product</li>\n<li>Ensure all mixes meet broadcast loudness standards and technical specifications for various distribution platforms when needed</li>\n<li>Conduct quality control checks on all delivered audio, confirming all tracks are properly synced, free of errors, and consistent in quality</li>\n</ul><h3>Workflow &amp; Management:</h3><ul>\n<li>Manage audio assets and project files, ensuring all sessions are organized, archived, and easy to access for future use or revisions</li>\n<li>Troubleshoot and resolve technical issues related to audio software, hardware, and file formats</li>\n<li>Report on department metrics such as mix volume and common technical challenges to help the post-production team make informed operational decisions</li>\n<li>Stay updated on industry trends, tools, and best practices in audio post-production.</li>\n</ul><h3>WHAT YOU HAVE:</h3><ul>\n<li>Experience in a high-volume content creation environment, preferably with scripted narrative content.</li>\n<li>Bachelor's degree in Audio Engineering, Music Production, Film, or a related field, or equivalent practical experience.</li>\n<li>Minimum of 3-5 years of experience as a Sound Designer, Audio Mixer, or similar role in a fast-paced production setting.</li>\n<li>Expert-level proficiency with a Digital Audio Workstation (DAW) such as Pro Tools, Logic Pro X, or Adobe Audition.</li>\n<li>Strong understanding of audio signal flow, acoustics, and mixing techniques.</li>\n<li>Proficiency with industry-standard audio plugins for EQ, compression, noise reduction, and reverb.</li>\n<li>Exceptional organizational skills and meticulous attention to detail.</li>\n<li>Excellent communication skills, with the ability to clearly articulate creative and technical concepts.</li>\n<li>Proven ability to manage multiple projects and meet tight deadlines.</li>\n<li>A proactive problem-solver with a strong work ethic.</li>\n<li>A passion for storytelling through sound.</li>\n</ul><ul><li>Experience with advanced noise reduction software (e.g., iZotope RX).</li></ul><h3>Bonus</h3><ul>\n<li>Experience with spatial audio formats like Dolby Atmos.</li>\n<li>A portfolio or reel showcasing your work on past projects.</li>\n</ul><h3>WHO OVERSEES YOU:</h3><p>The Sound Designer/Mixer will report directly to the Head of Post-production</p><h3>WHO YOU OVERSEE:</h3><p>This is an Individual Contributor Position with no direct reports. You are expected to work collaboratively with our post-production and creative teams.</p><h3>WHERE IT ALL GOES DOWN:</h3><h3>Remote / Global / LATAM / EMEA / APAC</h3><h3>WHY YOU SHOULD JOIN US:</h3><p>Work alongside industry leaders on thrilling, fast-paced projects as our content rapidly expands. Get to know us:</p><p>Note: This job description is intended to provide a general overview of the position. It may be subject to change at the discretion of the company. We are an Equal Employment Opportunity Employer. We are committed to providing a workplace that is free from discrimination and harassment. All employment decisions, including hiring, promotion, compensation, and termination, are based on individual qualifications, merit, and business needs. We encourage candidates of all races, colors, religions, sexes, sexual orientations, gender identities, national origins, ages, disabilities, and veteran statuses to apply. We believe in transparency and fairness when it comes to compensation. The freelance rate for this position is based on experience and qualifications. In addition to your salary, we offer a comprehensive benefits package, which includes health insurance and paid time off.</p>Salary: 15-25/hr Americas / 10-17/hr Asia<p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792866616,
+   "expiryDate": 1798050615,
+   "applicationLink": "https://himalayas.app/companies/changing-lives-productions-llc/jobs/sound-designer-editor?utm_source=api",
+   "guid": "https://himalayas.app/companies/changing-lives-productions-llc/jobs/sound-designer-editor"
+  },
+  {
+   "title": "ServiceNow Developer - ITSM",
+   "excerpt": "SERVICENOW DEVELOPERABOUT DYSRUPIT DysrupIT is a leading global-based cloud services company.",
+   "companyName": "DysrupIT",
+   "companySlug": "dysrupit",
+   "companyLogo": "https://cdn-images.himalayas.app/8tnnnla7hyqajl57t09j6glvd97q",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "ServiceNow-Developer",
+    "Application-Developer",
+    "ITSM-Developer",
+    "Software-Developer",
+    "ServiceNow-ITSM",
+    "ServiceNow-Certified-Developer",
+    "ITSM-Development"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<h3>SERVICENOW DEVELOPER</h3><h3>ABOUT DYSRUPIT </h3><p><a href=\"https://himalayas.app/companies/dysrupit\">DysrupIT</a> is a leading global-based cloud services company. We support clients across the globe <br>in their adoption of the cloud and their transformation to as-a-Service business models. <a href=\"https://himalayas.app/companies/dysrupit\">DysrupIT</a> <br>is dedicated to making a positive impact in the communities it serves. <br><br>COMPANY CULTURE <br>We are constantly looking for talented people to join our team. We offer a unique and <br>extraordinary career experience to motivate and inspire talents like you to make a difference in <br>our customers, clients, and the entire organization. At <a href=\"https://himalayas.app/companies/dysrupit\">DysrupIT</a>, you’ll join a team of dedicated <br>and brilliant professionals who share the same goal of pursuing integrity and excellence. We are <br>committed to promoting a culture where employees are valued and respected. We invest in our <br>employees and make sure that they will have the right training to secure their growth and <br>advancement towards their career aspirations. <br><br>JOB SUMMARY <br>The Application Developer is responsible for delivering ServiceNow enhancements, integrations, and <br>backlog remediation aligned to the client's business priorities. The Developer will work closely with <br>the Solution Architect and Business Analyst to design, build, and deploy scalable, AI-enabled <br>ServiceNow solutions within a complex enterprise environment. <br><br>JOB RESPONSIBILITIES <br>• Deliver ServiceNow enhancements, configurations, and backlog items aligned to sprint priorities <br>and business objectives. <br>• Design and build custom REST API integrations with external systems in alignment with the <br>platform architecture. <br>• Implement AI-enabled development practices and leverage the ServiceNow AI stack, including <br>Now Assist and Predictive Intelligence, to improve solution quality and efficiency. <br>• Partner with the Solution Architect and stakeholders to design scalable, best-practice ServiceNow <br>solutions. <br>• Apply automation principles to improve speed, quality, and delivery efficiency across the backlog. <br>• Support sprint execution, including development, peer review, testing, deployment preparation, <br>and continuous platform improvement. <br>• Participate in sprint ceremonies including planning, stand-ups, reviews, and retrospectives. <br>• Contribute to technical documentation, knowledge transfer, and adherence to the Team Working <br>Agreement. <br>• [Lead Developers] Provide technical guidance and code reviews for Senior Developers; serve as <br>a point of escalation for complex development challenges. <br>• [Lead Developers] Take ownership of complex integrations and high-priority backlog items <br>requiring architectural alignment. <br><br>QUALIFICATIONS <br>• 6-9 years of ServiceNow development experience; Senior: 6–9 years. <br>• Strong hands-on development skills in ServiceNow, including Flow Designer, Business Rules, <br>Client Scripts, Script Includes, and REST API integrations. <br>• Solid understanding of ITSM module configuration and platform governance principles. <br>• Experience working in Agile/Scrum delivery teams with Jira or similar tools. <br>• Familiarity with AI-enabled ServiceNow features (Now Assist, Predictive Intelligence). <br>• Excellent problem-solving skills and attention to detail in complex, customized environments. <br><br>PREFERRED: <br>• Experience with both ITSM and CSM modules — preferred as the engagement may expand to <br>CSM in a future phase. <br>• Prior exposure to large enterprise or regulated industry environments (healthcare, medical devices, <br>or similar). <br>• ServiceNow micro-certifications or badges in AI, Now Assist, or automation features. </p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792866430,
+   "expiryDate": 1798050427,
+   "applicationLink": "https://himalayas.app/companies/dysrupit/jobs/servicenow-developer-itsm?utm_source=api",
+   "guid": "https://himalayas.app/companies/dysrupit/jobs/servicenow-developer-itsm"
+  },
+  {
+   "title": "Inside Sales Representative – Bangalore, India",
+   "excerpt": "This is a quota-carrying position within our Sales organisation.",
+   "companyName": "Holistic AI",
+   "companySlug": "holistic-ai",
+   "companyLogo": "https://cdn-images.himalayas.app/df4qnho1lhqswng8nsrljmuidst7",
+   "employmentType": "Full Time",
+   "minSalary": 35000,
+   "maxSalary": 45000,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": "USD",
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Inside-Sales-Representative",
+    "Sales-Development-Representative",
+    "Business-Development-Representative",
+    "B2B-Sales-Representative",
+    "Account-Executive",
+    "Inside-Sales-Executive",
+    "Inside-Sales-Associate",
+    "Inside-Sales-Professional",
+    "Inside-Sales",
+    "Sales"
+   ],
+   "parentCategories": [
+    "Sales"
+   ],
+   "description": "<p>This is a quota-carrying position within our Sales organisation. You will generate new business through outbound prospecting, run initial meetings with prospects before they become opportunities, present the product and help close deals, working closely with Account Executives and Pre-Sales colleagues.</p><h3>What you'll do</h3><ul>\n<li>Work towards a quota covering outbound activity, qualified meetings, pipeline and closed business.</li>\n<li>Run initial meetings with prospects to understand their needs and qualify them before they progress to opportunities.</li>\n<li>Present the product clearly and confidently, tailoring the message to each prospect's priorities.</li>\n<li>Contribute to closing deals, supporting Account Executives on opportunities and closing where appropriate.</li>\n</ul><h3>What you'll bring</h3><ul>\n<li>Experience in B2B SaaS sales, inside sales or SDR/BDR roles.</li>\n<li>A proven track record of meeting or exceeding quota or activity targets.</li>\n<li>Strong outbound prospecting skills, with excellent written outreach and confident communication.</li>\n<li>Experience running prospect meetings and presenting a product or solution.</li>\n<li>Exposure to, or a strong interest in, progressing deals through to close.</li>\n<li>Organised follow-up habits and proficiency with CRM tools.</li>\n<li>A genuine interest in enterprise buyers and topics such as risk, compliance, technology and AI.</li>\n<li>Excellent written and spoken English. Additional languages are an advantage, depending on territory.</li>\n</ul><h3>Nice to have</h3><ul>\n<li>Experience selling AI, data, security, GRC or enterprise software.</li>\n<li>Experience supporting webinars or event follow-up.</li>\n<li>Familiarity with sales engagement and sequencing platforms.</li>\n</ul><h3>Location and working model</h3><ul>\n<li>Bangalore, India.</li>\n<li>Remote or hybrid, as agreed.</li>\n<li>Close coordination with Account Executives and Pre-Sales colleagues across regions.</li>\n</ul><h3>Compensation</h3><p>Indicative salary: <strong>$35,000–$45,000 USD/OTE: 70,000–90,000 USD.</strong> We offer competitive benefits; details are available on request.</p><h3>Interview process</h3><ul>\n<li>HR screen</li>\n<li>Hiring manager interview</li>\n<li>Technical assessment</li>\n<li>Task or skills assignment</li>\n<li>Culture fit</li>\n<li>Offer</li>\n</ul>Salary: $35,000–$45,000 USD/ OTE: 70,000–90,000 USD<p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792866273,
+   "expiryDate": 1798050272,
+   "applicationLink": "https://himalayas.app/companies/holistic-ai/jobs/inside-sales-representative-bangalore-india-7816082410?utm_source=api",
+   "guid": "https://himalayas.app/companies/holistic-ai/jobs/inside-sales-representative-bangalore-india-7816082410"
+  },
+  {
+   "title": "QA Engineer | Offshore",
+   "excerpt": "Job Description:As a QA Engineer, you will play a crucial role in ensuring the quality and reliability of our software products.",
+   "companyName": "Photon Interactive UK Limited",
+   "companySlug": "photon-interactive-uk-limited",
+   "companyLogo": "https://cdn-images.himalayas.app/6uea03ugprm7j1fah48hp1jr6ny6",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "QA-Engineer",
+    "Software-Quality-Engineer",
+    "Automation-Testing",
+    "Oil-and-Gas-QA-Specialist",
+    "QA-QC-Engineer",
+    "Quality-Assurance-Engineer",
+    "Offshore-Engineer"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<h3>Job Description:</h3><p>As a QA Engineer, you will play a crucial role in ensuring the quality and reliability of our software products. You will work closely with cross-functional teams to develop and execute test plans, identify defects, and ensure that our applications meet the highest standards of quality before they are released to customers.</p><h3>Responsibilities:</h3><ol>\n<li>Collaborate with product managers, developers, and other stakeholders to understand product requirements and user stories.</li>\n<li>Develop comprehensive test plans and test cases based on functional and non-functional requirements.</li>\n<li>Execute manual and automated tests to validate the functionality, usability, and performance of software applications.</li>\n<li>Identify and document defects with detailed steps to reproduce, and track them through resolution using bug tracking systems.</li>\n<li>Participate in design and code reviews to provide feedback on testability and potential quality issues.</li>\n<li>Maintain and expand automated test suites using appropriate tools and frameworks.</li>\n<li>Perform regression testing to ensure that software changes do not introduce new defects.</li>\n<li>Set up and manage test environments and test data to support testing activities.</li>\n<li>Monitor and analyze test results, identify trends, and communicate findings to stakeholders.</li>\n<li>Continuously learn and stay current with industry trends, tools, and best practices in software quality assurance.</li>\n</ol><h3>Qualifications:</h3><ol>\n<li>Bachelor's degree in Computer Science, Engineering, or related field.</li>\n<li>Proven experience in software quality assurance, including manual and automated testing.</li>\n<li>Strong understanding of QA methodologies, tools, and processes.</li>\n<li>Experience with test automation tools and frameworks (e.g., Selenium, Cypress, JUnit, TestNG).</li>\n<li>Proficiency in at least one programming/scripting language such as Java, Python, JavaScript, or Ruby.</li>\n<li>Familiarity with version control systems such as Git.</li>\n<li>Excellent analytical and problem-solving skills, with a keen attention to detail.</li>\n<li>Strong communication and collaboration skills, with the ability to work effectively in a team environment.</li>\n<li>Experience with Agile/Scrum methodologies is a plus.</li>\n<li>ISTQB or other relevant certifications are desirable but not required.</li>\n</ol><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792865912,
+   "expiryDate": 1798049910,
+   "applicationLink": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/qa-engineer-offshore?utm_source=api",
+   "guid": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/qa-engineer-offshore"
+  },
+  {
+   "title": "Sr. Product Manager - Reputation Management",
+   "excerpt": "ABOUT USHighLevel is an AI-powered business operating system that gives agencies, entrepreneurs and SMBs the infrastructure to build, automate and scale.",
+   "companyName": "HighLevel",
+   "companySlug": "highlevel",
+   "companyLogo": "https://cdn-images.himalayas.app/en0qex9edeqfo3uqtxi3l25uudv0",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Product-Manager",
+    "Product-Strategy-Manager",
+    "Product-Owner",
+    "Reputation-Manager",
+    "Senior-Product-Management"
+   ],
+   "parentCategories": [
+    "Product"
+   ],
+   "description": "<h3>ABOUT US</h3><p><a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> is an AI-powered business operating system that gives agencies, entrepreneurs and SMBs the infrastructure to build, automate and scale. Today, <a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> supports SMBs across 150+ countries, fueling community-driven growth rooted in real customer outcomes.</p><p>To date, businesses operating on <a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> have generated over $7 billion in ecosystem value. By centralizing conversations, automation and intelligence into one system, we help businesses move faster, reduce complexity and execute efficiently.</p><p>Behind the platform, <a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> powers more than 4 billion API hits and 2.5 billion message events daily. With 250 terabytes of distributed data, 250+ microservices and over 1 million domain names supported, our architecture is built for performance, resilience and long-term scalability.</p><h3>OUR PEOPLE</h3><p>With over 2,000 team members across 10+ countries, <a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> operates as a global, remote-first organization built for speed and ownership. We value initiative, clarity and execution, creating space for ambitious people to build systems that support millions of businesses worldwide. Here, innovation thrives, ideas are celebrated and people come first, no matter where they call home.</p><h3>OUR IMPACT</h3><p>Every month, <a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> enables more than 1.5 billion messages, 200 million leads and 20 million conversations for the more than 1 million businesses we support. Behind those numbers are real people building independence, expanding opportunity and creating measurable impact. We're proud to be a part of that.</p><h3>ABOUT THE TEAM</h3><p>The Marketing Products OS team builds products that help businesses attract customers, increase engagement, and drive measurable business outcomes. The team owns a diverse portfolio including Reputation Management, Dashboard &amp; Reporting, Blogging, Social Planner, Email Marketing, Chat Widget, Affiliate Manager, Template Library, Brand Boards, and other growth-focused products. <br><br>Reputation Management is a strategic investment area for <a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a>, focused on helping businesses build trust, improve local visibility, and accelerate growth through customer reviews. Our vision is to evolve the product from a review management solution into an AI-powered reputation growth platform that enables businesses to generate more reviews, automate engagement, respond intelligently to customer feedback, and gain actionable insights that strengthen their online presence at scale. </p><h3>CORE AREAS OF OWNERSHIP</h3><ol>\n<li><p><strong>Product Strategy &amp; Roadmap :</strong> Define the vision, strategy, north-star metrics, and 12–18 month roadmap for Reputation Management. Drive prioritization, investment decisions, and business outcomes.</p></li>\n<li><p><strong>Review Growth </strong>: Drive review acquisition through automated campaigns, multi-channel requests, personalization, experimentation, and conversion optimization.</p></li>\n<li><p><strong>AI-Powered Engagement :</strong> Build AI-driven review reply experiences, including personalized responses, brand voice customization, sentiment awareness, and bulk actions.</p></li>\n<li><p><strong>Reputation Automation :</strong> Create automation-first workflows for review requests, sentiment-based routing, escalations, notifications, and proactive engagement.</p></li>\n<li><p><strong>Review Management :</strong> Improve review monitoring, aggregation, moderation, collaboration, and multi-location management for agencies and businesses at scale.</p></li>\n<li><p><strong>Analytics &amp; Insights : </strong>Deliver reputation reporting, sentiment analysis, AI-generated insights, benchmarking, and recommendations that help customers take action.</p></li>\n<li><p><strong>Product Discovery &amp; Customer Research :</strong> Lead customer interviews, workflow audits, usability testing, competitive analysis, and market research to identify opportunities and validate solutions.</p></li>\n<li><p><strong>Product Execution :</strong> Own PRDs, requirements, prioritization, release planning, stakeholder alignment, success metrics, and post-launch measurement to ensure outcomes are achieved.</p></li>\n</ol><h3>WHAT YOU WILL BRING</h3><ul>\n<li><p><strong>7+ years</strong> in product management, scaling 0-1 products, B2B SaaS experience or building any AI agentic products.</p></li>\n<li>\n<h3>Strong analytical and technical fluency:</h3>\n<ul>\n<li><p>Comfortable partnering with Engineering/Data on data flows, instrumentation, system design, and reliability</p></li>\n<li><p>Can define robust metrics and measurement plans</p></li>\n<li><p>Can reason about APIs, permissions, and scalable configuration frameworks</p></li>\n</ul>\n</li>\n<li><p>Proven track record of moving business metrics (retention, expansion, adoption, support deflection, engagement)</p></li>\n<li><p>Demonstrated ability to lead without authority, influence cross-functional partners, and drive alignment across Product, Engineering, Data, and GTM</p></li>\n<li><p>Excellent written and verbal communication; can create crisp narratives for executives and individual contributors</p></li>\n</ul><h3>FIRST 12 MONTHS: HOW SUCCESS WILL BE MEASURED</h3><ul>\n<li><p><strong>0–3 months: Foundation.</strong> Validate customer problems, set baseline metrics, and get a prioritized 12–18 month roadmap approved.</p></li>\n<li><p><strong>3–6 months: Growth &amp; AI adoption.</strong> Launch AI review replies and expand automation, increasing review volume, response rates, and engagement.</p></li>\n<li><p><strong>6–12 months: Intelligent reputation platform.</strong> Ship advanced automations, AI insights, enterprise multi-location support, and analytics, making Reputation Management a key driver of growth and retention.</p></li>\n</ul><p><strong><a href=\"https://himalayas.app/companies/highlevel\">HighLevel</a> is an exciting place to work as it gives adrenaline to build and help our user base.  </strong></p><ul>\n<li><p>We take care of our team so our team can take care of our users</p></li>\n<li><p>It’s never somebody else’s job - Take ownership as a company owner</p></li>\n<li><p>We are passionately focussed on adding value for our users</p></li>\n<li><p>We deliver fast using lean principles (Agile framework). We go to market in weeks instead of quarters</p></li>\n<li><p>A good innovative idea always gets tested and we deliver based on feedbacks</p></li>\n<li><p>We embrace that improvement is constant and iterative.</p></li>\n<li><p>Constant Learning Growth graph - You will learn how to scale B2B SaaS Startup and build relevant, impactful products for customers</p></li>\n<li><p>We are do-ers and go-getters to achieve team adoptions</p></li>\n</ul><div>\n<h3>EEO Statement:</h3>\n<p>The company is an Equal Opportunity Employer. As an employer subject to affirmative action regulations, we invite you to voluntarily provide the following demographic information. This information is used solely for compliance with government recordkeeping, reporting, and other legal requirements. Providing this information is voluntary and refusal to do so will not affect your application status. This data will be kept separate from your application and will not be used in the hiring decision.<br><br>We encourage you to review our Privacy Policy before submitting your application</p>\n</div><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792865758,
+   "expiryDate": 1798049758,
+   "applicationLink": "https://himalayas.app/companies/highlevel/jobs/sr-product-manager-reputation-management?utm_source=api",
+   "guid": "https://himalayas.app/companies/highlevel/jobs/sr-product-manager-reputation-management"
+  }
+ ]
+}

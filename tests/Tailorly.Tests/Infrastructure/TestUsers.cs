@@ -1,5 +1,8 @@
 using System.Net;
 using FluentAssertions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using Tailorly.App.Infrastructure.Data;
 
 namespace Tailorly.Tests.Infrastructure;
 
@@ -53,6 +56,21 @@ public static class TestUsers
         await VerifyFromEmailAsync(f, api, email);
         await LoginAsync(api, email);
         return new TestUser(api, id, email, Password);
+    }
+
+    /// <summary>A verified user with the Admin role (signed in again so the cookie carries the role).</summary>
+    public static async Task<TestUser> CreateAdminAsync(TailorlyAppFactory f, string tag = "admin")
+    {
+        var u = await CreateVerifiedAsync(f, tag, "Test Admin");
+        await using (var scope = f.Services.CreateAsyncScope())
+        {
+            var users = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
+            var user = await users.FindByIdAsync(u.Id.ToString());
+            (await users.AddToRoleAsync(user!, AppRole.Admin)).Succeeded.Should().BeTrue();
+        }
+        await LoginAsync(u.Api, u.Email);
+        await u.Api.RefreshCsrfAsync();
+        return u;
     }
 
     /// <summary>Uploads a résumé and runs the parse job; returns the résumé id.</summary>

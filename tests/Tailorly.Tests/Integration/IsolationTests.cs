@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Routing;
@@ -44,15 +45,22 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ["POST /api/v1/auth/resend-verification"] = "mails the caller",
         ["POST /api/v1/auth/change-password"] = "changes the caller's password",
         ["DELETE /api/v1/account"] = "mails the caller a deletion link",
+        ["PUT /api/v1/preferences"] = "replaces the caller's preferences",
+        ["POST /api/v1/watched-companies"] = "adds a board to the caller's watch list",
     };
 
-    private sealed record Owner(TestUser User, Guid ResumeId, Guid SkillId, string FileName, string Skill);
+    /// <summary>Admin routes: a signed-in user without the Admin role gets 403 on every one, whatever the id.</summary>
+    private const string AdminPrefix = "/api/v1/admin/";
+
+    private sealed record Owner(TestUser User, Guid ResumeId, Guid SkillId, string FileName, string Skill, Guid WatchedLinkId,
+        string Role, string BoardToken);
 
     /// <summary>How to find user A's resource for a route with an id, by route prefix (longest prefix wins).</summary>
     private static readonly (string Prefix, Func<Owner, Guid> Id)[] Resolvers =
     [
         ("/api/v1/resumes/{", o => o.ResumeId),
         ("/api/v1/me/confirmed-skills/{", o => o.SkillId),
+        ("/api/v1/watched-companies/{", o => o.WatchedLinkId),
     ];
 
     /// <param name="Multipart">The endpoint only accepts multipart/form-data (otherwise routing answers 415 first).</param>
@@ -60,6 +68,7 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
     {
         public override string ToString() => $"{Method} {Pattern}";
         public bool HasParameters => Pattern.Contains('{', StringComparison.Ordinal);
+        public bool IsAdmin => Pattern.StartsWith(AdminPrefix, StringComparison.Ordinal);
     }
 
     private List<Route> ApiRoutes() => F.Services.GetRequiredService<EndpointDataSource>().Endpoints
@@ -95,7 +104,7 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         var unclassified = routes.Where(r =>
         {
             var key = Normalize(r);
-            if (Public.Contains(key) || OwnActions.ContainsKey(key)) return false;
+            if (Public.Contains(key) || OwnActions.ContainsKey(key) || r.IsAdmin) return false;
             if (r.HasParameters) return ResolverFor(r) is null;
             return r.Method != "GET";
         }).Select(r => r.ToString()).ToList();
@@ -113,13 +122,19 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         var markers = new[]
         {
             owner.User.Id.ToString(), owner.User.Email, owner.ResumeId.ToString(), owner.SkillId.ToString(), owner.FileName,
-            owner.Skill, "Isolation Owner A",
+            owner.Skill, "Isolation Owner A", owner.Role, owner.BoardToken, owner.WatchedLinkId.ToString(),
         };
 
         var failures = new List<string>();
         foreach (var route in ApiRoutes().Where(r => !Public.Contains(Normalize(r))))
         {
-            if (route.HasParameters)
+            if (route.IsAdmin)
+            {
+                var path = Regex.Replace(route.Pattern, @"\{[^}]+\}", owner.WatchedLinkId.ToString());
+                var res = await CallAsync(intruder.Api, route, path);
+                if (res.StatusCode != HttpStatusCode.Forbidden) failures.Add($"{route} → {(int)res.StatusCode} (expected 403 for a non-admin)");
+            }
+            else if (route.HasParameters)
             {
                 var id = ResolverFor(route)!(owner);
                 var path = Regex.Replace(route.Pattern, @"\{[^}]+\}", id.ToString());
@@ -258,7 +273,20 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         var skill = "ZebraLang" + Guid.NewGuid().ToString("N")[..6];
         var skillRes = await a.Api.PostAsync("/api/v1/me/confirmed-skills", new { skill });
         var skillId = (await ApiClient.JsonAsync(skillRes)).GetProperty("id").GetGuid();
-        return new Owner(a, resumeId, skillId, fileName, skill);
+
+        var role = "ZebraRole" + Guid.NewGuid().ToString("N")[..6];
+        var prefs = await ApiClient.JsonAsync(await a.Api.GetAsync("/api/v1/preferences"));
+        var body = JsonSerializer.Deserialize<Dictionary<string, object?>>(prefs.GetRawText())!;
+        body["targetRoles"] = new[] { role };
+        (await a.Api.PutAsync("/api/v1/preferences", body)).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var token = "zebra-" + Guid.NewGuid().ToString("N")[..10];
+        F.Http.Always($"{SourcesTestData.GreenhouseApi}{token}/jobs", 200, SourcesTestData.GreenhouseList("Zebra Owner Co", (1, "Engineer", "Remote")));
+        var watched = await a.Api.PostAsync("/api/v1/watched-companies", new { boardUrl = $"https://boards.greenhouse.io/{token}" });
+        watched.StatusCode.Should().Be(HttpStatusCode.Created, await ApiClient.TextAsync(watched));
+        var linkId = (await ApiClient.JsonAsync(watched)).GetProperty("id").GetGuid();
+        F.Jobs.Clear(); // the eager board poll is not part of this test
+        return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token);
     }
 
     [GeneratedRegex(@":[a-z]+(?=\})")]

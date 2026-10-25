@@ -1,0 +1,248 @@
+{
+ "comments": "Search results come 20 to a page. Pass ?page=2, ?page=3 and so on for more; there is no cursor on search. Cursor pagination (nextCursor) is only on /jobs/api, the browse feed. 13/03/2026: The API has been updated to include the companySlug field in the response.",
+ "updatedAt": 1792921384,
+ "offset": 0,
+ "limit": 20,
+ "totalCount": 4846,
+ "jobs": [
+  {
+   "title": "DevOps & SRE Platform Engineers | Offshore",
+   "excerpt": "Job Description:As a DevOps & SRE Platform Engineer, you will be responsible for designing, implementing, and maintaining the infrastructure and tools necessary for the continuous delivery, deployment, and reliability of our software systems.",
+   "companyName": "Photon Interactive UK Limited",
+   "companySlug": "photon-interactive-uk-limited",
+   "companyLogo": "https://cdn-images.himalayas.app/6uea03ugprm7j1fah48hp1jr6ny6",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "DevOps-Engineer",
+    "Site-Reliability-Engineer",
+    "Platform-Engineer",
+    "Cloud-Infrastructure-Engineer",
+    "SRE",
+    "DevOps-Platform-Engineering",
+    "Platform-Operations-Engineer",
+    "Remote-DevOps-Engineer",
+    "Platform-Engineering-Jobs",
+    "DevOps-and-Site-Reliability-Engineering-Jobs",
+    "Platform-Reliability-Engineer"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<h3>Job Description:</h3><p>As a DevOps &amp; SRE Platform Engineer, you will be responsible for designing, implementing, and maintaining the infrastructure and tools necessary for the continuous delivery, deployment, and reliability of our software systems. You will work closely with development, operations, and security teams to streamline processes, automate tasks, and ensure the scalability and availability of our platform.</p><h3>Responsibilities:</h3><ol>\n<li>Design, build, and maintain scalable and reliable infrastructure using cloud platforms such as AWS, Azure, or GCP.</li>\n<li>Implement and manage container orchestration platforms such as Kubernetes, Docker Swarm, or Amazon ECS.</li>\n<li>Develop and maintain CI/CD pipelines to automate build, test, and deployment processes.</li>\n<li>Monitor and optimize system performance, reliability, and cost.</li>\n<li>Implement infrastructure as code using tools such as Terraform, CloudFormation, or Ansible.</li>\n<li>Implement and manage logging, monitoring, and alerting systems to ensure system health and availability.</li>\n<li>Design and implement security best practices and ensure compliance with regulatory requirements.</li>\n<li>Troubleshoot and resolve infrastructure issues in a timely manner.</li>\n<li>Collaborate with development teams to improve application performance, scalability, and reliability.</li>\n<li>Participate in on-call rotation and respond to incidents as needed.</li>\n</ol><h3>Qualifications:</h3><ol>\n<li>Bachelor's degree in Computer Science, Engineering, or related field.</li>\n<li>Proven experience in DevOps, SRE, or related role.</li>\n<li>Strong understanding of cloud computing concepts and experience with cloud platforms such as AWS, Azure, or GCP.</li>\n<li>Experience with containerization technologies such as Docker and container orchestration platforms such as Kubernetes.</li>\n<li>Proficiency in scripting and automation using languages such as Python, Bash, or PowerShell.</li>\n<li>Experience with CI/CD tools such as Jenkins, GitLab CI/CD, or CircleCI.</li>\n<li>Experience with infrastructure as code tools such as Terraform, CloudFormation, or Ansible.</li>\n<li>Experience with monitoring and logging tools such as Prometheus, Grafana, ELK stack, or Splunk.</li>\n<li>Strong understanding of networking, security, and compliance principles.</li>\n<li>Excellent problem-solving and troubleshooting skills.</li>\n<li>Strong communication and collaboration skills.</li>\n</ol><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792921384,
+   "expiryDate": 1798105384,
+   "applicationLink": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/devops-sre-platform-engineers-offshore?utm_source=api",
+   "guid": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/devops-sre-platform-engineers-offshore"
+  },
+  {
+   "title": "QA Automation  | Offshore",
+   "excerpt": "Key Responsibilities • Automate existing manual test cases (~150, expected to increase) for the eFront web application.",
+   "companyName": "Photon Interactive UK Limited",
+   "companySlug": "photon-interactive-uk-limited",
+   "companyLogo": "https://cdn-images.himalayas.app/6uea03ugprm7j1fah48hp1jr6ny6",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "QA-Automation-Engineer",
+    "QA-Engineer",
+    "Automation-Testing",
+    "Software-Test-Engineer",
+    "QA-Automation",
+    "QA-Automated",
+    "Automated-QA",
+    "QA-Test-Automation",
+    "Automation-QA",
+    "Quality-Assurance-Automation",
+    "QA-And-Test-Automation",
+    "Automated-QA-Engineering"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<div><h3>Key Responsibilities</h3></div><div><ul>\n<li>Automate existing manual test cases (~150, expected to increase) for the eFront web application. </li>\n</ul></div><div><ul>\n<li>Build and maintain automation scripts using Puppeteer (preferred) or equivalent UI automation tools. </li>\n</ul></div><div><ul>\n<li>Execute automated test suites during upgrades/releases and analyse failures. </li>\n</ul></div><div><ul>\n<li>Review, update, and optimize regression scenarios provided by business and platform delivery teams. </li>\n</ul></div><div><ul>\n<li>Ensure automation resilience during vendor-driven UI changes. </li>\n</ul></div><div><ul>\n<li>Perform cross-browser automation for Edge and Chrome. </li>\n</ul></div><div><ul>\n<li>Document automation coverage, results, and defects. </li>\n</ul></div><div><ul>\n<li>Collaborate with cross-functional teams (Business Analysts, Platform Delivery, QA leadership). </li>\n</ul></div><div><h3>Required Skills &amp; Qualifications</h3></div><div><h3>Must Have </h3></div><div><ul>\n<li>Strong hands-on experience with UI automation for browser-based applications. </li>\n</ul></div><div><ul>\n<li>Expertise with Puppeteer (primary tool), and familiarity with Selenium/Playwright/Cypress. </li>\n</ul></div><div><ul>\n<li>Ability to automate manual regression tests without access to backend code. </li>\n</ul></div><div><ul>\n<li>Strong understanding of black-box and grey-box testing methodologies. </li>\n</ul></div><div><ul>\n<li>Experience working with large enterprise applications. </li>\n</ul></div><div><ul>\n<li>Strong analytical, debugging, and communication skills. </li>\n</ul></div><div><h3>Good to Have</h3></div><div><ul>\n<li>Experience with third-party vendor applications (e.g., eFront). </li>\n</ul></div><div><ul>\n<li>Background in financial domain or fund administration. </li>\n</ul></div><div><ul>\n<li>Knowledge of Java-based front-end systems. </li>\n</ul></div><div><ul>\n<li>Experience working with AWS-hosted platforms. </li>\n</ul></div><div><h3>Testing Environment</h3></div><div><ul>\n<li>Application: eFront (third-party financial platform) </li>\n</ul></div><div><ul>\n<li>Frontend Technology: Java-based, browser-rendered </li>\n</ul></div><div><h3>• Backend: Vendor-hosted in AWS </h3></div><div><ul>\n<li>Browsers: Edge (primary), Chrome (secondary) </li>\n</ul></div><div><ul>\n<li>Testing Type: Functional UI automation </li>\n</ul></div><div><ul>\n<li>Integration Scope: Primarily UI; limited API usage </li>\n</ul></div><div><ul>\n<li>Data Interaction: Mostly within eFront; limited external data exchange through flat files </li>\n</ul></div><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792920993,
+   "expiryDate": 1798104992,
+   "applicationLink": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/qa-automation-offshore?utm_source=api",
+   "guid": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/qa-automation-offshore"
+  },
+  {
+   "title": "Microservice Architect | Offshore",
+   "excerpt": "Should possess a deep understanding of microservices architecture principles, including decomposition of monolithic systems, service orchestration, and API design.",
+   "companyName": "Photon Interactive UK Limited",
+   "companySlug": "photon-interactive-uk-limited",
+   "companyLogo": "https://cdn-images.himalayas.app/6uea03ugprm7j1fah48hp1jr6ny6",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Microservices-Architect",
+    "Software-Architect",
+    "Solutions-Architect",
+    "Cloud-Architect",
+    "Enterprise-Architect",
+    "Microservice-Architect"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<div><div>\n<p>Should possess a deep understanding of microservices architecture principles, including decomposition of monolithic systems, service orchestration, and API design. </p>\n<p>Proficiency in designing scalable and resilient microservices-based systems, including the selection of appropriate technologies, patterns, and best practices. </p>\n</div></div><div><div>\n<p>Familiarity with containerization technologies such as Docker and container orchestration platforms like Kubernetes for deploying and managing microservices. </p>\n<p>Experience with cloud platforms (e.g., AWS, Azure, GCP) and the ability to architect and deploy microservices in cloud environments. </p>\n<p>Strong knowledge of API design principles and RESTful API development. </p>\n<p>Understanding of security considerations in microservices architecture, including authentication, authorization, and data protection. </p>\n<p>Familiarity with DevOps practices and continuous integration/continuous deployment (CI/CD) pipelines for automating software delivery. </p>\n<p>Proficiency in implementing monitoring and observability solutions for microservices, including tools like Prometheus and Grafana. </p>\n<p>Strong interpersonal and communication skills to collaborate effectively with cross-functional teams, stakeholders, and developers. </p>\n<p>The ability to identify and address complex technical challenges related to microservices architecture. </p>\n<p>Thorough documentation skills to ensure that architectural decisions, patterns, and guidelines are well-documented and easily accessible to the development team. </p>\n<p>Experience in providing technical leadership and guidance to development teams in adopting microservices best practices. </p>\n</div></div><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792920870,
+   "expiryDate": 1798104869,
+   "applicationLink": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/microservice-architect-offshore?utm_source=api",
+   "guid": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/microservice-architect-offshore"
+  },
+  {
+   "title": "Engineering Manager",
+   "excerpt": "We are seeking an experienced and highly motivated Engineering Manager to join our team.",
+   "companyName": "BrightEdge",
+   "companySlug": "brightedge",
+   "companyLogo": "",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Manager"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Engineering-Manager",
+    "Software-Engineering-Manager",
+    "IT-Engineering-Manager",
+    "Engineering-Management",
+    "Product-Engineering-Manager",
+    "Engineering-Operations-Manager",
+    "Engineering-Management-Jobs"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<div>We are seeking an experienced and highly motivated Engineering Manager to join our team. The ideal candidate will have a proven track record of leading and managing engineering teams in the tech domain. As an Engineering Manager, you will play a pivotal role in driving the technical direction of our projects and ensuring the successful delivery of our products.</div><h3>Key Responsibilities:</h3><ul>\n<li>Lead, mentor, and manage a team of skilled engineers to achieve project goals and deliver high-quality software solutions.</li>\n<li>Define and execute the technical strategy, architecture, and roadmap for the development team.</li>\n<li>Collaborate with cross-functional teams, including product management, design, and quality assurance, to drive project success.</li>\n<li>Champion best practices in software development, ensuring code quality, scalability, and maintainability.</li>\n<li>Foster a culture of innovation, continuous improvement, and technical excellence within the engineering team.</li>\n<li>Provide technical guidance and support to team members, assisting in problem-solving and decision-making.</li>\n<li>Drive the recruitment and onboarding of top engineering talent.</li>\n<li>Monitor project progress, identify risks, and implement effective mitigation strategies.</li>\n<li>Keep abreast of emerging technologies and industry trends to ensure the team remains competitive and at the forefront of technology.</li>\n</ul><h3>Skills &amp; Qualifications:</h3><ul>\n<li>Bachelor's or Master's degree in Computer Science or a related field.</li>\n<li>Should be from technical background.</li>\n<li>A minimum of 15 years of experience in the tech domain, with a strong background in software engineering and development.</li>\n<li>Proven experience in managing and leading engineering teams, with a focus on delivering high-impact projects.</li>\n<li>Strong technical skills and the ability to provide technical leadership to the team.</li>\n<li>Excellent problem-solving and decision-making abilities.</li>\n<li>Strong communication, collaboration, and leadership skills.</li>\n<li>Ability to work in a fast-paced, dynamic environment.</li>\n<li>Familiarity with modern software development methodologies and tools.</li>\n</ul><h3>Benefits &amp; Perks:</h3><ul>\n<li>Competitive Salary</li>\n<li>PTO and Paid Holidays</li>\n<li>Medical PPO or HMO, Dental, and Vision Insurance</li>\n</ul><h3>About <a href=\"https://himalayas.app/companies/brightedge\">BrightEdge</a>\n</h3><div>\n<a href=\"https://himalayas.app/companies/brightedge\">BrightEdge</a> is widely recognized as a global leader in SEO and Digital marketing. The most innovative customers across more than 80 countries trust <a href=\"https://himalayas.app/companies/brightedge\">BrightEdge</a> to modernize their Digital Marketing stack for today’s digital world. We are helping thousands of organizations, including many of the world’s largest companies, transform their businesses and drive more revenue.  </div><div>The continuous innovation of our product is supported by what we believe to be our most valuable assets: our people. Our employees are industry experts at the forefront of digital transformation. Come join us and help us share the future of SEO.   </div><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792920564,
+   "expiryDate": 1798104564,
+   "applicationLink": "https://himalayas.app/companies/brightedge/jobs/engineering-manager?utm_source=api",
+   "guid": "https://himalayas.app/companies/brightedge/jobs/engineering-manager"
+  },
+  {
+   "title": "Principal Network Engineer",
+   "excerpt": "Job Requisition ID # 26WD98484Position Overview Autodesk is looking for a Principal Network DevOps Engineer to join our Global Network Engineering team.",
+   "companyName": "Autodesk",
+   "companySlug": "autodesk",
+   "companyLogo": "https://cdn-images.himalayas.app/vti7d0qc7b5l7r0vkhdy81hm8br0",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Senior"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Principal-Network-Engineer",
+    "NetDevOps-Engineer",
+    "Network-Automation-Engineer",
+    "Cloud-Network-Engineer",
+    "Infrastructure-Engineer",
+    "Senior-Network-Engineer",
+    "Lead-Network-Engineer",
+    "Senior-Network-Engineering"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<div><div><div><div><div><div><div><div><div><div><div><div><div><div><h3>Job Requisition ID #</h3></div></div></div></div></div></div></div></div></div></div></div></div></div></div>26WD98484<h3>Position Overview</h3><br><p><a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> is looking for a Principal Network DevOps Engineer to join our Global Network Engineering team. Join us on our journey to provide customers with a world-class Software as a Service (SaaS) platform that powers innovative and industry-changing <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> products.</p><p>We are seeking passionate engineers who are fascinated by cloud networking, automation, and Artificial Intelligence (AI)-driven operations. In this role, you will lead the transformation of traditional network operations into intelligent, autonomous, and continuously improving platforms powered by AI.</p><p>The ideal candidate combines strong networking and cloud fundamentals with deep expertise in software engineering, Infrastructure as Code (IaC), enterprise integration, and hands-on experience developing Generative AI and Agentic AI systems that deliver measurable operational outcomes.</p><p>You will design, develop, integrate, and operationalize AI-powered solutions using Large Language Models (LLMs), enterprise knowledge systems, intelligent workflow orchestration, advanced analytics, and automation to modernize network operations and improve engineering productivity.</p><p>You will collaborate closely with Engineering, Security, Architecture, Cloud, Platform, Operations, and Business teams to build scalable, secure, and resilient platforms while driving enterprise adoption of Agentic AI capabilities.</p><p>The Global Network Engineering team plays a critical role in designing and deploying stable, consistent infrastructure that meets network engineering standards and supports <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>'s product objectives. You will contribute to cross-functional initiatives focused on designing, documenting, and implementing secure, automated networking and AI-enabled operational solutions.</p><br><h3>Responsibilities</h3><br><ul>\n<li>Design and implement AI-driven operational platforms and intelligent automation solutions for network and cloud infrastructure</li>\n<li>Develop AI-powered assistants, decision-support systems, and operational intelligence capabilities to improve engineering productivity</li>\n<li>Design autonomous and semi-autonomous workflows using multi-step reasoning, intelligent orchestration, and automated execution</li>\n<li>Develop AI-powered troubleshooting, diagnostics, incident triage, Root Cause Analysis (RCA), and operational insight solutions</li>\n<li>Implement enterprise knowledge retrieval and Retrieval-Augmented Generation (RAG) capabilities that retrieve, correlate, analyze, and act on information from multiple enterprise data sources</li>\n<li>Develop conversational and self-service experiences using modern collaboration and communication platforms</li>\n<li>Design human-in-the-loop approval workflows for operational, governance, security, and risk-sensitive activities</li>\n<li>Implement AI observability, evaluation, monitoring, governance, auditability, and lifecycle management capabilities</li>\n<li>Establish and promote Responsible AI, security, compliance, and governance standards</li>\n<li>Evaluate emerging AI technologies and drive the adoption of AI-enabled operational capabilities across the enterprise</li>\n<li>Participate in the complete network lifecycle, including planning, design, qualification, deployment, operations, and optimization</li>\n<li>Support the implementation of <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>'s global network backbone and strategic infrastructure initiatives</li>\n<li>Define and drive the technical vision, roadmap, and architecture for <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>'s global network and cloud connectivity platforms</li>\n<li>Develop, maintain, and enforce network engineering standards to ensure consistent infrastructure deployment</li>\n<li>Design and develop scalable automation frameworks using Python, Application Programming Interfaces (APIs), Infrastructure as Code tools such as Terraform and AWS CloudFormation, and modern automation technologies</li>\n<li>Build reusable automation services, integration components, Software Development Kits (SDKs), and orchestration capabilities</li>\n<li>Implement GitOps and Continuous Integration and Continuous Delivery (CI/CD) workflows across network platforms and automation services</li>\n<li>Automate network provisioning, validation, compliance assessments, governance controls, and remediation workflows</li>\n<li>Develop self-service automation platforms that improve efficiency and productivity for Engineering and Operations teams</li>\n<li>Establish engineering standards, design patterns, and best practices for network automation, Infrastructure as Code, and cloud networking</li>\n<li>Manage enterprise-scale Secure Access Service Edge (SASE) solutions</li>\n<li>Design and develop integrations across enterprise systems, cloud platforms, operational tools, security platforms, Information Technology Service Management (ITSM) tools, and knowledge repositories</li>\n<li>Build scalable connector and API integration frameworks using event-driven and API-first architectures</li>\n<li>Design secure data exchange and workflow orchestration services across distributed systems</li>\n<li>Collaborate with Platform and Cloud Engineering teams to deliver scalable, resilient, and secure solutions</li>\n<li>Build enterprise knowledge platforms that integrate structured and unstructured information, including documentation, runbooks, policies, standards, and operational records</li>\n<li>Develop knowledge ingestion, enrichment, classification, retrieval, search, summarization, and recommendation capabilities</li>\n<li>Improve knowledge discoverability and operational decision-making through intelligent knowledge management systems</li>\n<li>Develop automation solutions that support governance, risk management, compliance, and audit requirements, including intelligent approval workflows and policy enforcement</li>\n<li>Ensure AI solutions comply with enterprise security, privacy, and regulatory requirements</li>\n<li>Implement audit trails, traceability, explainability, and operational accountability controls</li>\n<li>Collaborate with Security and Compliance teams to establish enterprise AI governance standards</li>\n<li>Develop observability, telemetry, monitoring, reporting, and operational intelligence platforms</li>\n<li>Create dashboards, alerts, health monitoring, and performance measurement capabilities</li>\n<li>Implement anomaly detection, predictive analytics, and operational reporting using metrics, logs, traces, events, and AI-driven insights</li>\n<li>Enable proactive operational management through intelligent analytics and automated insights</li>\n</ul><br><h3>Minimum Qualifications</h3><br><ul>\n<li>Bachelor's degree in Computer Science or a related technical field, or equivalent professional experience</li>\n<li>7+ years of experience in Software Engineering, Platform Engineering, Automation Engineering, Cloud Engineering, Infrastructure Engineering, Network Engineering, or a related technical discipline</li>\n<li>Strong expertise in Python development, API development, automation engineering, and software design</li>\n<li>Hands-on experience with Infrastructure as Code tools such as Terraform or AWS CloudFormation, CI/CD pipelines, GitOps, and enterprise automation platforms</li>\n<li>Experience designing and implementing large-scale enterprise automation solutions</li>\n<li>Experience developing integrations across enterprise applications, cloud services, APIs, and operational platforms</li>\n<li>Strong understanding of cloud platforms, including Amazon Web Services (AWS), Microsoft Azure, or Google Cloud Platform (GCP), with working knowledge of cloud networking and hybrid connectivity</li>\n<li>Hands-on experience with AWS services such as Transit Gateway, Direct Connect, Lambda, Route 53, Virtual Private Cloud (VPC), and Cloud WAN</li>\n<li>Knowledge of firewall technologies, network security configurations, and troubleshooting methodologies</li>\n<li>Strong analytical, troubleshooting, problem-solving, and system design skills</li>\n<li>Proven experience leading large-scale infrastructure initiatives and influencing technical strategy across multiple teams</li>\n<li>Experience working effectively within Agile development frameworks</li>\n<li>Strong presentation skills with the ability to communicate technical policies, proposals, and architectural designs</li>\n<li>Excellent communication, collaboration, and stakeholder management skills</li>\n<li>Ability to manage long-term, milestone-driven projects while collaborating across multiple teams</li>\n</ul><br><h3>Preferred Qualifications</h3><br><ul>\n<li>Experience designing and implementing Agentic AI solutions and intelligent automation platforms</li>\n<li>Experience with Generative AI technologies and Large Language Models (LLMs)</li>\n<li>Experience developing AI-powered assistants, workflow automation solutions, or intelligent operational platforms</li>\n<li>Understanding of Retrieval-Augmented Generation (RAG), enterprise search, and knowledge integration patterns</li>\n<li>Experience integrating AI solutions with APIs, operational platforms, monitoring systems, ITSM tools, and enterprise applications</li>\n<li>Familiarity with AI governance, security, compliance, auditability, explainability, and Responsible AI practices</li>\n<li>Experience developing conversational experiences and self-service automation platforms</li>\n<li>Experience building operational analytics, decision-support systems, workflow orchestration, or operational intelligence solutions</li>\n<li>Experience supporting enterprise-scale AI adoption initiatives</li>\n<li>Cisco Certified Network Associate (CCNA) certification</li>\n<li>Cisco Certified Network Professional (CCNP) certification</li>\n</ul><br><h3>The Ideal Candidate</h3><br><p>The ideal candidate is a highly experienced and technically accomplished engineering professional who combines deep expertise in network infrastructure, cloud technologies, automation, and Artificial Intelligence with strong architectural judgment and technical leadership to develop secure, scalable, and intelligent platforms that deliver measurable business outcomes</p><br><ul>\n<li>Demonstrates deep technical expertise in enterprise networking, cloud infrastructure, automation engineering, and distributed systems</li>\n<li>Applies strong analytical thinking and sound engineering judgment to solve complex infrastructure and operational challenges</li>\n<li>Designs scalable, secure, resilient, and maintainable platforms that improve network reliability and operational efficiency</li>\n<li>Demonstrates a strong understanding of Generative AI and Agentic AI technologies and their potential to transform network operations</li>\n<li>Takes ownership of complex technical initiatives from architecture and design through implementation, deployment, and ongoing operational support</li>\n<li>Develops innovative automation solutions that reduce manual intervention, improve productivity, and strengthen operational consistency</li>\n<li>Influences technical strategy and architectural decisions across Engineering, Cloud, Security, Platform, and Operations teams</li>\n<li>Uses data, telemetry, analytics, and AI-driven insights to identify operational risks and recommend proactive improvements</li>\n<li>Balances innovation with security, governance, compliance, reliability, and responsible technology adoption</li>\n<li>Builds trusted relationships with Architects, Engineering Leaders, Security teams, and cross-functional stakeholders</li>\n<li>Communicates complex technical concepts clearly to both technical and non-technical audiences</li>\n<li>Mentors engineers, shares technical knowledge, and contributes to a culture of engineering excellence and continuous learning</li>\n<li>Demonstrates strong ownership, accountability, adaptability, and the ability to work independently on complex technical challenges</li>\n<li>Connects technical initiatives with broader business objectives to deliver long-term platform value and operational excellence</li>\n</ul><br><br><h3>Learn More / Plus d'information</h3><br><h3>About <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> / À propos d’<a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> </h3><br><p>Welcome to <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>! Amazing things are created every day with our software – from the greenest buildings and cleanest cars to the smartest factories and biggest hit movies. We help innovators turn their ideas into reality, transforming not only how things are made, but what can be made.</p><br><p>We take great pride in our culture here at <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> – it’s at the core of everything we do. Our culture guides the way we work and treat each other, informs how we connect with customers and partners, and defines how we show up in the world.</p><br><p>When you’re an <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>er, you can do meaningful work that helps build a better world designed and made for all. Ready to shape the world and your future? Join us!</p><br><p>Bienvenue chez <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> ! Nos logiciels créent chaque jour des choses extraordinaires : des bâtiments les plus écologiques aux voitures les plus propres, en passant par les usines les plus intelligentes et les films à succès. Nous aidons les innovateurs à concrétiser leurs idées, transformant non seulement la façon dont les choses sont fabriquées, mais aussi ce qui peut l’être. </p><br><p>Nous sommes très fiers de notre culture chez <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a> ; elle est au cœur de tout ce que nous faisons. Notre culture guide notre façon de travailler et de nous comporter les uns envers les autres, influence nos interactions avec nos clients et nos partenaires, et définit notre image au monde.</p><br><p> En tant qu’<a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>ien, vous pouvez accomplir un travail significatif qui contribue à bâtir un monde meilleur, conçu et réalisé pour tous. Prêt à façonner le monde et votre avenir ? Rejoignez-nous !</p><br><p><b>Salary transparency / </b><b>Transparence Salariale</b></p>Salary is one part of <a href=\"https://himalayas.app/companies/autodesk\">Autodesk</a>’s competitive compensation package. Offers are based on the candidate’s experience and geographic location. In addition to base salaries, our compensation package may include annual cash bonuses, commissions for sales roles, stock grants, and a comprehensive benefits package.<br><p><b>Belonging</b><br>We take pride in cultivating a culture of belonging where everyone can thrive. Learn more here: </p><br><h3>In-Person Onboarding and Identity Verification</h3><p>This role may require in-person onboarding and/or in-person ID verification.</p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792920197,
+   "expiryDate": 1798104196,
+   "applicationLink": "https://himalayas.app/companies/autodesk/jobs/principal-network-engineer?utm_source=api",
+   "guid": "https://himalayas.app/companies/autodesk/jobs/principal-network-engineer"
+  },
+  {
+   "title": "Frontend Developer (Vue.js) | Offshore",
+   "excerpt": "Key Responsibilities• Develop responsive, high-performance web applications using Vue.",
+   "companyName": "Photon Interactive UK Limited",
+   "companySlug": "photon-interactive-uk-limited",
+   "companyLogo": "https://cdn-images.himalayas.app/6uea03ugprm7j1fah48hp1jr6ny6",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "India"
+   ],
+   "timezoneRestrictions": [
+    5.5
+   ],
+   "categories": [
+    "Front-End-Developer",
+    "Frontend-Engineer",
+    "Web-Developer",
+    "UI-Engineer",
+    "JavaScript-Developer",
+    "Vue.Js-Frontend-Developer",
+    "Frontend-Vue.Js-Engineer",
+    "VueJS-Developer",
+    "Vue.Js-Developer"
+   ],
+   "parentCategories": [
+    "Developer"
+   ],
+   "description": "<h3>Key Responsibilities</h3><ul>\n<li>Develop responsive, high-performance web applications using Vue.js </li>\n<li>Create and maintain reusable components and front-end libraries </li>\n<li>Collaborate with UX/UI designers and backend developers to implement user-friendly interfaces </li>\n<li>Optimize applications for maximum speed and scalability </li>\n<li>Troubleshoot and debug application issues </li>\n<li>Write unit and integration tests to ensure code quality </li>\n<li>Participate in code reviews and contribute to frontend best practices </li>\n<li>Stay up to date with emerging frontend technologies and frameworks </li>\n</ul><h3>Requirements</h3><ul>\n<li>Proven experience as a Frontend Developer with a strong focus on Vue.js </li>\n<li>Proficiency in JavaScript (ES6+), HTML5, and CSS3 </li>\n<li>Hands-on experience with Vue.js ecosystem (Vuex, Vue Router, etc.) </li>\n<li>Experience working with RESTful APIs and asynchronous request handling </li>\n<li>Familiarity with tools like Webpack, NPM/Yarn, and version control (Git) </li>\n<li>Understanding of modern frontend development tools and workflows </li>\n<li>Good understanding of cross-browser compatibility and responsive design </li>\n<li>Ability to work independently and in a team-oriented environment </li>\n</ul><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792919707,
+   "expiryDate": 1798103707,
+   "applicationLink": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/frontend-developer-vue-js-offshore?utm_source=api",
+   "guid": "https://himalayas.app/companies/photon-interactive-uk-limited/jobs/frontend-developer-vue-js-offshore"
+  }
+ ]
+}

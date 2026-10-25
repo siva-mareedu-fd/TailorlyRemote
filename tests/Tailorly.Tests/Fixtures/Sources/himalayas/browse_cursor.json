@@ -1,0 +1,192 @@
+{
+ "comments": "21/08/2026: Cursor pagination is now available and is the preferred way to page through the feed. Pass the nextCursor value from each response back as ?cursor=. It is faster than offset and will never return the same job twice. The offset parameter is deprecated and will be removed in a future release. 13/03/2026: The API has been updated to include the companySlug field in the response.",
+ "updatedAt": 1792917890,
+ "offset": 0,
+ "limit": 20,
+ "totalCount": 131133,
+ "nextCursor": "MjAyNi0xMC0yNVQwODozOTozMS40NzQ5ODFafDI0NTg0NjA",
+ "jobs": [
+  {
+   "title": "Medical Writer (Publications)",
+   "excerpt": "Red Nucleus is hiring a Medical Writer to join our global team!",
+   "companyName": "Red Nucleus",
+   "companySlug": "red-nucleus",
+   "companyLogo": "https://cdn-images.himalayas.app/znjtckgpzqcjruhxa3wtac9emlzz",
+   "employmentType": "Full Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "United States"
+   ],
+   "timezoneRestrictions": [
+    -10,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    14
+   ],
+   "categories": [
+    "Medical-Writer",
+    "Scientific-Writer",
+    "Publication-Writer",
+    "Medical-Content-Writer",
+    "Clinical-Publications-Writer",
+    "Academic-Medical-Writer",
+    "Medical-Writing-Specialist",
+    "Medical-Writing",
+    "Clinical-Medical-Writer",
+    "Pharmaceutical-Medical-Writer",
+    "Medical-Writing-And-Editing"
+   ],
+   "parentCategories": [
+    "Content Creator",
+    "Research & Development"
+   ],
+   "description": "<p><a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a> is hiring a Medical Writer to join our global team! This is a remote role based out of the US.</p><p>Our purpose is advancing knowledge to improve lives. We succeed by being the premier provider of strategic learning and development, scientific advisory services, and medical communications solutions for the life sciences industry. Our global team is composed of nearly 1000 full-time employees whose commitment to creativity, quality, and on-time delivery is unrivaled in our space.</p><p>At <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a>, we believe in providing a rich working environment that pushes us to innovate in ways that engages our employees to be their best selves. Our culture is about meaningful work, a true sense of community, and fun. We love to celebrate our people and we are proud to have been Internationally recognized as a “Great Place to Work\".  </p><h3>How You Will Contribute</h3><p>In this position, you will be working with our Medical Communications team.  For more information about our team, please visit MedComms | <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a>.</p><p>As aMedical Writerat <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a>, your responsibilities will include researching, writing, and editing manuscripts, abstracts, slide presentations, posters, and other deliverables. We offer unique opportunities to collaborate on client projects that are highly visible and are engaged in inspiring pharmaceutical products and technologies within the medical field. As a valued team member, you will be a part of an organization that will provide you with the support, resources, and flexibility you need to succeed.</p><ul>\n<li>Understanding and familiarity with most current AMA style</li>\n<li>Ability to understand and properly determine accuracy of scientific information and data in a variety of biological fields</li>\n<li>Clearly communicates with team members to achieve goals regarding content development</li>\n<li>Delivers work by designated deadline and understands the project development process</li>\n<li>Works well in a team environment (onsite and remote)</li>\n<li>Appreciates the appropriate time to ask for supervisor assistance</li>\n<li>Understands various aspects of preclinical and clinical drug development</li>\n<li>Exhibits knowledge of the components of a well-written piece of communication, across a range of deliverables</li>\n<li>Ensures all versions of a deliverable are saved to the team file according to standardized file naming criteria</li>\n<li>Reviews study data and distills into thorough and well-written deliverables</li>\n<li>Displays working knowledge of good publication practices</li>\n<li>Works with internal team in a respectful and productive manner</li>\n</ul><h3>About You</h3><ul>\n<li>MD, PhD in the life sciences, or PharmD required</li>\n<li>Prior experience writing peer-reviewed publications, congress abstracts, posters, and slide decks</li>\n<li>Ability to independently write and edit scientific manuscripts, abstracts, posters, and training materials</li>\n<li>Excellent verbal communication skills and ability to effectively collaborate in a virtual setting</li>\n<li>Outstanding organizational/time management skills and ability to meet deadlines</li>\n<li>Understanding of the AMA writing style</li>\n<li>Team player with a detail-oriented work ethic</li>\n</ul><h3>What You Will Enjoy at <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a>\n</h3><ul>\n<li>Competitive pay, incentives, retirement, and income security programs</li>\n<li>Comprehensive benefits and wellness programs focused on healthy lifestyles</li>\n<li>Generous paid time off, employee assistance programs, and flexible work arrangements</li>\n<li>Performance-driven environment including professional development and transfer opportunities</li>\n<li>People-first culture fostering self expression, diversity, and a growth mindset</li>\n<li>Celebrations! We love to celebrate service anniversaries, holidays, diversity and inclusion events, project milestones, and anything else that is meaningful to our employees</li>\n<li>Support of the community organizations you are passionate about</li>\n<li>Ongoing programs and events designed to bring our global team together</li>\n</ul><p><em>Diversity, equity and inclusion are valued at <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a> and we believe we have a shared responsibility to provide equal opportunity and foster an inclusive spirit.  We do not discriminate on the basis of race, color, national origin, religion, caste, sexual orientation, gender, age, marital status, veteran status, or disability status.</em></p><p>To learn more about working at <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a>, please visit Careers | <a href=\"https://himalayas.app/companies/red-nucleus\">Red Nucleus</a>.</p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792917890,
+   "expiryDate": 1798101889,
+   "applicationLink": "https://himalayas.app/companies/red-nucleus/jobs/medical-writer-publications?utm_source=api",
+   "guid": "https://himalayas.app/companies/red-nucleus/jobs/medical-writer-publications"
+  },
+  {
+   "title": "Virtual Clinical Trial Navigator - Medical Doctor (Part Time )",
+   "excerpt": "Job Description:We are looking for a Part-Time Virtual Clinical Trial Navigator (Medical Doctor) based in the Philippines to provide one-on-one support to patients and families navigating the clinical trial process.",
+   "companyName": "Fromwhere",
+   "companySlug": "fromwhere",
+   "companyLogo": "https://cdn-images.himalayas.app/98uwt3o158ko3ftx0y2cuy5k9wl3",
+   "employmentType": "Part Time",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "Philippines"
+   ],
+   "timezoneRestrictions": [
+    8
+   ],
+   "categories": [
+    "Clinical-Trial-Navigation",
+    "Healthcare-Navigator",
+    "Physician",
+    "Clinical-Research-Coordinator",
+    "Patient-Advocate",
+    "Remote-Clinical-Navigator",
+    "Clinical-Trial-Physician",
+    "Healthcare"
+   ],
+   "parentCategories": [
+    "Healthcare",
+    "Research & Development"
+   ],
+   "description": "<h3><strong>Job Description:</strong></h3><p>We are looking for a Part-Time Virtual Clinical Trial Navigator (Medical Doctor) based in the Philippines to provide one-on-one support to patients and families navigating the clinical trial process. This role requires strong medical knowledge, patient advocacy, and coordination skills, as well as experience in clinical research, patient education, or healthcare navigation. The ideal candidate will assist patients in understanding clinical trials, finding suitable studies, answering questions, and facilitating communication between research teams and participants.</p><p>This is a remote, part-time position with the opportunity to transition to full-time. Candidates must be willing to work overlapping hours with USA time zones.</p><h3><strong>Key Responsibilities:</strong></h3><ul><li><ul>\n<li>Provide personalized guidance to patients and families considering clinical trials.</li>\n<li>Assist in trial searches, helping patients identify suitable studies based on their diagnosis, medical history, and location.</li>\n<li>Answer questions regarding trial participation, including eligibility, safety, travel, expenses, and potential risks.</li>\n<li>Identify primary point of contact for clinical trial enrollment at various locations.</li>\n<li>Facilitate communication between patients and research teams, ensuring a smooth connection with study coordinators.</li>\n<li>Offer patient education and resources to help participants understand the trial process and make informed decisions.</li>\n<li>Advocate for patients’ needs, ensuring they receive the best possible support throughout the clinical trial journey.</li>\n<li>Overtime transitions more of a management role as the team of Trial Navigators grows.</li>\n</ul></li></ul><h3><strong>Qualifications:</strong></h3><ul>\n<li><p>Must be a Licensed Medical Doctor (MD) based in the Philippines.</p></li>\n<li><p>Clinical experience in patient care, oncology, research, or trial navigation is highly preferred.</p></li>\n<li><p>Strong understanding of clinical trials, research protocols, and eligibility criteria.</p></li>\n<li><p>Excellent communication and interpersonal skills, with the ability to provide medical guidance to patients and families.</p></li>\n<li><p>Experience in clinical research, patient advocacy, or case management is a plus.</p></li>\n<li><p>Familiarity with HIPAA regulations and patient confidentiality standards.</p></li>\n<li><p>Ability to work remotely, with a stable internet connection and professional setup.</p></li>\n<li><p>Availability to work part-time with overlapping hours in USA time zones.</p></li>\n</ul><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792917890,
+   "expiryDate": 1798101889,
+   "applicationLink": "https://himalayas.app/companies/fromwhere/jobs/virtual-clinical-trial-navigator-medical-doctor-part-time?utm_source=api",
+   "guid": "https://himalayas.app/companies/fromwhere/jobs/virtual-clinical-trial-navigator-medical-doctor-part-time"
+  },
+  {
+   "title": "Content Coordinator",
+   "excerpt": "About The Company:Prismfly is a global agency focused on ecommerce conversion rate optimization and lifecycle marketing.",
+   "companyName": "Prismfly",
+   "companySlug": "prismfly",
+   "companyLogo": "https://cdn-images.himalayas.app/bw3nvtdfwsktcrr20da6zdughq3y",
+   "employmentType": "Contractor",
+   "minSalary": null,
+   "maxSalary": null,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": null,
+   "locationRestrictions": [
+    "United States"
+   ],
+   "timezoneRestrictions": [
+    -10,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    14
+   ],
+   "categories": [
+    "Content-Coordinator",
+    "Social-Media-Coordinator",
+    "Digital-Content-Specialist",
+    "Content-Creator",
+    "Marketing-Coordinator",
+    "Content-Production-Coordinator",
+    "Web-Content-Coordinator",
+    "Content-Marketing-Coordinator",
+    "Content-and-Communications-Coordinator",
+    "Digital-Content-Coordinator",
+    "Marketing-Content-Coordinator",
+    "Social-Content-Coordinator"
+   ],
+   "parentCategories": [
+    "Content Creator",
+    "Marketing"
+   ],
+   "description": "<h3>About The Company:</h3><p><a href=\"https://himalayas.app/companies/prismfly\">Prismfly</a> is a global agency focused on ecommerce conversion rate optimization and lifecycle marketing. We pair strategy with best-in-class design and development to create leading digital experiences. We work with top-tier brands and software partners. The team is made of humble experts, each with a strong desire to continually learn and grow.</p><p>Our culture is remote-first and we connect daily on Slack and video chat. Being part of a  boutique, fast-growing company is exciting. The opportunities to grow and take ownership are endless. We make sure you have everything you need to do your best work and make a big impact.</p><p>Come join our fast-growing team! We are looking for a sharp, self-motivated Content Coordinator to own and evolve our content and social media presence. This role will collaborate lightly with our team for input, but take ownership from concept to publication.</p><h3>RESPONSIBILITIES:</h3><ul>\n<li>Write engaging, well-structured social copy in fluent English</li>\n<li>Clip, edit, and publish short-form video from existing material (e.g., using Klap or similar tools)</li>\n<li>Create simple graphics using Figma</li>\n<li>Research, test, and manage scheduling tools (e.g., AuthorUp)</li>\n<li>Use UTM parameters to track social links and report on website traffic driven</li>\n<li>Monitor content performance across platforms to refine strategy and increase engagement</li>\n<li>Assist in writing intro/outro scripts and branding for recurring content series</li>\n<li>You’ll be provided with rough ideas, outlines, or raw material - your role is to turn those into polished posts, clips, or visuals ready for review and scheduling. Over time, you’ll also be expected to bring original ideas based on your learnings, research, and what’s happening in the market.</li>\n<li>Maintain a consistent posting cadence (approx. ~3-5 LinkedIn, ~2-3 TikToks/Youtube clips per week)</li>\n</ul><h3>IDEAL CANDIDATE</h3><ul>\n<li>Fluent written and spoken English</li>\n<li>Proficient in use of AI tooling</li>\n<li>Social media savvy; knows what makes content resonate on each platform</li>\n<li>Self-starter with strong opinions and openness to feedback</li>\n<li>Critical thinker with a bias toward action (e.g., you want to get going and avoid overthinking) and ownership (e.g., you care about your work)</li>\n<li>Basic video editing and visual design skills</li>\n<li>Positive, hungry to learn, and able to work 40 hours / week</li>\n</ul><h3>REQUIRED TOOLS:</h3><ul>\n<li>Riverside</li>\n<li>Opus</li>\n<li>Figmabuzz</li>\n</ul><h3>COMPENSATION:</h3><ul>\n<li>Based on experience and region</li>\n<li>Remote role</li>\n</ul><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792917869,
+   "expiryDate": 1798101869,
+   "applicationLink": "https://himalayas.app/companies/prismfly/jobs/content-coordinator?utm_source=api",
+   "guid": "https://himalayas.app/companies/prismfly/jobs/content-coordinator"
+  },
+  {
+   "title": "Creative Project Manager, Manifold",
+   "excerpt": "Manifold a division of Lyft, whose purpose is to serve and connect.",
+   "companyName": "Lyft",
+   "companySlug": "lyft",
+   "companyLogo": "https://cdn-images.himalayas.app/gm5nal0ux05kfl3muhru4l4b3cey",
+   "employmentType": "Full Time",
+   "minSalary": 59040,
+   "maxSalary": 90000,
+   "salaryPeriod": "annual",
+   "seniority": [
+    "Mid-level"
+   ],
+   "currency": "USD",
+   "locationRestrictions": [
+    "United States"
+   ],
+   "timezoneRestrictions": [
+    -10,
+    -9,
+    -8,
+    -7,
+    -6,
+    -5,
+    14
+   ],
+   "categories": [
+    "Creative-Project-Manager",
+    "Project-Manager",
+    "Creative-Operations-Manager",
+    "Production-Project-Manager",
+    "Creative-Agency-Project-Manager",
+    "Creative-Project-Management-Jobs"
+   ],
+   "parentCategories": [
+    "Operations"
+   ],
+   "description": "<p>Manifold a division of <a href=\"https://himalayas.app/companies/lyft\">Lyft</a>, whose purpose is to serve and connect. Together, we’re committed to creating a workplace where everyone feels they belong and has the opportunity to thrive.</p><p>Manifold produces world-class, award-winning experiences globally. From small pop-up activations to complex, multi-faceted largescale conferences, production is a core element of bringing visions to life. We feel strongly about creating true and lasting partnerships with our clients. In partnership with our Account, Creative and Operations teams, our goal is to collaborate closely with our clients throughout the lifecycle of an engagement, often creating a relationship that feels like we are an extension of their team.</p><p>As Creative Project Manager at Manifold, you oversee the end-to-end lifecycle of creative initiatives—from initial concept and design approval through print production and install. </p><p>You own the workback schedules, trackers, and status reporting that give every team a clear view of what's due and when and you coordinate design work so the right requests reach the right people at the right time. You're the steady hand that flags risks early and protects the creative team's focus, so the work ships on time and on standard.</p><h3><strong>Responsibilities:</strong></h3><ul>\n<li>Own the master workback schedules (internal and client-facing) pulling key dates and deliverables from source materials like briefs, RFI packets, and contracts, and keeping them aligned across teams.</li>\n<li>Work closely with design counterparts to ensure their deadlines and deliverables are clear and achieved. </li>\n<li>Keep all deadlines accurate and current across internal and client workback documents as timelines shift.</li>\n<li>Maintain a centralized tracker and dashboard with deliverables, deadlines, documentation links, and status updates as the single source of truth for project health.</li>\n<li>Drive internal accountability through regular communications, including weekly status reports, and keep timelines current in status meetings.</li>\n<li>Keep the Creative Director and Creative Services Manager informed on overall project health.</li>\n<li>Coordinate and manage all design requests from Account and Production, prioritizing by timeline and urgency.</li>\n<li>Communicate regularly with Account and Production on deliverable status and progress.</li>\n<li>Partner with Producers and Creative to identify upcoming deliverables, proactively flagging risks or blockers to the Creative and Account Director.</li>\n<li>Partner with the Creative Services Manager and Creative Director on resourcing by monitoring team bandwidth and availability.</li>\n<li>Track project scope and hours against plan, flagging potential overages early to the Creative Service Manager.</li>\n</ul><h3><strong>Experience:</strong></h3><ul>\n<li>3+ years of project management or creative operations experience in an agency, studio, or in-house creative team.</li>\n<li>A proactive ability to, “follow the crumbs” if answers don’t immediately seem clear. </li>\n<li>Demonstrated strength with detailed record keeping for multiple concurrent projects.</li>\n<li>Strong command of workback schedules and deadlines.</li>\n<li>Confidence coordinating creative work and communicating status clearly across Creative, Account, and Production.</li>\n<li>Sharp organizational judgment,  you spot risks and blockers before they become problems.</li>\n<li>A collaborative, low-ego style and calm under shifting priorities.</li>\n<li>The ability to wear a lot of hats and support as each workstream needs.</li>\n<li>\n<em>(Preferred) </em>Industry Experience: Prior work history within a top-tier creative agency or in-house marketing team.</li>\n<li>\n<em>(Preferred) </em>Hands-on experience managing fabrication and print production within creative projects..</li>\n</ul><h3><strong>Benefits:</strong></h3><ul>\n<li>Great medical, dental, and vision insurance options with additional programs available when enrolled</li>\n<li>Mental health benefits</li>\n<li>Family building benefits</li>\n<li>Child care and pet benefits</li>\n<li>401(k) plan with company match to help save for your future</li>\n<li>In addition to 12 observed holidays, salaried team members have discretionary paid time off, hourly team members have 15 days paid time off</li>\n<li>18 weeks of paid parental leave. Biological, adoptive, and foster parents are all eligible</li>\n<li>Subsidized commuter benefits</li>\n<li>Monthly <a href=\"https://himalayas.app/companies/lyft\">Lyft</a> credits and complimentary <a href=\"https://himalayas.app/companies/lyft\">Lyft</a> Pink membership</li>\n</ul><p><a href=\"https://himalayas.app/companies/lyft\">Lyft</a> is an equal opportunity employer committed to an inclusive workplace that fosters belonging. All qualified applicants will receive consideration for employment without regards to race, color, religion, sex, sexual orientation, gender identity, national origin, disability status, protected veteran status, age, genetic information, or any other basis prohibited by law. We also consider qualified applicants with criminal histories consistent with applicable federal, state and local law.</p><p>This role is fully remote in the United States, candidates for this role must be based in the United States area. #Remote</p><p>The expected base pay range for this position in the United States is $59,040 - $90,000, not inclusive of potential equity offering, bonus or benefits. Salary ranges are dependent on a variety of factors, including qualifications, experience and geographic location. Your recruiter can share more information about the salary range specific to your working location and other factors during the hiring process.</p><p>Originally posted on <a href=\"https://himalayas.app\">Himalayas</a></p>",
+   "pubDate": 1792917869,
+   "expiryDate": 1798101869,
+   "applicationLink": "https://himalayas.app/companies/lyft/jobs/creative-project-manager-manifold?utm_source=api",
+   "guid": "https://himalayas.app/companies/lyft/jobs/creative-project-manager-manifold"
+  }
+ ]
+}

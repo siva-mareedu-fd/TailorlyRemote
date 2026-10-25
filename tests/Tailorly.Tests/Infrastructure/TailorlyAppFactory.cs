@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Serilog.Core;
 using Tailorly.App.Infrastructure.Ai;
 using Tailorly.Core.Ports;
@@ -25,6 +26,9 @@ public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDiction
     public CapturingEmailSender Emails { get; } = new();
     public CapturingLogSink Logs { get; } = new();
 
+    /// <summary>Every source HTTP client talks to this instead of the network.</summary>
+    public FakeHttp Http { get; } = new();
+
     public InlineJobClient Jobs => (InlineJobClient)Services.GetRequiredService<IBackgroundJobClient>();
     public FakeModelProvider Ai => Services.GetRequiredService<FakeModelProvider>();
 
@@ -39,6 +43,10 @@ public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDiction
         builder.UseSetting("Security:IpHashKey", "test-ip-hash-key");
         builder.UseSetting("Ai:Provider", "Fake");
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
+        // Source clients: fast retries and timeouts, no rate limiting (the fake answers instantly).
+        builder.UseSetting("Sources:RetryDelayMilliseconds", "1");
+        builder.UseSetting("Sources:TimeoutSeconds", "1");
+        builder.UseSetting("Sources:DefaultRequestsPerMinute", "100000");
         if (relaxedRateLimits)
         {
             // The shared factory registers many users from one (unknown) IP; rate-limit tests use their own factory.
@@ -55,6 +63,8 @@ public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDiction
             services.AddSingleton<IBackgroundJobClient>(sp => new InlineJobClient(sp));
             services.AddSingleton<IEmailSender>(Emails);
             services.AddSingleton<ILogEventSink>(Logs);
+            services.ConfigureAll<HttpClientFactoryOptions>(o =>
+                o.HttpMessageHandlerBuilderActions.Add(b => b.PrimaryHandler = Http));
         });
     }
 
