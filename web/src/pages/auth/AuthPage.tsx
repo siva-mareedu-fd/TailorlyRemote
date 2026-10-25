@@ -11,9 +11,11 @@ import { cn } from '@/lib/utils';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/** The browser's IANA zone; Chromium still reports India as the legacy `Asia/Calcutta`. */
 function browserTimeZone(): string {
   try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata';
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Kolkata';
+    return tz === 'Asia/Calcutta' ? 'Asia/Kolkata' : tz;
   } catch {
     return 'Asia/Kolkata';
   }
@@ -202,7 +204,8 @@ function SignUpForm({ onSuccess }: { onSuccess: (s: Success) => void }) {
       inviteCode: inviteRequired && !invite.trim() ? 'Enter your invite code.' : undefined,
     };
     setErrors(next);
-    if (Object.values(next).some(Boolean) || !meta.data) return;
+    if (Object.values(next).some(Boolean)) return;
+    if (!meta.data) return setErrors({ form: 'Still loading. Please try again in a moment.' });
     try {
       await register.mutateAsync({
         email: email.trim(),
@@ -309,12 +312,7 @@ function SignUpForm({ onSuccess }: { onSuccess: (s: Success) => void }) {
             {errors.consent}
           </div>
         )}
-        <Button
-          type="submit"
-          variant="primary"
-          className="w-full py-[11px]"
-          disabled={register.isPending || !meta.data}
-        >
+        <Button type="submit" variant="primary" className="w-full py-[11px]" disabled={register.isPending}>
           {register.isPending ? 'Creating account…' : 'Create account'}
         </Button>
       </form>

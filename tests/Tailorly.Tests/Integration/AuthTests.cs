@@ -81,6 +81,22 @@ public sealed class AuthTests(PostgresAppFixture fx)
     }
 
     [Fact]
+    public async Task The_legacy_India_zone_that_Chromium_reports_is_stored_canonically()
+    {
+        var api = await F.CreateApiClientAsync();
+        var res = await api.PostAsync("/api/v1/auth/register", new
+        {
+            email = TestUsers.NewEmail("calcutta"), password = TestUsers.Password, displayName = "Z", timeZone = "Asia/Calcutta",
+            consentVersion = TestUsers.ConsentVersion,
+        });
+        res.StatusCode.Should().Be(HttpStatusCode.Created);
+        var userId = (await ApiClient.JsonAsync(res)).GetProperty("userId").GetGuid();
+        (await Db.StringsAsync(fx.ConnectionString, "SELECT time_zone FROM user_profiles WHERE user_id = @u", ("u", userId)))
+            .Single().Should().Be("Asia/Kolkata");
+        await F.Jobs.RunAllAsync();
+    }
+
+    [Fact]
     public async Task Invite_codes_are_required_and_consumed_when_the_flag_is_on()
     {
         var api = await F.CreateApiClientAsync();

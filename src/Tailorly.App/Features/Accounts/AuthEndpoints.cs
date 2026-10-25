@@ -45,7 +45,7 @@ public static partial class AuthEndpoints
         var errors = new FieldErrors();
         var email = errors.Email("email", body.Email);
         var name = errors.Text("displayName", body.DisplayName, 100, label: "Name");
-        var timeZone = string.IsNullOrWhiteSpace(body.TimeZone) ? TimeZones.India : body.TimeZone.Trim();
+        var timeZone = string.IsNullOrWhiteSpace(body.TimeZone) ? TimeZones.India : TimeZones.Canonicalize(body.TimeZone);
         if (!TimeZones.IsValid(timeZone)) errors.Add("timeZone", "Unknown time zone.");
         if (string.IsNullOrEmpty(body.Password)) errors.Add("password", "Password is required.");
         else if (body.Password.Length > 256) errors.Add("password", "Password must be 256 characters or fewer.");

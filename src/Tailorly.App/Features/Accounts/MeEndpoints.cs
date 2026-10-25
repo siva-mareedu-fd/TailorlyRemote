@@ -54,7 +54,7 @@ public static partial class MeEndpoints
     {
         var errors = new FieldErrors();
         var name = errors.Text("displayName", body.DisplayName, 100, label: "Name");
-        var tz = errors.Text("timeZone", body.TimeZone, 64, label: "Time zone");
+        var tz = errors.Text("timeZone", body.TimeZone, 64, label: "Time zone") is { } given ? TimeZones.Canonicalize(given) : null;
         if (tz is not null && !TimeZones.IsValid(tz)) errors.Add("timeZone", "Unknown time zone.");
         var email = errors.Email("notificationEmail", body.NotificationEmail);
         errors.ThrowIfAny();

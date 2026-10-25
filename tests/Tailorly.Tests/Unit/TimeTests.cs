@@ -26,6 +26,18 @@ public sealed class TimeTests
     [InlineData("", false)]
     public void IsValid_checks_iana_names(string id, bool expected) => TimeZones.IsValid(id).Should().Be(expected);
 
+    [Theory]
+    [InlineData("Asia/Calcutta", "Asia/Kolkata")]
+    [InlineData(" asia/calcutta ", "Asia/Kolkata")]
+    [InlineData("Europe/Kiev", "Europe/Kyiv")]
+    [InlineData("Asia/Kolkata", "Asia/Kolkata")]
+    [InlineData("America/New_York", "America/New_York")]
+    public void Legacy_aliases_that_browsers_report_are_canonicalised(string given, string expected)
+    {
+        TimeZones.Canonicalize(given).Should().Be(expected);
+        TimeZones.IsValid(given).Should().BeTrue();
+    }
+
     [Fact]
     public void Period_key_rolls_over_at_midnight_IST_not_UTC()
     {
