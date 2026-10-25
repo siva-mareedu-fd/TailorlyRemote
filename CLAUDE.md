@@ -61,7 +61,17 @@ Do not edit the docs on your own. Propose doc changes in `DECISIONS.md`.
 - At the end of each milestone, report: what was built, how to run it, test results, deviations from the docs, open questions.
 
 ## Commands
-Filled in during M0: build, test, run, migrate, seed, generate API client, run eval.
+Run from the repo root. Docker must be running for integration tests.
+- Build: `dotnet tool restore && dotnet build -warnaserror` (also writes `web/openapi/openapi.json`) · `cd web && npm ci && npm run build`
+- Test: `dotnet test` · unit only: `dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Unit"` · integration only: `--filter-namespace "Tailorly.Tests.Integration"`
+- Lint (web): `cd web && npm run lint && npx prettier --check "src/**/*.{ts,tsx,css}"`
+- Run (Docker): `cp deploy/.env.example deploy/.env` (set `POSTGRES_PASSWORD`), then `docker compose -f deploy/docker-compose.yml up -d --build` → https://localhost · `--profile dev` adds Mailpit (http://localhost:8025) · `--profile pdf` adds Gotenberg
+- Run (local): Postgres on 5432 (see README), `dotnet run --project src/Tailorly.App` (https://localhost:7080), `cd web && npm run dev` (http://localhost:5173)
+- Migrate: `dotnet run --project src/Tailorly.App -- --migrate` (EF + Hangfire schema + seed) · in Docker: `docker compose -f deploy/docker-compose.yml run --rm migrate`
+- Seed only: `dotnet run --project src/Tailorly.App -- --seed`
+- New migration: `dotnet ef migrations add <Name> --project src/Tailorly.App --output-dir Infrastructure/Data/Migrations` · check: `dotnet ef migrations has-pending-model-changes --project src/Tailorly.App`
+- Generate API client: `dotnet build src/Tailorly.App && cd web && npm run gen:api`
+- Run eval: `dotnet run --project tests/Tailorly.Eval`
 
 ## Definition of done (every milestone)
 Builds with no warnings treated as errors · unit and integration tests pass · `docker compose up` runs the milestone's features · migrations apply cleanly on an empty database · no new secrets or PII in logs · docs-conformance checked against the milestone's PRD features and acceptance criteria · README and DECISIONS updated.

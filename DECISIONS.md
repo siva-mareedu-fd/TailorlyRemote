@@ -1,0 +1,38 @@
+# Decisions
+
+Decisions made while building, with the reason. Proposed changes to `docs/` are listed at the end and are not
+applied to the docs until the owner agrees.
+
+| Date | Decision | Reason |
+|---|---|---|
+| 2026-10-25 | Target **.NET 10** (current LTS), SDK pinned in `global.json` (`10.0.100`, roll forward to the latest feature band). | CLAUDE.md: latest .NET LTS. |
+| 2026-10-25 | Node **24 LTS** locally and in CI and Docker; `engines` requires ≥ 22.12. **TypeScript pinned to 5.9**. | Vite 8 needs Node ≥ 20.19/22.12. TypeScript 7 (native) and 6 are not yet accepted by `typescript-eslint` / `openapi-typescript` peer ranges. |
+| 2026-10-25 | Tests use **xUnit v3 on Microsoft.Testing.Platform** (`global.json` `test.runner`), and **FluentAssertions pinned to 7.x**. | xUnit v3 is current; .NET 10 `dotnet test` requires the MTP opt-in. FluentAssertions 8 changed to a commercial licence; 7.x is Apache-2.0. |
+| 2026-10-25 | `Newtonsoft.Json` pinned to 13.0.4 via central transitive pinning. | `Hangfire.Core` 1.8 references 11.0.1, which has a known high-severity advisory (GHSA-5crp-9r3c-p9vr); NuGet audit + warnings-as-errors fails the build otherwise. |
+| 2026-10-25 | Hangfire dashboard (`/admin/jobs`) gets a **relaxed CSP** (`'unsafe-inline'` for scripts and styles). Every other path keeps `default-src 'self'` with no inline code. | The dashboard ships inline scripts/styles; it is Admin-only (endpoint policy + dashboard filter). |
+| 2026-10-25 | **Migrations in Compose run as a one-shot `migrate` service** (`Tailorly.App --migrate`) that `app` waits for (`service_completed_successfully`). The app never migrates itself. `--migrate` also installs the Hangfire schema (`PrepareSchemaIfNecessary=false` at runtime). | Satisfies "migrations via `--migrate`, never on app startup" (SDD §12.5) while keeping `docker compose up` one command. The deploy script in M6 can still run it explicitly first. |
+| 2026-10-25 | Identity table and index names are **forced to snake_case** in `AppDbContext` (`asp_net_users`, `ix_asp_net_users_email`, …). | Identity sets explicit PascalCase names that `EFCore.NamingConventions` does not override; DatabaseDesign §1 requires `asp_net_users`. |
+| 2026-10-25 | Cookies: auth `__Host-tailorly`, antiforgery `__Host-tailorly-af` (HttpOnly), readable `XSRF-TOKEN`; all `Secure`. Integration tests call the TestServer over `https://localhost` instead of relaxing cookie settings. Local `dotnet run` uses the HTTPS dev profile (`https://localhost:7080`). | Same cookie behaviour in tests, dev and production. Antiforgery refuses non-HTTPS requests when the cookie is `Secure`. |
+| 2026-10-25 | The app trusts `X-Forwarded-*` from any proxy (`KnownIPNetworks` cleared). | Only Caddy can reach the app (internal Docker network; the app publishes no ports). Needed so the app sees `https`. |
+| 2026-10-25 | **Data Protection keys** persisted to `/data/keys` (volume `dpkeys`) when `DataProtection__KeysPath` is set. Keys are stored unencrypted at rest (the app logs a warning about it). | Otherwise every restart signs users out and invalidates CSRF tokens. Key encryption joins the Phase 2 encryption epic (PRD D11). |
+| 2026-10-25 | **PII log scrubbing** is two layers: a destructuring policy for `{@Obj}` and an enricher that removes blocked properties from every event (template properties, nested structures, dictionaries). Names ending in `email` (e.g. `NotificationEmail`) are blocked too. JSON output writes the message template, never the rendered message. | A destructuring policy alone does not cover `{Email}` template properties or framework events. Blocking `*email` is stricter than SDD §14.3 and safer. |
+| 2026-10-25 | Correlation id: client `X-Correlation-Id` accepted only if ≤ 64 chars of `[A-Za-z0-9._-]`, otherwise a new id; it is the request `TraceIdentifier`, so it is the `traceId` in every problem body; carried into Hangfire jobs. | Prevents log injection; one id end to end. |
+| 2026-10-25 | Rate-limit buckets from ApiDesign §6 are all registered, with limits in `RateLimits:{bucket}`. On 429 the response carries `RateLimit-Limit`, `RateLimit-Remaining: 0`, `Retry-After`. Per-**email** partitions for `auth-register`/`auth-mail` are added with those endpoints in M1. | ASP.NET's limiter does not expose remaining permits per request; the doc only requires the headers on 429. Email partitions need the request body. |
+| 2026-10-25 | Problem `type` URIs use `https://tailorly.example/errors/{code}` as in ApiDesign §1.1. | Matches the doc; replace the host when a domain exists. |
+| 2026-10-25 | Feature flags use the DB keys from DatabaseDesign §5 (`signup.require_invite_code`), not the PRD's `Signup:RequireInviteCode`. | The DB design is authoritative for schema and seed data. |
+| 2026-10-25 | SPA routes follow the design prototype (`/shortlist`, `/tracker`, `/add-job`, `/resume`, `/preferences`, `/usage`, `/account`, `/admin`, `/onboarding`, `/signin`, `/signup`, `/jobs/:id`). | PRD §12 lists Dashboard and Jobs list separately; the final design merges them into the Shortlist. The design is the visual reference. |
+| 2026-10-25 | Fonts are **self-hosted** via `@fontsource` (IBM Plex Sans/Mono), not Google Fonts. | The CSP is `font-src 'self'`; no third-party requests. |
+| 2026-10-25 | Tailwind theme maps the prototype tokens 1:1 (`bg-surface`, `text-muted`, `rounded-card`, `shell:` breakpoint at 861 px…). shadcn/ui names (`primary`, `background`, `popover`, …) are aliased to the same tokens; **`accent` keeps the design meaning (brand green)**, not shadcn's hover colour, so generated shadcn components must be adjusted when added. | Fidelity to the design; one palette. |
+| 2026-10-25 | Theme defaults to **light** with a stored choice winning (as the prototype does); the `prefers-color-scheme` token block is kept for completeness. The theme is applied in `main.tsx` before render. | Matches the prototype; no inline script allowed by the CSP. |
+| 2026-10-25 | The sidebar shows the Admin section for everyone and budget bars as "—" in M0. | `/me` (roles) and `/usage` arrive in M1; no fake numbers. |
+| 2026-10-25 | `Ai:Provider` accepts only `Fake` in M0 (startup fails otherwise). | The Anthropic provider (official SDK vs thin HttpClient) is chosen and built in M1. |
+| 2026-10-25 | `IFxRateProvider` has a config-driven `StaticFxRateProvider` placeholder. | The daily-cached public provider is needed in M3 (salary display). |
+| 2026-10-25 | Dependabot enabled for NuGet, npm, Docker and Actions. | SDD §14.2 supply-chain control. |
+
+## Proposed doc changes (not applied)
+
+1. **PRD §7.1b** "Configuration" block repeats five lines (`Sources__Jobicy__PollMinutes` … `Fetch__FirstRunBackfillDays`). Remove the duplicates.
+2. **PRD §4 F1 / Appendix A** name the invite-code flag `Signup:RequireInviteCode`; DatabaseDesign seeds `signup.require_invite_code` in `feature_flags`. Propose: the PRD refers to the DB flag, and the config key is only the default.
+3. **PRD §12** lists Dashboard and Jobs list as separate pages; the final design merges them into **Shortlist**. Propose: update §12 to the design's screen list.
+4. **SDD §14.4** says CSP has "no inline scripts" without exception. Propose: note the Admin-only Hangfire dashboard exception.
+5. **DatabaseDesign / SDD §16.3**: document where Data Protection keys live (volume `dpkeys`) and that they must be backed up with the documents volume.
