@@ -1,0 +1,53 @@
+/*
+ * Design tokens, copied verbatim from design/tailorly-app.html (final palette) plus the auth-only tokens
+ * (--signal, --signal-soft, --ink-card) from design/tailorly-auth-B.html. Light is the default; dark applies
+ * from the OS preference unless the user picked light, or when data-theme="dark" is set by the theme toggle.
+ * Keep this file in sync with the prototypes; do not invent new colours.
+ */
+:root {
+  --bg: #f7faf8; --surface: #ffffff; --surface-2: #eaf3ee; --border: #d5e3db;
+  --text: #16150f; --muted: #6a675c;
+  --accent: #0e7a53; --accent-hover: #0b6544; --accent-soft: rgba(14,122,83,.10); --on-accent: #ffffff;
+  --amber: #9a5f00; --amber-soft: rgba(154,95,0,.12);
+  --red: #b3362f; --red-soft: rgba(179,54,47,.10);
+  --blue: #2563eb; --blue-soft: rgba(37,99,235,.10);
+  --ink: #14130f; --ink-text: #eceae1; --ink-muted: #9a978b; --ink-line: #2a2922; --ink-active: #23221b;
+  --ink-card: #1b1a15;
+  --signal: #3ddc97; --signal-soft: rgba(61,220,151,.12); --signal-line: #2c5a45;
+  --diff-add: rgba(14,122,83,.14); --diff-del: rgba(179,54,47,.12);
+  --shadow: 0 1px 2px rgba(22,21,15,.05), 0 10px 28px rgba(22,21,15,.07);
+  --ring: rgba(14,122,83,.38);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f100d; --surface: #171813; --surface-2: #1e1f19; --border: #2b2c24;
+    --text: #eeede6; --muted: #9b998c;
+    --accent: #3ddc97; --accent-hover: #6ae8b1; --accent-soft: rgba(61,220,151,.12); --on-accent: #0b1a12;
+    --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+    --red: #f08a82; --red-soft: rgba(240,138,130,.12);
+    --blue: #7aa7ff; --blue-soft: rgba(122,167,255,.14);
+    --ink: #0a0b09; --ink-line: #1d1e19; --ink-active: #171813;
+    --ink-card: #11120e;
+    --diff-add: rgba(61,220,151,.13); --diff-del: rgba(240,138,130,.14);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 36px rgba(0,0,0,.35);
+    --ring: rgba(61,220,151,.45);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f100d; --surface: #171813; --surface-2: #1e1f19; --border: #2b2c24;
+  --text: #eeede6; --muted: #9b998c;
+  --accent: #3ddc97; --accent-hover: #6ae8b1; --accent-soft: rgba(61,220,151,.12); --on-accent: #0b1a12;
+  --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+  --red: #f08a82; --red-soft: rgba(240,138,130,.12);
+  --blue: #7aa7ff; --blue-soft: rgba(122,167,255,.14);
+  --ink: #0a0b09; --ink-line: #1d1e19; --ink-active: #171813;
+  --ink-card: #11120e;
+  --diff-add: rgba(61,220,151,.13); --diff-del: rgba(240,138,130,.14);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 36px rgba(0,0,0,.35);
+  --ring: rgba(61,220,151,.45);
+  color-scheme: dark;
+}

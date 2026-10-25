@@ -1,0 +1,193 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import './tokens.css';
+
+/* The theme toggle sets data-theme on <html>; `dark:` follows it. */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/*
+ * Tailwind theme mapped onto the design tokens. Utilities such as bg-surface, text-muted, border-border,
+ * bg-accent-soft, rounded-card, font-mono, max-w-page all resolve to the CSS variables above.
+ */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-red: var(--red);
+  --color-red-soft: var(--red-soft);
+  --color-blue: var(--blue);
+  --color-blue-soft: var(--blue-soft);
+  --color-ink: var(--ink);
+  --color-ink-text: var(--ink-text);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-line: var(--ink-line);
+  --color-ink-active: var(--ink-active);
+  --color-ink-card: var(--ink-card);
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-signal-line: var(--signal-line);
+  --color-diff-add: var(--diff-add);
+  --color-diff-del: var(--diff-del);
+  --color-ring: var(--ring);
+
+  /* shadcn/ui names, mapped to the same tokens so generated components inherit the palette */
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--on-accent);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
+  --color-muted-foreground: var(--muted);
+  --color-input: var(--border);
+  --color-destructive: var(--red);
+
+  --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Radii used in the prototypes */
+  --radius-chip: 4px;
+  --radius-avatar: 6px;
+  --radius-nav: 7px;
+  --radius-control: 8px;
+  --radius-alert: 9px;
+  --radius-tile: 10px;
+  --radius-card: 12px;
+  --radius-dialog: 14px;
+
+  --shadow-card: var(--shadow);
+
+  /* Layout */
+  --spacing-sidebar: 224px;
+  --spacing-drawer: 260px;
+  --container-page: 1180px;
+  --container-narrow: 860px;
+  --breakpoint-shell: 861px; /* sidebar visible from here; mobile menu below (prototype: max-width 860px) */
+}
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+  html {
+    height: 100%;
+    scroll-padding-top: env(safe-area-inset-top, 0px);
+  }
+  body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root {
+    height: 100%;
+  }
+  a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+  }
+  button {
+    font: inherit;
+    color: inherit;
+  }
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 5px;
+  }
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
+  }
+  h1 {
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 16px;
+    letter-spacing: -0.01em;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  /* Small, frequently reused pieces from the prototype (#system). Larger components are React components. */
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: var(--radius-chip);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .chip.ok {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-color: transparent;
+  }
+  .chip.warn {
+    color: var(--amber);
+    background: var(--amber-soft);
+    border-color: transparent;
+  }
+  .chip.bad {
+    color: var(--red);
+    background: var(--red-soft);
+    border-color: transparent;
+  }
+  .chip.info {
+    color: var(--blue);
+    background: var(--blue-soft);
+    border-color: transparent;
+  }
+  .label-k {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .empty {
+    text-align: center;
+    color: var(--muted);
+    padding: 34px 14px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius-card);
+    font-size: 13px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
