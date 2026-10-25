@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tailorly Remote — Today’s shortlist (A)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f8fb; --surface: #ffffff; --surface-2: #eef2f7; --border: #dde3ec;
+    --text: #0e1319; --muted: #5a6778;
+    --blue: #2563eb; --blue-hover: #1d4fd0; --blue-soft: rgba(37,99,235,.10); --on-blue: #fff;
+    --green: #0f8a5f; --green-soft: rgba(15,138,95,.12);
+    --amber: #a86a00; --amber-soft: rgba(168,106,0,.12);
+    --shadow: 0 1px 2px rgba(14,19,25,.05);
+    --ring: rgba(37,99,235,.40);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1116; --surface: #151a21; --surface-2: #1b222c; --border: #263040;
+      --text: #e6edf3; --muted: #8b98a9;
+      --blue: #3b82f6; --blue-hover: #5b9bff; --blue-soft: rgba(59,130,246,.14); --on-blue: #fff;
+      --green: #3ddc97; --green-soft: rgba(61,220,151,.12);
+      --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+      --shadow: 0 1px 2px rgba(0,0,0,.35); --ring: rgba(91,155,255,.5);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1116; --surface: #151a21; --surface-2: #1b222c; --border: #263040;
+    --text: #e6edf3; --muted: #8b98a9;
+    --blue: #3b82f6; --blue-hover: #5b9bff; --blue-soft: rgba(59,130,246,.14); --on-blue: #fff;
+    --green: #3ddc97; --green-soft: rgba(61,220,151,.12);
+    --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+    --shadow: 0 1px 2px rgba(0,0,0,.35); --ring: rgba(91,155,255,.5);
+    color-scheme: dark;
+  }
+
+  :root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: inherit; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 14.5px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--surface); z-index: 20; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: var(--blue); text-decoration: none; } a:hover { text-decoration: underline; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+
+  /* Header */
+  header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .nav { max-width: 1180px; margin: 0 auto; padding: 0 20px; height: 56px; display: flex; align-items: center; gap: 24px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; letter-spacing: -.01em; }
+  .brand .tag { font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 500; color: var(--blue); background: var(--blue-soft); padding: 2px 7px; border-radius: 999px; }
+  nav { display: flex; gap: 4px; flex: 1; }
+  nav a { color: var(--muted); padding: 7px 11px; border-radius: 8px; font-weight: 500; }
+  nav a:hover { color: var(--text); background: var(--surface-2); text-decoration: none; }
+  nav a[aria-current="page"] { color: var(--text); background: var(--surface-2); }
+  .right { display: flex; align-items: center; gap: 10px; }
+  .usage-pill { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 5px 11px; }
+  .usage-pill i { width: 46px; height: 5px; border-radius: 9px; background: var(--surface-2); overflow: hidden; display: block; }
+  .usage-pill i b { display: block; height: 100%; width: 81%; background: var(--amber); }
+  .icon-btn { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 8px; cursor: pointer; }
+  .icon-btn:hover { color: var(--text); background: var(--surface-2); }
+  .avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--blue-soft); color: var(--blue); display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+
+  /* Page */
+  .page { max-width: 1180px; margin: 0 auto; padding: 26px 20px 64px; display: grid; grid-template-columns: minmax(0,1fr) 296px; gap: 24px; align-items: start; }
+  .titlebar { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  h1 { margin: 0; font-size: 24px; letter-spacing: -.02em; }
+  .sub { color: var(--muted); font-size: 13.5px; margin-top: 3px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); padding: 8px 13px; border-radius: 9px; cursor: pointer; font-weight: 500; }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--blue); border-color: var(--blue); color: var(--on-blue); font-weight: 600; }
+  .btn.primary:hover { background: var(--blue-hover); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--blue); padding-left: 8px; padding-right: 8px; }
+  .btn.ghost:hover { background: var(--blue-soft); }
+
+  /* Filters */
+  .filters { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; box-shadow: var(--shadow); }
+  .seg { display: inline-flex; background: var(--surface-2); padding: 3px; border-radius: 9px; gap: 2px; }
+  .seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 7px; color: var(--muted); font-weight: 500; cursor: pointer; font-size: 13px; }
+  .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+  .field { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+  select, .search { font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 9px; }
+  .search { min-width: 190px; flex: 1; max-width: 280px; }
+  .search:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--ring); }
+  .spacer { flex: 1; }
+  .toggle { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); cursor: pointer; user-select: none; }
+  .toggle input { accent-color: var(--blue); width: 15px; height: 15px; }
+
+  /* Job cards */
+  .list { display: grid; gap: 12px; }
+  .job { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: grid; grid-template-columns: 52px minmax(0,1fr) auto; gap: 14px; box-shadow: var(--shadow); transition: border-color .15s, box-shadow .15s; }
+  .job:hover { border-color: color-mix(in srgb, var(--blue) 40%, var(--border)); box-shadow: 0 4px 18px rgba(37,99,235,.08); }
+  .score { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; font-family: "JetBrains Mono", monospace; font-weight: 600; font-size: 18px; background: var(--blue-soft); color: var(--blue); }
+  .score small { font-size: 10px; font-weight: 500; opacity: .75; margin-left: 1px; }
+  .score.high { background: var(--green-soft); color: var(--green); }
+  .jt { font-weight: 600; font-size: 16px; letter-spacing: -.01em; }
+  .jm { color: var(--muted); font-size: 13.5px; margin-top: 1px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 8px; }
+  .chip { font-family: "JetBrains Mono", monospace; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted); }
+  .chip.ok { color: var(--green); background: var(--green-soft); border-color: transparent; }
+  .chip.warn { color: var(--amber); background: var(--amber-soft); border-color: transparent; }
+  .chip.blue { color: var(--blue); background: var(--blue-soft); border-color: transparent; }
+  .reasons { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 13.5px; }
+  .reasons li { display: flex; gap: 8px; align-items: baseline; }
+  .reasons svg { flex: none; color: var(--green); transform: translateY(2px); }
+  .foot { margin-top: 10px; font-size: 12.5px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
+  .actions { display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 122px; }
+  .save[aria-pressed="true"] { color: var(--blue); border-color: var(--blue); background: var(--blue-soft); }
+
+  .hidden-note { text-align: center; color: var(--muted); font-size: 13px; padding: 14px; border: 1px dashed var(--border); border-radius: 12px; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 10px; border: 1px dashed var(--border); border-radius: 12px; }
+
+  /* Rail */
+  aside { display: grid; gap: 14px; position: sticky; top: calc(72px + env(safe-area-inset-top, 0px)); }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: var(--shadow); }
+  .panel h3 { margin: 0 0 12px; font-size: 13px; letter-spacing: .02em; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+  .meter-row { margin-bottom: 12px; font-size: 13px; }
+  .meter-row:last-child { margin-bottom: 0; }
+  .meter-row .t { display: flex; justify-content: space-between; margin-bottom: 5px; }
+  .meter-row .t span:last-child { color: var(--muted); font-family: "JetBrains Mono", monospace; font-size: 12px; }
+  .bar { height: 6px; background: var(--surface-2); border-radius: 9px; overflow: hidden; }
+  .bar b { display: block; height: 100%; background: var(--blue); border-radius: 9px; }
+  .bar b.warn { background: var(--amber); }
+  .kv { display: flex; justify-content: space-between; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .kv:last-child { border-bottom: 0; }
+  .kv span:last-child { font-family: "JetBrains Mono", monospace; font-size: 12.5px; }
+  .note { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 13.5px; opacity: 0; pointer-events: none; transition: all .2s; z-index: 50; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 1000px) { .page { grid-template-columns: 1fr; } aside { position: static; } nav { display: none; } }
+  @media (max-width: 640px) {
+    .job { grid-template-columns: 44px minmax(0,1fr); }
+    .actions { grid-column: 1 / -1; flex-direction: row; min-width: 0; }
+    .actions .btn { flex: 1; justify-content: center; }
+    .usage-pill { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="nav">
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="7" fill="var(--blue)"/><path d="M8 9h12M14 9v11" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M8 21h12" stroke="#fff" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
+      <span>Tailorly</span><span class="tag">remote</span>
+    </div>
+    <nav aria-label="Main">
+      <a href="#" aria-current="page" onclick="return false">Shortlist</a>
+      <a href="#" onclick="return false">Tracker</a>
+      <a href="#" onclick="return false">Résumé</a>
+      <a href="#" onclick="return false">Preferences</a>
+    </nav>
+    <div class="right">
+      <div class="usage-pill" title="Documents budget"><span>Documents</span><i><b></b></i><span class="mono">81%</span></div>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle light and dark theme"><svg id="themeIcon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg></button>
+      <div class="avatar" aria-label="Account">RK</div>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  <section aria-labelledby="h">
+    <div class="titlebar">
+      <div>
+        <h1 id="h">Today’s shortlist</h1>
+        <div class="sub"><span class="mono">Sat 24 Oct</span> · generated 18:02 IST · <span id="count">0</span> matches from 3 sources</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" type="button" data-toast="Manual run started (prototype)">Run now</button>
+        <button class="btn" type="button" data-toast="Opens preferences (prototype)">Preferences</button>
+      </div>
+    </div>
+
+    <div class="filters" role="group" aria-label="Filters">
+      <div class="seg" id="eligSeg" role="group" aria-label="Eligibility">
+        <button type="button" data-v="all" aria-pressed="true">All</button>
+        <button type="button" data-v="india_eligible" aria-pressed="false">India-eligible</button>
+        <button type="button" data-v="worldwide" aria-pressed="false">Worldwide</button>
+        <button type="button" data-v="unclear" aria-pressed="false">Unclear</button>
+      </div>
+      <label class="field">Min score
+        <select id="minScore" aria-label="Minimum match score"><option>6</option><option>7</option><option selected>8</option><option>9</option></select>
+      </label>
+      <input class="search" id="q" type="search" placeholder="Search title or company" aria-label="Search">
+      <span class="spacer"></span>
+      <label class="toggle"><input type="checkbox" id="savedOnly"> Saved only</label>
+    </div>
+
+    <div class="list" id="list" aria-live="polite"></div>
+    <div id="hiddenNote"></div>
+  </section>
+
+  <aside aria-label="Summary">
+    <div class="panel">
+      <h3>AI budget · October</h3>
+      <div class="meter-row"><div class="t"><span>Discovery</span><span>212k / 600k</span></div><div class="bar"><b style="width:35%"></b></div></div>
+      <div class="meter-row"><div class="t"><span>Documents</span><span>1.13M / 1.4M</span></div><div class="bar"><b class="warn" style="width:81%"></b></div></div>
+      <div class="note">Resets on 1 Nov. Documents is above 80%.</div>
+    </div>
+    <div class="panel">
+      <h3>Today’s sources</h3>
+      <div class="kv"><span>Himalayas</span><span>6</span></div>
+      <div class="kv"><span>RemoteOK</span><span>3</span></div>
+      <div class="kv"><span>Company boards</span><span>5</span></div>
+      <div class="note">Every job links back to its source.</div>
+    </div>
+    <div class="panel">
+      <h3>Next digest</h3>
+      <div class="kv"><span>Tomorrow</span><span>18:00 IST</span></div>
+      <div class="kv"><span>Min score</span><span>8 / 10</span></div>
+      <div class="kv"><span>Scope</span><span>India + remote</span></div>
+    </div>
+  </aside>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  function applyTheme(t) { root.setAttribute('data-theme', t); document.getElementById('themeIcon').innerHTML = t === 'dark' ? SUN : MOON; }
+  var saved = null; try { saved = localStorage.getItem('tailorly-theme-a'); } catch (e) {}
+  applyTheme(saved === 'dark' ? 'dark' : 'light');
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var n = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(n);
+    try { localStorage.setItem('tailorly-theme-a', n); } catch (e) {}
+  });
+
+  var jobs = [
+    { id: 1, t: 'Senior Backend Engineer (.NET)', c: 'Acme Cloud', loc: 'Remote · APAC', el: 'india_eligible', s: 9, sal: '$60k–$90k', sk: 'stated', src: 'Himalayas', ago: '3h ago', r: ['Strong .NET and PostgreSQL match', 'Seniority aligns with your 6 years'] },
+    { id: 2, t: 'Platform Engineer', c: 'Northwind Labs', loc: 'Remote · Worldwide', el: 'worldwide', s: 9, sal: '', sk: 'not_listed', src: 'Greenhouse', ago: '5h ago', r: ['Cloud and CI/CD experience matches', 'Salary not listed, shown because score is 9'] },
+    { id: 3, t: 'Full-stack Engineer (React, Node)', c: 'Lumen Health', loc: 'Remote · India, UK, EU', el: 'india_eligible', s: 8, sal: '$45k–$70k', sk: 'stated', src: 'RemoteOK', ago: '8h ago', r: ['React and API skills match', 'Missing: GraphQL'] },
+    { id: 4, t: 'Backend Engineer, Payments', c: 'Orbit Pay', loc: 'Remote · overlap with CET', el: 'unclear', s: 8, sal: '€55k–€75k', sk: 'stated', src: 'Himalayas', ago: '9h ago', r: ['Payments domain experience matches', 'Check hours: CET overlap required'] },
+    { id: 5, t: 'DevOps Engineer', c: 'Kiln Systems', loc: 'Remote · Worldwide', el: 'worldwide', s: 8, sal: '', sk: 'not_listed', src: 'Greenhouse', ago: '1d ago', r: ['Kubernetes and Terraform match', 'Salary not listed, shown because score is 8'] },
+    { id: 6, t: 'Data Engineer', c: 'Meridian Analytics', loc: 'Remote · India', el: 'india_eligible', s: 8, sal: '₹30L–₹45L', sk: 'stated', src: 'Himalayas', ago: '1d ago', r: ['SQL and pipelines match', 'Missing: Spark'] },
+    { id: 7, t: 'Mobile Engineer (Flutter)', c: 'Paperplane', loc: 'Remote · APAC', el: 'india_eligible', s: 7, sal: '$40k–$60k', sk: 'stated', src: 'RemoteOK', ago: '1d ago', r: ['Partial mobile experience'] },
+    { id: 8, t: 'QA Automation Engineer', c: 'Fieldnote', loc: 'Remote · Worldwide', el: 'worldwide', s: 6, sal: '$35k–$50k', sk: 'stated', src: 'Greenhouse', ago: '2d ago', r: ['Limited test-automation background'] }
+  ];
+  var elLabel = { india_eligible: 'india_eligible', worldwide: 'worldwide', unclear: 'unclear' };
+  var st = { el: 'all', min: 8, q: '', savedOnly: false }, savedIds = {};
+  var CHECK = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg>';
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function card(j) {
+    var salary = j.sk === 'not_listed' ? '<span class="chip">salary not listed</span>' : '<span class="chip">' + esc(j.sal) + '</span>';
+    var elClass = j.el === 'unclear' ? 'warn' : 'ok';
+    var reasons = j.r.map(function (x) { return '<li>' + CHECK + '<span>' + esc(x) + '</span></li>'; }).join('');
+    return '<article class="job">' +
+      '<div class="score ' + (j.s >= 9 ? 'high' : '') + '" aria-label="Fit score ' + j.s + ' of 10">' + j.s + '<small>/10</small></div>' +
+      '<div><div class="jt">' + esc(j.t) + '</div><div class="jm">' + esc(j.c) + ' · ' + esc(j.loc) + '</div>' +
+      '<div class="chips"><span class="chip ' + elClass + '">' + elLabel[j.el] + (j.el === 'unclear' ? ' ⚠' : '') + '</span>' + salary + '</div>' +
+      '<ul class="reasons">' + reasons + '</ul>' +
+      '<div class="foot"><a href="#" onclick="return false">via ' + esc(j.src) + ' ↗</a><span>·</span><span>' + esc(j.ago) + '</span></div></div>' +
+      '<div class="actions"><button class="btn primary" type="button" data-toast="Opens tailoring for ' + esc(j.c) + ' (prototype)">Tailor résumé</button>' +
+      '<button class="btn save" type="button" data-save="' + j.id + '" aria-pressed="' + (savedIds[j.id] ? 'true' : 'false') + '">' + (savedIds[j.id] ? 'Saved' : 'Save') + '</button>' +
+      '<button class="btn ghost" type="button" data-toast="Opens the source apply link (prototype)">Apply ↗</button></div></article>';
+  }
+
+  function render() {
+    var q = st.q.toLowerCase();
+    var base = jobs.filter(function (j) {
+      return (st.el === 'all' || j.el === st.el) && (!q || (j.t + ' ' + j.c).toLowerCase().indexOf(q) > -1) && (!st.savedOnly || savedIds[j.id]);
+    });
+    var shown = base.filter(function (j) { return j.s >= st.min; });
+    var hiddenCount = base.length - shown.length;
+    document.getElementById('list').innerHTML = shown.length ? shown.map(card).join('') : '<div class="empty">No jobs match these filters. Try lowering the minimum score.</div>';
+    document.getElementById('count').textContent = shown.length;
+    document.getElementById('hiddenNote').innerHTML = hiddenCount > 0 ? '<div class="hidden-note" style="margin-top:12px">' + hiddenCount + ' more below your minimum score of ' + st.min + '. Lower the score filter to see them.</div>' : '';
+  }
+
+  document.getElementById('eligSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    Array.prototype.forEach.call(this.children, function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    st.el = b.getAttribute('data-v'); render();
+  });
+  document.getElementById('minScore').addEventListener('change', function () { st.min = +this.value; render(); });
+  document.getElementById('q').addEventListener('input', function () { st.q = this.value; render(); });
+  document.getElementById('savedOnly').addEventListener('change', function () { st.savedOnly = this.checked; render(); });
+
+  var toast = document.getElementById('toast'), tt;
+  function say(m) { toast.textContent = m; toast.classList.add('show'); clearTimeout(tt); tt = setTimeout(function () { toast.classList.remove('show'); }, 2200); }
+  document.addEventListener('click', function (e) {
+    var s = e.target.closest('[data-save]');
+    if (s) { var id = s.getAttribute('data-save'); savedIds[id] = !savedIds[id]; render(); say(savedIds[id] ? 'Saved to your tracker' : 'Removed from tracker'); return; }
+    var t = e.target.closest('[data-toast]'); if (t) say(t.getAttribute('data-toast'));
+  });
+  render();
+})();
+</script>
+</body>
+</html>

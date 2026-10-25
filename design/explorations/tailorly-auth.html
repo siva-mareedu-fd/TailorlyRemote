@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tailorly Remote — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    --bg: #f6f8fb;
+    --surface: #ffffff;
+    --surface-2: #eef2f7;
+    --border: #d9e0ea;
+    --text: #0e1319;
+    --muted: #5a6778;
+    --blue: #2563eb;
+    --blue-hover: #1d4fd0;
+    --blue-soft: rgba(37, 99, 235, 0.10);
+    --on-blue: #ffffff;
+    --green: #0f8a5f;
+    --green-soft: rgba(15, 138, 95, 0.12);
+    --red: #c93636;
+    --red-soft: rgba(201, 54, 54, 0.10);
+    --diff-add: rgba(15, 138, 95, 0.14);
+    --diff-del: rgba(201, 54, 54, 0.12);
+    --shadow: 0 1px 2px rgba(14, 19, 25, 0.06), 0 12px 32px rgba(14, 19, 25, 0.08);
+    --ring: rgba(37, 99, 235, 0.45);
+    --grid-line: rgba(14, 19, 25, 0.045);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1116;
+      --surface: #151a21;
+      --surface-2: #1b222c;
+      --border: #263040;
+      --text: #e6edf3;
+      --muted: #8b98a9;
+      --blue: #3b82f6;
+      --blue-hover: #5b9bff;
+      --blue-soft: rgba(59, 130, 246, 0.14);
+      --on-blue: #ffffff;
+      --green: #3ddc97;
+      --green-soft: rgba(61, 220, 151, 0.12);
+      --red: #f87171;
+      --red-soft: rgba(248, 113, 113, 0.12);
+      --diff-add: rgba(61, 220, 151, 0.12);
+      --diff-del: rgba(248, 113, 113, 0.12);
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.35);
+      --ring: rgba(91, 155, 255, 0.55);
+      --grid-line: rgba(230, 237, 243, 0.035);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1116;
+    --surface: #151a21;
+    --surface-2: #1b222c;
+    --border: #263040;
+    --text: #e6edf3;
+    --muted: #8b98a9;
+    --blue: #3b82f6;
+    --blue-hover: #5b9bff;
+    --blue-soft: rgba(59, 130, 246, 0.14);
+    --on-blue: #ffffff;
+    --green: #3ddc97;
+    --green-soft: rgba(61, 220, 151, 0.12);
+    --red: #f87171;
+    --red-soft: rgba(248, 113, 113, 0.12);
+    --diff-add: rgba(61, 220, 151, 0.12);
+    --diff-del: rgba(248, 113, 113, 0.12);
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.35);
+    --ring: rgba(91, 155, 255, 0.55);
+    --grid-line: rgba(230, 237, 243, 0.035);
+    color-scheme: dark;
+  }
+
+  /* ---------- Base ---------- */
+  :root {
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  *, *::before, *::after { box-sizing: inherit; }
+  body {
+    margin: 0; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+  a { color: var(--blue); text-decoration: none; }
+  a:hover { color: var(--blue-hover); text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+
+  /* ---------- Layout ---------- */
+  .shell { min-height: 100%; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); }
+  .brand-panel {
+    position: relative; padding: 40px 56px; display: flex; flex-direction: column; gap: 28px;
+    background:
+      radial-gradient(900px 420px at 15% -10%, var(--blue-soft), transparent 60%),
+      linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / 100% 36px,
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / 36px 100%,
+      var(--bg);
+    border-right: 1px solid var(--border);
+  }
+  .auth-panel { padding: 28px 40px 32px; display: flex; flex-direction: column; background: var(--bg); }
+
+  /* ---------- Brand ---------- */
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.01em; font-size: 17px; }
+  .brand .tag { font-family: "JetBrains Mono", ui-monospace, monospace; font-weight: 500; font-size: 12px; color: var(--blue);
+    background: var(--blue-soft); padding: 2px 8px; border-radius: 999px; }
+  .hero h1 { font-size: clamp(28px, 3.4vw, 40px); line-height: 1.12; letter-spacing: -0.03em; margin: 0 0 14px; font-weight: 700; max-width: 18ch; }
+  .hero h1 em { font-style: normal; color: var(--blue); }
+  .hero p { margin: 0; color: var(--muted); max-width: 46ch; font-size: 16px; }
+
+  .points { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; color: var(--muted); font-size: 14px; }
+  .points li { display: flex; gap: 10px; align-items: baseline; }
+  .points .k { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; color: var(--blue); min-width: 74px; }
+
+  /* ---------- Example card ---------- */
+  .example { max-width: 540px; border: 1px solid var(--border); background: var(--surface); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; }
+  .example-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted); background: var(--surface-2); }
+  .example-body { padding: 16px; display: grid; gap: 14px; }
+  .job-title { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+  .job-sub { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .chip { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 11.5px; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--muted); background: transparent; }
+  .chip.ok { color: var(--green); background: var(--green-soft); border-color: transparent; }
+  .chip.blue { color: var(--blue); background: var(--blue-soft); border-color: transparent; }
+  .diff { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; line-height: 1.6; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .diff div { padding: 3px 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .diff .del { background: var(--diff-del); color: var(--text); }
+  .diff .add { background: var(--diff-add); color: var(--text); }
+  .diff .sign { color: var(--muted); margin-right: 8px; user-select: none; }
+  .ats { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--muted); }
+  .ats .nums { font-family: "JetBrains Mono", ui-monospace, monospace; color: var(--text); }
+  .ats .nums b { color: var(--green); font-weight: 600; }
+  .bar { height: 6px; border-radius: 99px; background: var(--surface-2); overflow: hidden; margin-top: 6px; }
+  .bar i { display: block; height: 100%; width: 81%; background: linear-gradient(90deg, var(--blue), var(--green)); border-radius: 99px; }
+  .fine { font-size: 12px; color: var(--muted); }
+
+  /* ---------- Auth card ---------- */
+  .topbar { display: flex; justify-content: space-between; align-items: center; min-height: 40px; }
+  .brand-mobile { display: none; }
+  .icon-btn { background: transparent; border: 1px solid var(--border); color: var(--muted); width: 36px; height: 36px; border-radius: 8px; display: grid; place-items: center; cursor: pointer; }
+  .icon-btn:hover { color: var(--text); background: var(--surface); }
+  .center { flex: 1; display: grid; place-items: center; padding: 20px 0; }
+  .card { width: 100%; max-width: 420px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); padding: 28px; }
+  .card h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: -0.02em; }
+  .card .lead { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; gap: 4px; background: var(--surface-2); border-radius: 10px; margin-bottom: 22px; }
+  .tab { appearance: none; border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 500; padding: 8px 10px; border-radius: 7px; cursor: pointer; }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.18); }
+
+  .field { display: grid; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 13px; font-weight: 500; }
+  .row { display: flex; justify-content: space-between; align-items: baseline; }
+  .input-wrap { position: relative; }
+  input[type="text"], input[type="email"], input[type="password"] {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input::placeholder { color: var(--muted); opacity: .7; }
+  input:hover { border-color: color-mix(in srgb, var(--border), var(--muted) 35%); }
+  input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px var(--ring); }
+  input[aria-invalid="true"] { border-color: var(--red); }
+  .reveal { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); background: transparent; border: 0; color: var(--muted); font: inherit; font-size: 12px; padding: 6px 8px; cursor: pointer; border-radius: 6px; }
+  .reveal:hover { color: var(--text); }
+  .error { color: var(--red); font-size: 12.5px; min-height: 0; }
+  .hint { color: var(--muted); font-size: 12.5px; }
+  .meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 2px; }
+  .meter i { height: 4px; border-radius: 4px; background: var(--surface-2); transition: background .2s; }
+  .meter[data-level="1"] i:nth-child(-n+1) { background: var(--red); }
+  .meter[data-level="2"] i:nth-child(-n+2) { background: #e0a82e; }
+  .meter[data-level="3"] i:nth-child(-n+3) { background: var(--blue); }
+  .meter[data-level="4"] i:nth-child(-n+4) { background: var(--green); }
+
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--muted); margin: 6px 0 16px; }
+  .check input { margin-top: 3px; width: 16px; height: 16px; accent-color: var(--blue); flex: none; }
+  .btn { width: 100%; font: inherit; font-weight: 600; background: var(--blue); color: var(--on-blue); border: 0; border-radius: 9px; padding: 11px 14px; cursor: pointer; transition: background .15s, transform .05s; }
+  .btn:hover { background: var(--blue-hover); }
+  .btn:active { transform: translateY(1px); }
+  .link-btn { background: none; border: 0; padding: 0; font: inherit; font-size: 13px; color: var(--blue); cursor: pointer; }
+  .link-btn:hover { color: var(--blue-hover); text-decoration: underline; }
+  .tz { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); font-size: 12.5px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+  .tz .mono { color: var(--text); }
+  .hidden { display: none !important; }
+
+  .success { text-align: left; }
+  .success .badge { width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; background: var(--green-soft); color: var(--green); margin-bottom: 14px; }
+  .proto { margin-top: 18px; font-size: 12px; color: var(--muted); text-align: center; }
+  footer { display: flex; gap: 16px; justify-content: center; font-size: 12.5px; color: var(--muted); padding-top: 8px; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 960px) {
+    .shell { grid-template-columns: 1fr; }
+    .brand-panel { display: none; }
+    .brand-mobile { display: flex; }
+    .auth-panel { padding: 20px 20px 24px; }
+    .card { padding: 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ===== Left: brand + example ===== -->
+  <aside class="brand-panel" aria-label="About Tailorly Remote">
+    <div class="brand">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
+        <rect width="28" height="28" rx="7" fill="var(--blue)"/>
+        <path d="M8 9h12M14 9v11" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+        <path d="M8 21h12" stroke="#fff" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 3"/>
+      </svg>
+      <span>Tailorly</span><span class="tag">remote</span>
+    </div>
+
+    <div class="hero">
+      <h1>Your daily shortlist of <em>remote roles</em>, and the résumé to win them.</h1>
+      <p>We find remote jobs that are actually open to India, explain why each one fits, and tailor your résumé without breaking its formatting or inventing a single fact.</p>
+    </div>
+
+    <ul class="points">
+      <li><span class="k">eligibility</span><span>See whether a “remote” job accepts candidates from India, with the evidence.</span></li>
+      <li><span class="k">explained</span><span>Every match comes with a score and the reasons behind it.</span></li>
+      <li><span class="k">diff</span><span>Review every résumé change line by line. You approve what ships.</span></li>
+    </ul>
+
+    <div class="example" role="img" aria-label="Example of a daily digest card with a résumé diff">
+      <div class="example-head"><span class="mono">digest · 18:00 IST</span><span>Example</span></div>
+      <div class="example-body">
+        <div>
+          <div class="job-title">Senior Backend Engineer (.NET)</div>
+          <div class="job-sub">Acme Cloud · Remote, APAC</div>
+          <div class="chips">
+            <span class="chip ok">india_eligible</span>
+            <span class="chip blue">fit 9/10</span>
+            <span class="chip">$60k–$90k</span>
+            <span class="chip">via Himalayas ↗</span>
+          </div>
+        </div>
+        <div class="diff" aria-label="Proposed résumé edit">
+          <div class="del"><span class="sign">−</span>Built REST APIs for the payments team.</div>
+          <div class="add"><span class="sign">+</span>Built REST APIs in .NET and PostgreSQL for the payments team.</div>
+        </div>
+        <div>
+          <div class="ats"><span>ATS match (estimated)</span><span class="nums">58 → <b>81</b></span></div>
+          <div class="bar"><i></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="fine">Illustrative example. Real scores depend on your résumé and the job.</div>
+  </aside>
+
+  <!-- ===== Right: auth ===== -->
+  <main class="auth-panel">
+    <div class="topbar">
+      <div class="brand brand-mobile">
+        <svg width="24" height="24" viewBox="0 0 28 28" aria-hidden="true">
+          <rect width="28" height="28" rx="7" fill="var(--blue)"/>
+          <path d="M8 9h12M14 9v11" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+        <span>Tailorly</span><span class="tag">remote</span>
+      </div>
+      <span></span>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle light and dark theme" title="Toggle theme">
+        <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg>
+      </button>
+    </div>
+
+    <div class="center">
+      <section class="card" aria-live="polite">
+
+        <div id="authView">
+          <div class="tabs" role="tablist" aria-label="Sign in or create account">
+            <button class="tab" role="tab" id="tab-signin" aria-controls="panel-signin" aria-selected="true" type="button">Sign in</button>
+            <button class="tab" role="tab" id="tab-signup" aria-controls="panel-signup" aria-selected="false" tabindex="-1" type="button">Create account</button>
+          </div>
+
+          <!-- Sign in -->
+          <div id="panel-signin" role="tabpanel" aria-labelledby="tab-signin">
+            <h2>Welcome back</h2>
+            <p class="lead">Sign in to see today’s shortlist.</p>
+            <form id="signinForm" novalidate>
+              <div class="field">
+                <label for="si-email">Email</label>
+                <input id="si-email" type="email" autocomplete="email" placeholder="you@example.com" required>
+                <div class="error" id="si-email-err" role="alert"></div>
+              </div>
+              <div class="field">
+                <div class="row"><label for="si-pass">Password</label><button type="button" class="link-btn" id="forgotBtn">Forgot password?</button></div>
+                <div class="input-wrap">
+                  <input id="si-pass" type="password" autocomplete="current-password" placeholder="Your password" required>
+                  <button class="reveal" type="button" data-target="si-pass" aria-label="Show password">Show</button>
+                </div>
+                <div class="error" id="si-pass-err" role="alert"></div>
+              </div>
+              <button class="btn" type="submit">Sign in</button>
+            </form>
+          </div>
+
+          <!-- Sign up -->
+          <div id="panel-signup" role="tabpanel" aria-labelledby="tab-signup" class="hidden">
+            <h2>Create your account</h2>
+            <p class="lead">Upload your résumé once. Get a shortlist every evening.</p>
+            <form id="signupForm" novalidate>
+              <div class="field">
+                <label for="su-name">Name</label>
+                <input id="su-name" type="text" autocomplete="name" placeholder="Your name" required>
+                <div class="error" id="su-name-err" role="alert"></div>
+              </div>
+              <div class="field">
+                <label for="su-email">Email</label>
+                <input id="su-email" type="email" autocomplete="email" placeholder="you@example.com" required>
+                <div class="error" id="su-email-err" role="alert"></div>
+              </div>
+              <div class="field">
+                <label for="su-pass">Password</label>
+                <div class="input-wrap">
+                  <input id="su-pass" type="password" autocomplete="new-password" placeholder="At least 10 characters" required aria-describedby="su-pass-hint">
+                  <button class="reveal" type="button" data-target="su-pass" aria-label="Show password">Show</button>
+                </div>
+                <div class="meter" id="meter" data-level="0" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+                <div class="hint" id="su-pass-hint">Use 10 or more characters. A passphrase works well.</div>
+                <div class="error" id="su-pass-err" role="alert"></div>
+              </div>
+
+              <div class="field hidden" id="inviteField">
+                <label for="su-invite">Invite code</label>
+                <input id="su-invite" type="text" autocomplete="off" placeholder="Paste your code">
+              </div>
+              <div style="margin:-4px 0 12px"><button type="button" class="link-btn" id="inviteBtn">Have an invite code?</button></div>
+
+              <label class="check">
+                <input id="su-consent" type="checkbox">
+                <span>I agree to the <a href="#" onclick="return false">Terms</a> and <a href="#" onclick="return false">Privacy Notice</a>. I understand my résumé text is processed by an AI provider (Anthropic) to create matches and tailored documents.</span>
+              </label>
+              <div class="error" id="su-consent-err" role="alert" style="margin:-10px 0 12px"></div>
+              <button class="btn" type="submit">Create account</button>
+            </form>
+            <div class="tz"><span aria-hidden="true">◷</span><span>Daily digest at <span class="mono">18:00</span> · <span class="mono" id="tzName">Asia/Kolkata</span></span></div>
+          </div>
+        </div>
+
+        <!-- Success states -->
+        <div id="successView" class="success hidden">
+          <div class="badge" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="m4 7 8 6 8-6"/></svg>
+          </div>
+          <h2 id="successTitle">Check your inbox</h2>
+          <p class="lead" id="successText"></p>
+          <button class="btn" type="button" id="backBtn">Back to sign in</button>
+        </div>
+
+        <p class="proto">Prototype · nothing is submitted or stored.</p>
+      </section>
+    </div>
+
+    <footer><a href="#" onclick="return false">Privacy</a><a href="#" onclick="return false">Terms</a><span>© Tailorly Remote</span></footer>
+  </main>
+</div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  /* ---------- Theme ---------- */
+  var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  function applyTheme(t) {
+    root.setAttribute('data-theme', t);
+    document.getElementById('themeIcon').innerHTML = (t === 'dark') ? SUN : MOON;
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('tailorly-theme'); } catch (e) {}
+  applyTheme(saved === 'light' || saved === 'dark' ? saved : 'dark');
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('tailorly-theme', next); } catch (e) {}
+  });
+
+  /* ---------- Tabs ---------- */
+  var tabs = { signin: document.getElementById('tab-signin'), signup: document.getElementById('tab-signup') };
+  var panels = { signin: document.getElementById('panel-signin'), signup: document.getElementById('panel-signup') };
+  function showTab(name, focus) {
+    ['signin', 'signup'].forEach(function (k) {
+      var on = (k === name);
+      tabs[k].setAttribute('aria-selected', on ? 'true' : 'false');
+      tabs[k].tabIndex = on ? 0 : -1;
+      panels[k].classList.toggle('hidden', !on);
+    });
+    if (focus) tabs[name].focus();
+    try { history.replaceState(null, '', '#' + name); } catch (e) {}
+  }
+  tabs.signin.addEventListener('click', function () { showTab('signin'); });
+  tabs.signup.addEventListener('click', function () { showTab('signup'); });
+  [tabs.signin, tabs.signup].forEach(function (t) {
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        showTab(t === tabs.signin ? 'signup' : 'signin', true);
+      }
+    });
+  });
+  var initial = (location.hash || '').replace('#', '');
+  showTab(initial === 'signup' ? 'signup' : 'signin');
+
+  /* ---------- Show / hide password ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll('.reveal'), function (b) {
+    b.addEventListener('click', function () {
+      var input = document.getElementById(b.getAttribute('data-target'));
+      var show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      b.textContent = show ? 'Hide' : 'Show';
+      b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+    });
+  });
+
+  /* ---------- Password strength ---------- */
+  var meter = document.getElementById('meter');
+  document.getElementById('su-pass').addEventListener('input', function (e) {
+    var v = e.target.value, s = 0;
+    if (v.length >= 10) s++;
+    if (v.length >= 14) s++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) s++;
+    if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v) || v.split(' ').length >= 3) s++;
+    meter.setAttribute('data-level', v ? String(Math.max(1, s)) : '0');
+  });
+
+  /* ---------- Invite code (feature-flag UI) ---------- */
+  document.getElementById('inviteBtn').addEventListener('click', function () {
+    document.getElementById('inviteField').classList.remove('hidden');
+    this.classList.add('hidden');
+    document.getElementById('su-invite').focus();
+  });
+
+  /* ---------- Time zone ---------- */
+  try {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) document.getElementById('tzName').textContent = tz;
+  } catch (e) {}
+
+  /* ---------- Validation (demo only) ---------- */
+  function setErr(id, inputId, msg) {
+    document.getElementById(id).textContent = msg || '';
+    if (inputId) {
+      var el = document.getElementById(inputId);
+      if (msg) el.setAttribute('aria-invalid', 'true'); else el.removeAttribute('aria-invalid');
+    }
+    return !msg;
+  }
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function showSuccess(title, text) {
+    document.getElementById('authView').classList.add('hidden');
+    document.getElementById('successView').classList.remove('hidden');
+    document.getElementById('successTitle').textContent = title;
+    document.getElementById('successText').textContent = text;
+  }
+  document.getElementById('backBtn').addEventListener('click', function () {
+    document.getElementById('successView').classList.add('hidden');
+    document.getElementById('authView').classList.remove('hidden');
+    showTab('signin');
+  });
+
+  document.getElementById('signinForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var email = document.getElementById('si-email').value.trim();
+    var pass = document.getElementById('si-pass').value;
+    var ok = setErr('si-email-err', 'si-email', emailRe.test(email) ? '' : 'Enter a valid email address.');
+    ok = setErr('si-pass-err', 'si-pass', pass ? '' : 'Enter your password.') && ok;
+    if (ok) showSuccess('Signed in (prototype)', 'In the real app you would land on today’s shortlist.');
+  });
+
+  document.getElementById('signupForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var name = document.getElementById('su-name').value.trim();
+    var email = document.getElementById('su-email').value.trim();
+    var pass = document.getElementById('su-pass').value;
+    var consent = document.getElementById('su-consent').checked;
+    var ok = setErr('su-name-err', 'su-name', name ? '' : 'Tell us what to call you.');
+    ok = setErr('su-email-err', 'su-email', emailRe.test(email) ? '' : 'Enter a valid email address.') && ok;
+    ok = setErr('su-pass-err', 'su-pass', pass.length >= 10 ? '' : 'Use at least 10 characters.') && ok;
+    ok = setErr('su-consent-err', null, consent ? '' : 'Please accept the Terms and Privacy Notice to continue.') && ok;
+    if (ok) showSuccess('Check your inbox', 'We’ve sent a verification link to ' + email + '. Verify your email, then upload your résumé.');
+  });
+
+  document.getElementById('forgotBtn').addEventListener('click', function () {
+    var email = document.getElementById('si-email').value.trim();
+    showSuccess('Reset link sent', emailRe.test(email)
+      ? 'If an account exists for ' + email + ', a reset link is on its way.'
+      : 'If an account exists for that email, a reset link is on its way.');
+  });
+})();
+</script>
+</body>
+</html>

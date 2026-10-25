@@ -1,0 +1,32 @@
+# Secrets and private data (never commit)
+.env
+deploy/.env
+*.pfx
+.docx/
+install.cmd
+
+# Local runtime data
+.data/
+storage/
+logs/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+TestResults/
+*.trx
+coverage/
+
+# Node / web
+node_modules/
+web/dist/
+*.tsbuildinfo
+.vite/
+
+# Editors / OS
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tailorly Remote — App prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== Tokens (final palette) ===== */
+:root {
+  --bg: #f7faf8; --surface: #ffffff; --surface-2: #eaf3ee; --border: #d5e3db;
+  --text: #16150f; --muted: #6a675c;
+  --accent: #0e7a53; --accent-hover: #0b6544; --accent-soft: rgba(14,122,83,.10); --on-accent: #ffffff;
+  --amber: #9a5f00; --amber-soft: rgba(154,95,0,.12);
+  --red: #b3362f; --red-soft: rgba(179,54,47,.10);
+  --blue: #2563eb; --blue-soft: rgba(37,99,235,.10);
+  --ink: #14130f; --ink-text: #eceae1; --ink-muted: #9a978b; --ink-line: #2a2922; --ink-active: #23221b;
+  --diff-add: rgba(14,122,83,.14); --diff-del: rgba(179,54,47,.12);
+  --shadow: 0 1px 2px rgba(22,21,15,.05), 0 10px 28px rgba(22,21,15,.07);
+  --ring: rgba(14,122,83,.38);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f100d; --surface: #171813; --surface-2: #1e1f19; --border: #2b2c24;
+    --text: #eeede6; --muted: #9b998c;
+    --accent: #3ddc97; --accent-hover: #6ae8b1; --accent-soft: rgba(61,220,151,.12); --on-accent: #0b1a12;
+    --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+    --red: #f08a82; --red-soft: rgba(240,138,130,.12);
+    --blue: #7aa7ff; --blue-soft: rgba(122,167,255,.14);
+    --ink: #0a0b09; --ink-line: #1d1e19; --ink-active: #171813;
+    --diff-add: rgba(61,220,151,.13); --diff-del: rgba(240,138,130,.14);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 36px rgba(0,0,0,.35);
+    --ring: rgba(61,220,151,.45);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f100d; --surface: #171813; --surface-2: #1e1f19; --border: #2b2c24;
+  --text: #eeede6; --muted: #9b998c;
+  --accent: #3ddc97; --accent-hover: #6ae8b1; --accent-soft: rgba(61,220,151,.12); --on-accent: #0b1a12;
+  --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+  --red: #f08a82; --red-soft: rgba(240,138,130,.12);
+  --blue: #7aa7ff; --blue-soft: rgba(122,167,255,.14);
+  --ink: #0a0b09; --ink-line: #1d1e19; --ink-active: #171813;
+  --diff-add: rgba(61,220,151,.13); --diff-del: rgba(240,138,130,.14);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 14px 36px rgba(0,0,0,.35);
+  --ring: rgba(61,220,151,.45);
+  color-scheme: dark;
+}
+
+/* ===== Base ===== */
+:root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+*, *::before, *::after { box-sizing: inherit; }
+body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; }
+.mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 5px; }
+h1, h2, h3, p { margin: 0; }
+.hidden { display: none !important; }
+.muted { color: var(--muted); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ===== Shell ===== */
+.app { height: 100%; display: grid; grid-template-columns: 224px minmax(0, 1fr); }
+.app.no-shell { grid-template-columns: minmax(0, 1fr); }
+.app.no-shell .side, .app.no-shell .mtop { display: none; }
+.side { background: var(--ink); color: var(--ink-text); display: flex; flex-direction: column; padding: 18px 12px; gap: 14px; overflow: auto; }
+.brand { display: flex; align-items: center; gap: 9px; padding: 0 8px; font-weight: 600; letter-spacing: -.01em; }
+.brand .tag { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: #3ddc97; border: 1px solid #2c5a45; padding: 1px 6px; border-radius: 4px; font-weight: 500; }
+.side nav { display: grid; gap: 2px; }
+.navlabel { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-muted); padding: 8px 10px 2px; opacity: .8; }
+.side nav a { display: flex; justify-content: space-between; align-items: center; color: var(--ink-muted); padding: 7px 10px; border-radius: 7px; font-weight: 500; text-decoration: none; }
+.side nav a:hover { color: var(--ink-text); background: var(--ink-active); }
+.side nav a[aria-current="page"] { color: var(--ink-text); background: var(--ink-active); box-shadow: inset 2px 0 0 #3ddc97; }
+.side nav .n { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-muted); }
+.budget { margin-top: auto; border-top: 1px solid var(--ink-line); padding: 14px 8px 0; display: grid; gap: 10px; font-size: 12px; color: var(--ink-muted); }
+.budget .r { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.budget .bar { height: 4px; border-radius: 9px; background: var(--ink-line); overflow: hidden; }
+.budget .bar b { display: block; height: 100%; background: #3ddc97; }
+.budget .bar b.warn { background: #f0b44c; }
+.userrow { display: flex; align-items: center; gap: 9px; padding: 8px; }
+.avatar { width: 28px; height: 28px; border-radius: 6px; background: #23221b; color: #3ddc97; display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600; flex: none; }
+.userrow .who { flex: 1; min-width: 0; color: var(--ink-text); font-size: 13px; line-height: 1.25; }
+.userrow .who small { display: block; color: var(--ink-muted); font-size: 11px; }
+.icon-btn { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--ink-line); background: transparent; color: var(--ink-muted); border-radius: 7px; cursor: pointer; flex: none; }
+.icon-btn:hover { color: var(--ink-text); }
+.icon-btn.light { border-color: var(--border); color: var(--muted); }
+.icon-btn.light:hover { color: var(--text); background: var(--surface-2); }
+.mtop { display: none; align-items: center; gap: 10px; padding: 10px 14px; background: var(--ink); color: var(--ink-text); }
+.main { min-height: 0; overflow: auto; display: flex; flex-direction: column; }
+.main.flush { overflow: hidden; }
+.page { width: 100%; max-width: 1180px; margin: 0 auto; padding: 26px 32px 72px; }
+.page.narrow { max-width: 860px; }
+
+/* ===== Type & layout helpers ===== */
+.title { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 18px; }
+h1 { font-size: 22px; letter-spacing: -.02em; line-height: 1.25; }
+.sub { color: var(--muted); font-size: 13px; margin-top: 3px; }
+h2 { font-size: 16px; letter-spacing: -.01em; }
+h3.k { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.row.between { justify-content: space-between; }
+.stack { display: grid; gap: 14px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; }
+.card.flat { box-shadow: none; }
+.card h2 + .sub { margin-bottom: 14px; }
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ===== Buttons, chips ===== */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); padding: 8px 13px; border-radius: 8px; cursor: pointer; font-weight: 500; text-decoration: none; color: var(--text); white-space: nowrap; }
+.btn:hover { background: var(--surface-2); text-decoration: none; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+.btn.primary:hover { background: var(--accent-hover); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--accent); }
+.btn.ghost:hover { background: var(--accent-soft); }
+.btn.danger { color: var(--red); border-color: color-mix(in srgb, var(--red) 40%, var(--border)); background: transparent; }
+.btn.danger:hover { background: var(--red-soft); }
+.btn.danger.solid { background: var(--red); border-color: var(--red); color: #fff; }
+.btn.sm { padding: 5px 10px; font-size: 13px; }
+.btn[disabled], .btn.disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+.chip { font-family: "IBM Plex Mono", monospace; font-size: 11px; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.chip.ok { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.chip.warn { color: var(--amber); background: var(--amber-soft); border-color: transparent; }
+.chip.bad { color: var(--red); background: var(--red-soft); border-color: transparent; }
+.chip.info { color: var(--blue); background: var(--blue-soft); border-color: transparent; }
+.kbd { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface); }
+
+/* ===== Forms ===== */
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field > label, .lbl { font-size: 13px; font-weight: 500; }
+.help { font-size: 12.5px; color: var(--muted); }
+.err { font-size: 12.5px; color: var(--red); }
+.input, .select, .textarea { width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; outline: none; transition: border-color .15s, box-shadow .15s; }
+.textarea { min-height: 120px; resize: vertical; line-height: 1.55; }
+.input::placeholder, .textarea::placeholder { color: var(--muted); opacity: .7; }
+.input:focus, .select:focus, .textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+.input[aria-invalid="true"], .textarea[aria-invalid="true"] { border-color: var(--red); }
+.select { padding-right: 8px; }
+.seg { display: inline-flex; background: var(--surface-2); padding: 3px; border-radius: 9px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 7px; color: var(--muted); font-weight: 500; cursor: pointer; font-size: 13px; }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.14); }
+.field > .seg { justify-self: start; max-width: 100%; }
+.sw { position: relative; display: inline-block; width: 38px; height: 22px; flex: none; }
+.sw input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; z-index: 1; }
+.sw span { position: absolute; inset: 0; background: var(--border); border-radius: 99px; transition: background .15s; }
+.sw span::after { content: ""; position: absolute; width: 16px; height: 16px; top: 3px; left: 3px; border-radius: 50%; background: #fff; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.sw input:checked + span { background: var(--accent); }
+.sw input:checked + span::after { transform: translateX(16px); }
+.sw input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.setting { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.setting:last-child { border-bottom: 0; }
+.setting .t { font-weight: 500; } .setting .d { color: var(--muted); font-size: 12.5px; }
+.chipsin { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; }
+.chipsin:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+.chipsin input { border: 0; outline: 0; background: transparent; font: inherit; color: var(--text); flex: 1; min-width: 120px; padding: 3px 4px; }
+.chipsin .tagx { display: inline-flex; align-items: center; gap: 5px; background: var(--surface-2); border-radius: 6px; padding: 2px 4px 2px 8px; font-size: 13px; }
+.chipsin .tagx button { border: 0; background: transparent; cursor: pointer; color: var(--muted); padding: 0 3px; font-size: 14px; line-height: 1; }
+input[type="range"] { accent-color: var(--accent); width: 100%; }
+input[type="checkbox"].cb, input[type="radio"].cb { accent-color: var(--accent); width: 16px; height: 16px; }
+.drop { display: block; border: 1.5px dashed color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius: 12px; padding: 28px 18px; text-align: center; background: color-mix(in srgb, var(--accent-soft) 40%, transparent); cursor: pointer; }
+.drop:hover { background: var(--accent-soft); }
+.drop b { display: block; font-size: 15px; margin: 8px 0 2px; }
+
+/* ===== Feedback ===== */
+.alert { display: flex; gap: 10px; padding: 10px 12px; border-radius: 9px; font-size: 13px; border: 1px solid transparent; }
+.alert.info { background: var(--blue-soft); color: var(--text); border-color: color-mix(in srgb, var(--blue) 25%, transparent); }
+.alert.warn { background: var(--amber-soft); border-color: color-mix(in srgb, var(--amber) 28%, transparent); }
+.alert.bad { background: var(--red-soft); border-color: color-mix(in srgb, var(--red) 28%, transparent); }
+.alert.ok { background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 28%, transparent); }
+.alert svg { flex: none; margin-top: 2px; }
+.meter { height: 6px; background: var(--surface-2); border-radius: 9px; overflow: hidden; }
+.meter b { display: block; height: 100%; background: var(--accent); border-radius: 9px; }
+.meter b.warn { background: var(--amber); } .meter b.bad { background: var(--red); }
+.skel { background: linear-gradient(90deg, var(--surface-2), var(--bg), var(--surface-2)); background-size: 200% 100%; animation: sh 1.3s infinite; border-radius: 6px; height: 12px; }
+@keyframes sh { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.empty { text-align: center; color: var(--muted); padding: 34px 14px; border: 1px dashed var(--border); border-radius: 12px; font-size: 13px; }
+.toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); padding: 9px 15px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: all .2s; z-index: 90; max-width: 90vw; }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.overlay { position: fixed; inset: 0; background: rgba(10,11,9,.55); display: grid; place-items: center; z-index: 80; padding: 20px; }
+.dialog { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; max-width: 440px; width: 100%; padding: 22px; box-shadow: var(--shadow); }
+.dialog h2 { margin-bottom: 6px; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; }
+.status i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.status.running i { background: var(--amber); animation: pulse 1s infinite; } .status.ready i { background: var(--accent); } .status.failed i { background: var(--red); }
+@keyframes pulse { 50% { opacity: .35; } }
+
+/* ===== Tables / tabs / stepper ===== */
+.tablewrap { overflow: auto; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-family: "IBM Plex Mono", monospace; font-size: 11px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 10px 14px; background: var(--surface-2); white-space: nowrap; }
+td { padding: 10px 14px; border-top: 1px solid var(--border); vertical-align: middle; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 18px; overflow: auto; }
+.tabs button { border: 0; background: transparent; padding: 9px 13px; color: var(--muted); font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+.tabs button:hover { color: var(--text); }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); }
+.stepper { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 18px; }
+.step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.step .n { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--border); display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-size: 11px; }
+.step.done .n { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.step.now { color: var(--text); font-weight: 500; } .step.now .n { border-color: var(--accent); color: var(--accent); }
+.step + .step::before { content: ""; width: 22px; height: 1px; background: var(--border); }
+
+/* ===== Shortlist (master-detail) ===== */
+.ms { height: 100%; display: grid; grid-template-columns: minmax(340px, 460px) minmax(0, 1fr); }
+.listcol { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--border); background: var(--bg); }
+.lhead { padding: 18px 18px 12px; border-bottom: 1px solid var(--border); display: grid; gap: 12px; }
+.searchbox { position: relative; }
+.searchbox .input { padding-right: 34px; background: var(--surface); }
+.searchbox .kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.pill { border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; cursor: pointer; }
+.pill:hover { color: var(--text); }
+.pill[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 500; }
+.lscroll { overflow: auto; flex: 1; min-height: 0; }
+.jrow { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 10px; padding: 13px 18px; border: 0; border-bottom: 1px solid var(--border); cursor: pointer; position: relative; background: transparent; width: 100%; text-align: left; }
+.jrow:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.jrow[aria-selected="true"] { background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); }
+.sc { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 17px; color: var(--muted); padding-top: 1px; }
+.sc.hi { color: var(--accent); }
+.rt { font-weight: 600; font-size: 14px; line-height: 1.3; } .rm { color: var(--muted); font-size: 12.5px; margin-top: 1px; }
+.rchips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.saveddot { position: absolute; right: 16px; top: 14px; color: var(--accent); font-size: 12px; }
+.lfoot { padding: 9px 18px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; }
+.hiddenrow, .emptyrow { padding: 16px 18px; color: var(--muted); font-size: 12.5px; }
+.detail { display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
+.dscroll { overflow: auto; flex: 1; padding: 22px 30px 40px; }
+.dwrap { max-width: 760px; }
+.back { display: none; margin-bottom: 12px; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; }
+.crumb { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+.dh { font-size: 24px; letter-spacing: -.02em; line-height: 1.2; }
+.sec { border-top: 1px solid var(--border); padding: 16px 0; }
+.fit { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+.fit .big { font-family: "IBM Plex Mono", monospace; font-size: 34px; font-weight: 600; color: var(--accent); line-height: 1; }
+ul.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+ul.plain li { display: flex; gap: 8px; } ul.plain li::before { content: "›"; color: var(--accent); font-family: "IBM Plex Mono", monospace; }
+.req { display: grid; grid-template-columns: 78px minmax(0,1fr); gap: 10px; align-items: center; padding: 4px 0; }
+.quote { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; background: var(--surface-2); border-left: 3px solid var(--accent); padding: 9px 12px; border-radius: 0 6px 6px 0; margin-top: 8px; }
+.kv .kk { color: var(--muted); font-size: 12px; margin-bottom: 2px; } .kv .vv { font-weight: 500; }
+
+/* ===== Tailor workspace ===== */
+.tw { display: grid; grid-template-columns: minmax(280px, 360px) minmax(0, 1fr); gap: 16px; align-items: start; }
+.editlist { display: grid; gap: 8px; }
+.edit { display: grid; grid-template-columns: 22px minmax(0,1fr); gap: 10px; text-align: left; width: 100%; border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 11px 12px; cursor: pointer; }
+.edit:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+.edit[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+.dot { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--border); display: grid; place-items: center; margin-top: 2px; font-size: 11px; line-height: 1; }
+.dot.accepted { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.dot.rejected { background: var(--surface-2); color: var(--muted); }
+.edit .es { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.edit .ep { font-size: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.diffbox { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; font-size: 14px; line-height: 1.65; }
+.diffbox .lab { font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); padding: 7px 14px; background: var(--surface-2); }
+.diffbox .txt { padding: 12px 14px; }
+ins { background: var(--diff-add); text-decoration: none; border-radius: 3px; padding: 0 1px; }
+del { background: var(--diff-del); border-radius: 3px; padding: 0 1px; }
+.actionbar { position: sticky; bottom: 0; background: color-mix(in srgb, var(--surface) 92%, transparent); backdrop-filter: blur(6px); border-top: 1px solid var(--border); padding: 12px 32px; display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-top: auto; }
+.cmp { display: grid; grid-template-columns: minmax(0,1fr) 54px 54px; gap: 8px; align-items: center; font-size: 13px; padding: 5px 0; }
+.cmp .num { font-family: "IBM Plex Mono", monospace; text-align: right; }
+.letter { white-space: pre-wrap; line-height: 1.7; font-size: 14.5px; }
+
+/* ===== Tracker ===== */
+.board { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(250px, 1fr); gap: 12px; overflow-x: auto; padding-bottom: 10px; align-items: start; }
+.col { background: var(--surface-2); border-radius: 12px; padding: 10px; min-height: 140px; border: 1px solid transparent; }
+.col.over { border-color: var(--accent); background: var(--accent-soft); }
+.col h3 { font-size: 12.5px; display: flex; justify-content: space-between; padding: 2px 4px 8px; }
+.col h3 span { font-family: "IBM Plex Mono", monospace; color: var(--muted); font-weight: 400; }
+.kcard { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 11px 12px; margin-bottom: 8px; cursor: grab; display: grid; gap: 6px; }
+.kcard:active { cursor: grabbing; } .kcard.drag { opacity: .45; }
+.kcard .kt { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.kcard .kf { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); gap: 6px; }
+.kcard select { font: inherit; font-size: 12px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 2px 4px; max-width: 120px; }
+
+/* ===== Misc views ===== */
+.swatch { display: flex; align-items: center; gap: 10px; font-size: 12.5px; }
+.swatch i { width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border); flex: none; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 90px; }
+.bars i { flex: 1; background: var(--accent-soft); border-top: 2px solid var(--accent); border-radius: 3px 3px 0 0; min-height: 3px; }
+.profchips { display: flex; flex-wrap: wrap; gap: 6px; }
+.wiz { max-width: 760px; margin: 0 auto; padding: 40px 24px 80px; }
+.wiz .brand { padding: 0; margin-bottom: 28px; font-size: 17px; }
+.wiz .brand .tag { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
+.savebar { position: sticky; bottom: 0; margin-top: auto; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 32px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+/* ===== Responsive ===== */
+@media (max-width: 1100px) { .tw { grid-template-columns: 1fr; } }
+@media (max-width: 860px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .app.no-shell { grid-template-rows: minmax(0, 1fr); }
+  .mtop { display: flex; }
+  .side { position: fixed; inset: 0 auto 0 0; width: 260px; z-index: 70; transform: translateX(-100%); transition: transform .2s; padding-top: calc(18px + env(safe-area-inset-top, 0px)); }
+  .app.menu-open .side { transform: translateX(0); }
+  .page { padding: 18px 16px 72px; }
+  .ms { grid-template-columns: 1fr; }
+  .detail { position: fixed; inset: 0; z-index: 60; padding-top: env(safe-area-inset-top, 0px); transform: translateX(100%); transition: transform .2s; }
+  .ms.detail-open .detail { transform: translateX(0); }
+  .dscroll { padding: 18px 18px 40px; } .back { display: inline-block; }
+  .lfoot { display: none; }
+  .actionbar, .savebar { padding: 12px 16px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="side" id="side" aria-label="Sidebar">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" fill="#3ddc97"/><path d="M8 9h12M14 9v11" stroke="#0b1a12" stroke-width="2.4" stroke-linecap="round"/><path d="M8 21h12" stroke="#0b1a12" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
+      <span>Tailorly</span><span class="tag">remote</span>
+    </div>
+    <nav aria-label="Main">
+      <a href="#shortlist" data-route="shortlist"><span>Shortlist</span><span class="n">8</span></a>
+      <a href="#tracker" data-route="tracker"><span>Tracker</span><span class="n">9</span></a>
+      <a href="#addjob" data-route="addjob"><span>Add a job</span></a>
+      <a href="#resume" data-route="resume"><span>Résumé</span><span class="n">v2</span></a>
+      <a href="#preferences" data-route="preferences"><span>Preferences</span></a>
+      <a href="#usage" data-route="usage"><span>Usage</span></a>
+      <a href="#account" data-route="account"><span>Account</span></a>
+      <div class="navlabel">Admin</div>
+      <a href="#admin" data-route="admin"><span>Admin console</span></a>
+      <div class="navlabel">Prototype</div>
+      <a href="#onboarding" data-route="onboarding"><span>Onboarding flow</span></a>
+      <a href="#system" data-route="system"><span>Design system</span></a>
+    </nav>
+    <div class="budget" aria-label="AI budget this month">
+      <div><div class="r"><span>Discovery</span><span class="mono">35%</span></div><div class="bar"><b style="width:35%"></b></div></div>
+      <div><div class="r"><span>Documents</span><span class="mono">81%</span></div><div class="bar"><b class="warn" style="width:81%"></b></div></div>
+    </div>
+    <div class="userrow">
+      <div class="avatar">RK</div>
+      <div class="who">Ravi K.<small>Asia/Kolkata</small></div>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle light and dark theme"><svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg></button>
+    </div>
+  </aside>
+
+  <div class="mtop">
+    <button class="icon-btn" id="menuBtn" type="button" aria-label="Open menu"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <strong>Tailorly</strong> <span class="chip ok">remote</span>
+  </div>
+
+  <main class="main" id="main"><div id="view" style="display:flex;flex-direction:column;flex:1;min-height:0"></div></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div id="modal"></div>
+<script>
+(function () {
+'use strict';
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+var root = document.documentElement, app = $('#app'), main = $('#main'), view = $('#view');
+view.removeAttribute('style');
+var ex = document.createElement('style');
+ex.textContent = '#view{display:flex;flex-direction:column;min-height:100%}.main.flush #view{height:100%;min-height:0}.ms{flex:1;min-height:0;height:auto}';
+document.head.appendChild(ex);
+
+/* ---------- Theme ---------- */
+var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+function applyTheme(t) { root.setAttribute('data-theme', t); $('#themeIcon').innerHTML = t === 'dark' ? SUN : MOON; }
+var sv = null; try { sv = localStorage.getItem('tailorly-theme-b'); } catch (e) {}
+applyTheme(sv === 'dark' ? 'dark' : 'light');
+$('#themeBtn').addEventListener('click', function () {
+  var n = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(n);
+  try { localStorage.setItem('tailorly-theme-b', n); } catch (e) {}
+});
+$('#menuBtn').addEventListener('click', function () { app.classList.toggle('menu-open'); });
+
+/* ---------- Helpers ---------- */
+var IC = {
+  check: '<path d="m5 12 5 5L20 7"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', info: '<circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/>',
+  warn: '<path d="M12 3 2 20h20L12 3z"/><path d="M12 10v5M12 18h.01"/>', up: '<path d="M12 16V4m0 0-4 4m4-4 4 4M4 20h16"/>',
+  file: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h5"/>', plus: '<path d="M12 5v14M5 12h14"/>', trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+  back: '<path d="m15 6-6 6 6 6"/>', ext: '<path d="M14 4h6v6M20 4 10 14M18 14v6H4V6h6"/>'
+};
+function ico(n, s) { s = s || 16; return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + IC[n] + '</svg>'; }
+function chip(c, t) { return '<span class="chip ' + (c || '') + '">' + esc(t) + '</span>'; }
+function sw(id, on) { return '<label class="sw"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + '><span></span></label>'; }
+var toastEl = $('#toast'), tt;
+function say(m) { toastEl.textContent = m; toastEl.classList.add('show'); clearTimeout(tt); tt = setTimeout(function () { toastEl.classList.remove('show'); }, 2300); }
+function openDialog(html, onBind) {
+  var m = $('#modal'); m.innerHTML = '<div class="overlay" id="ov"><div class="dialog" role="dialog" aria-modal="true">' + html + '</div></div>';
+  $('#ov').addEventListener('click', function (e) { if (e.target.id === 'ov') closeDialog(); });
+  $$('[data-close]', m).forEach(function (b) { b.addEventListener('click', closeDialog); });
+  if (onBind) onBind(m);
+}
+function closeDialog() { $('#modal').innerHTML = ''; }
+function sim(obj, key, after) {
+  obj[key] = 'queued'; render(true);
+  setTimeout(function () { obj[key] = 'running'; render(true); }, 500);
+  setTimeout(function () { obj[key] = 'ready'; if (after) after(); render(true); }, 1700);
+}
+function statusPill(s) { return '<span class="status ' + s + '"><i></i>' + s + '</span>'; }
+function skeleton() { return '<div class="stack" aria-hidden="true"><div class="skel" style="width:60%"></div><div class="skel"></div><div class="skel" style="width:85%"></div><div class="skel" style="width:40%"></div></div>'; }
+
+/* ---------- Data ---------- */
+var JOBS = [
+  { id: 1, t: 'Senior Backend Engineer (.NET)', c: 'Acme Cloud', loc: 'Remote · APAC', el: 'india_eligible', s: 9, conf: 'high', sal: '$60k–$90k', sk: 'stated', src: 'Himalayas', ago: '3h ago',
+    r: ['Strong .NET and PostgreSQL match', 'Seniority aligns with your 6 years', 'Payments-adjacent domain'], met: ['5+ years C# / .NET', 'PostgreSQL in production', 'REST API design'], part: ['Cloud deployment (Azure only)'], miss: ['Kubernetes'], ev: 'Open to candidates in APAC time zones.' },
+  { id: 2, t: 'Platform Engineer', c: 'Northwind Labs', loc: 'Remote · Worldwide', el: 'worldwide', s: 9, conf: 'high', sal: '', sk: 'not_listed', src: 'Greenhouse', ago: '5h ago',
+    r: ['Cloud and CI/CD experience matches', 'Salary not listed, shown because your score is 9'], met: ['CI/CD pipelines', 'Linux and networking basics'], part: ['Terraform (limited)'], miss: [], ev: 'We hire anywhere our team can legally employ or contract you.' },
+  { id: 3, t: 'Full-stack Engineer (React, Node)', c: 'Lumen Health', loc: 'Remote · India, UK, EU', el: 'india_eligible', s: 8, conf: 'medium', sal: '$45k–$70k', sk: 'stated', src: 'RemoteOK', ago: '8h ago',
+    r: ['React and API skills match', 'Missing: GraphQL'], met: ['React', 'Node.js APIs'], part: [], miss: ['GraphQL'], ev: 'Location: India, UK, EU.' },
+  { id: 4, t: 'Backend Engineer, Payments', c: 'Orbit Pay', loc: 'Remote · overlap with CET', el: 'unclear', s: 8, conf: 'medium', sal: '€55k–€75k', sk: 'stated', src: 'Himalayas', ago: '9h ago',
+    r: ['Payments domain experience matches', 'Check hours: CET overlap required'], met: ['Payments domain', 'C# services'], part: ['Event-driven systems'], miss: [], ev: 'Must overlap at least 5 hours with CET. Country not stated.' },
+  { id: 5, t: 'DevOps Engineer', c: 'Kiln Systems', loc: 'Remote · Worldwide', el: 'worldwide', s: 8, conf: 'high', sal: '', sk: 'not_listed', src: 'Greenhouse', ago: '1d ago',
+    r: ['Kubernetes and Terraform match', 'Salary not listed, shown because your score is 8'], met: ['Kubernetes', 'Terraform'], part: [], miss: ['On-call rota'], ev: 'Remote-first, work from anywhere.' },
+  { id: 6, t: 'Data Engineer', c: 'Meridian Analytics', loc: 'Remote · India', el: 'india_eligible', s: 8, conf: 'high', sal: '₹30L–₹45L', sk: 'stated', src: 'Himalayas', ago: '1d ago',
+    r: ['SQL and pipelines match', 'Missing: Spark'], met: ['SQL', 'ETL pipelines'], part: [], miss: ['Spark'], ev: 'Hiring in India only.' },
+  { id: 7, t: 'Mobile Engineer (Flutter)', c: 'Paperplane', loc: 'Remote · APAC', el: 'india_eligible', s: 7, conf: 'low', sal: '$40k–$60k', sk: 'stated', src: 'RemoteOK', ago: '1d ago',
+    r: ['Partial mobile experience'], met: ['REST integration'], part: ['Mobile UI'], miss: ['Flutter'], ev: 'APAC time zones.' },
+  { id: 8, t: 'QA Automation Engineer', c: 'Fieldnote', loc: 'Remote · Worldwide', el: 'worldwide', s: 6, conf: 'low', sal: '$35k–$50k', sk: 'stated', src: 'Greenhouse', ago: '2d ago',
+    r: ['Limited test-automation background'], met: [], part: ['Test design'], miss: ['Selenium', 'Playwright'], ev: 'Open worldwide.' }
+];
+function job(id) { return JOBS.filter(function (j) { return j.id === id; })[0] || JOBS[0]; }
+function elChip(j) { return chip(j.el === 'unclear' ? 'warn' : 'ok', j.el + (j.el === 'unclear' ? ' ⚠' : '')); }
+function salChip(j) { return j.sk === 'not_listed' ? chip('', 'salary not listed') : chip('', j.sal); }
+
+var S = {
+  route: 'shortlist', saved: {}, tailorJob: 1,
+  sl: { el: 'all', min: 8, q: '', sel: 1 },
+  tab: 'resume', sel: 'e1', final: false, atsBase: 58, skillOk: null,
+  ed: [
+    { id: 'e1', sec: 'Summary', o: 'Backend engineer with 6 years of experience building web services.', p: 'Backend engineer with 6 years of experience building .NET and PostgreSQL services for payments and fintech teams.', why: 'Mirrors the job’s stack and domain. Both already appear in your résumé.', flags: [], w: 5, d: 'pending' },
+    { id: 'e2', sec: 'Experience · Orbit Systems', o: 'Built REST APIs for the payments team.', p: 'Built REST APIs in .NET and PostgreSQL for the payments team.', why: 'Adds the required stack terms from your profile.', flags: [], w: 6, d: 'pending' },
+    { id: 'e3', sec: 'Experience · Orbit Systems', o: 'Improved query performance and reduced latency.', p: 'Improved PostgreSQL query performance and reduced latency.', why: 'More specific. No new numbers were added.', flags: ['formatting_simplified'], w: 3, d: 'pending' },
+    { id: 'e4', sec: 'Experience · Delta Soft', o: 'Worked on deployments using Docker.', p: 'Deployed containerised services with Docker and Kubernetes.', why: 'The job requires Kubernetes.', flags: ['new_fact'], w: 7, d: 'rejected' },
+    { id: 'e5', sec: 'Skills', o: 'Tools: Git, Docker, Azure DevOps', p: 'Tools: Git, Docker, Azure DevOps, CI/CD pipelines', why: 'CI/CD pipelines already appear in your experience section.', flags: [], w: 2, d: 'pending' },
+    { id: 'e6', sec: 'Experience · Delta Soft', o: 'Led a team of 3 engineers on a billing migration.', p: 'Led a team of 3 engineers to migrate billing services, with ownership of delivery timelines across distributed teams and quarterly releases.', why: 'Highlights ownership the job asks for.', flags: ['length'], w: 2, d: 'pending' }
+  ],
+  cover: { tone: 'concise', notes: '', st: 'idle', text: '' },
+  prep: { st: 'idle' },
+  tview: 'board',
+  track: [
+    { id: 101, jid: 2, t: 'Platform Engineer', c: 'Northwind Labs', st: 'saved', fit: 9, ats: null, upd: 'Today' },
+    { id: 102, jid: 6, t: 'Data Engineer', c: 'Meridian Analytics', st: 'saved', fit: 8, ats: null, upd: 'Yesterday' },
+    { id: 103, jid: 1, t: 'Senior Backend Engineer (.NET)', c: 'Acme Cloud', st: 'tailored', fit: 9, ats: [58, 81], upd: 'Today' },
+    { id: 104, jid: 3, t: 'Full-stack Engineer (React, Node)', c: 'Lumen Health', st: 'tailored', fit: 8, ats: [61, 79], upd: 'Yesterday' },
+    { id: 105, jid: 5, t: 'DevOps Engineer', c: 'Kiln Systems', st: 'applied', fit: 8, ats: [64, 82], upd: '3 days ago' },
+    { id: 106, jid: 4, t: 'Backend Engineer, Payments', c: 'Orbit Pay', st: 'applied', fit: 8, ats: [55, 77], upd: '4 days ago' },
+    { id: 107, jid: 1, t: 'Site Reliability Engineer', c: 'Tessera', st: 'applied', fit: 8, ats: [60, 80], upd: '6 days ago' },
+    { id: 108, jid: 2, t: 'Platform Engineer II', c: 'Brightwave', st: 'interviewing', fit: 9, ats: [70, 88], upd: '2 days ago' },
+    { id: 109, jid: 7, t: 'Mobile Engineer (Flutter)', c: 'Paperplane', st: 'rejected', fit: 7, ats: [48, 66], upd: '1 week ago' }
+  ],
+  up: { st: 'idle', err: '', name: '' },
+  skills: ['C#', '.NET', 'PostgreSQL', 'SQL', 'Docker', 'Azure DevOps', 'REST APIs', 'JavaScript', 'Git'],
+  confirmed: ['Kubernetes basics'],
+  pref: { scope: 'india_plus_global_remote', roles: ['Backend engineer', '.NET developer'], locations: ['Hyderabad', 'Bengaluru'], modes: ['remote', 'hybrid'], types: ['full_time'], hiring: ['employee', 'contractor'], cur: 'INR', smin: '3000000', smax: '5500000', minScore: 8, unspec: true, unclear: false, overlap: 'Up to 4h overlap with US East', exCo: ['Fieldnote'], exKw: ['unpaid', 'internship'], sched: true, time: '18:00', empty: false, watch: ['stripe (Greenhouse)', 'gitlab (Greenhouse)'] },
+  dirty: false,
+  add: { st: 'idle', err: '' },
+  admin: { tab: 'status', srcOn: { himalayas: false, remoteok: true, jobicy: false, wwr: false, greenhouse: true, lever: false, ashby: false }, reviewed: { remoteok: true, greenhouse: true } },
+  wiz: { step: 1, up: 'idle' }
+};
+
+/* word diff (LCS) */
+function wdiff(a, b) {
+  var x = a.split(/(\s+)/), y = b.split(/(\s+)/), m = x.length, n = y.length, i, j, L = [];
+  for (i = 0; i <= m; i++) { L.push(new Array(n + 1).fill(0)); }
+  for (i = m - 1; i >= 0; i--) for (j = n - 1; j >= 0; j--) L[i][j] = x[i] === y[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+  var out = []; i = 0; j = 0;
+  while (i < m && j < n) {
+    if (x[i] === y[j]) { out.push(['e', x[i]]); i++; j++; }
+    else if (L[i + 1][j] >= L[i][j + 1]) { out.push(['d', x[i]]); i++; }
+    else { out.push(['i', y[j]]); j++; }
+  }
+  while (i < m) { out.push(['d', x[i++]]); } while (j < n) { out.push(['i', y[j++]]); }
+  return out;
+}
+function diffHtml(a, b, side) {
+  var out = wdiff(a, b), chg = side === 'o' ? 'd' : 'i', skip = side === 'o' ? 'i' : 'd', html = '';
+  function vis(k, dir) { for (k += dir; k >= 0 && k < out.length; k += dir) { if (out[k][0] !== skip) return out[k][0]; } return null; }
+  out.forEach(function (s, k) {
+    var t = s[0];
+    if (t === skip) return;
+    var hl = t === chg || (t === 'e' && /^\s+$/.test(s[1]) && vis(k, -1) === chg && vis(k, 1) === chg);
+    html += hl ? '<' + (chg === 'd' ? 'del' : 'ins') + '>' + esc(s[1]) + '</' + (chg === 'd' ? 'del' : 'ins') + '>' : esc(s[1]);
+  });
+  return html;
+}
+
+/* ---------- Router ---------- */
+var routes = {};
+function render(keep) {
+  var R = routes[S.route], top = keep ? main.scrollTop : 0;
+  view.innerHTML = R.r();
+  main.classList.toggle('flush', !!R.flush);
+  app.classList.toggle('no-shell', !!R.noshell);
+  app.classList.remove('menu-open');
+  $$('[data-route]').forEach(function (a) {
+    var r = a.getAttribute('data-route');
+    if (r === S.route || (S.route === 'tailor' && r === 'shortlist')) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
+  if (R.b) R.b();
+  main.scrollTop = top;
+}
+function route() {
+  var n = (location.hash || '').replace('#', '') || 'shortlist';
+  S.route = routes[n] ? n : 'shortlist';
+  render(false);
+}
+function go(n) { location.hash = '#' + n; }
+window.addEventListener('hashchange', route);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeDialog(); });
+
+/* ======================= SHORTLIST ======================= */
+function visible() {
+  var q = S.sl.q.toLowerCase();
+  var base = JOBS.filter(function (j) { return (S.sl.el === 'all' || j.el === S.sl.el) && (!q || (j.t + ' ' + j.c).toLowerCase().indexOf(q) > -1); });
+  return { shown: base.filter(function (j) { return j.s >= S.sl.min; }), hidden: base.filter(function (j) { return j.s < S.sl.min; }).length };
+}
+function vShortlist() {
+  var pills = [['all', 'All'], ['india_eligible', 'India-eligible'], ['worldwide', 'Worldwide'], ['unclear', 'Unclear']].map(function (p) {
+    return '<button class="pill" type="button" data-v="' + p[0] + '" aria-pressed="' + (S.sl.el === p[0]) + '">' + p[1] + '</button>';
+  }).join('');
+  var opts = [6, 7, 8, 9].map(function (n) { return '<option' + (n === S.sl.min ? ' selected' : '') + '>' + n + '</option>'; }).join('');
+  return '<div class="ms" id="ms"><section class="listcol" aria-label="Shortlist"><div class="lhead">' +
+    '<div class="row between"><div><h1>Today’s shortlist</h1><div class="sub mono">Sat 24 Oct · 18:02 IST</div></div><a class="btn sm" href="#addjob">' + ico('plus', 14) + ' Add job</a></div>' +
+    '<div class="searchbox"><input class="input" id="q" type="search" placeholder="Filter by title or company" aria-label="Filter jobs" value="' + esc(S.sl.q) + '"><span class="kbd">/</span></div>' +
+    '<div class="pills" id="pills" role="group" aria-label="Eligibility filter">' + pills + '<label class="muted" style="margin-left:auto">min <select class="select" id="minScore" aria-label="Minimum match score" style="width:auto;padding:2px 6px">' + opts + '</select></label></div></div>' +
+    '<div class="lscroll"><div id="rows" role="listbox" aria-label="Jobs"></div><div id="hiddenNote"></div></div>' +
+    '<div class="lfoot"><span><span class="kbd">j</span> <span class="kbd">k</span> move</span><span><span class="kbd">s</span> save</span><span><span class="kbd">t</span> tailor</span><span><span class="kbd">o</span> open source</span></div></section>' +
+    '<section class="detail" id="detail" aria-label="Job detail"></section></div>';
+}
+function renderRows() {
+  var v = visible();
+  if (v.shown.length && !v.shown.some(function (j) { return j.id === S.sl.sel; })) S.sl.sel = v.shown[0].id;
+  $('#rows').innerHTML = v.shown.length ? v.shown.map(function (j) {
+    return '<button class="jrow" role="option" data-id="' + j.id + '" aria-selected="' + (j.id === S.sl.sel) + '"><div class="sc ' + (j.s >= 9 ? 'hi' : '') + '">' + j.s + '</div>' +
+      '<div><div class="rt">' + esc(j.t) + '</div><div class="rm">' + esc(j.c) + ' · ' + esc(j.loc) + '</div><div class="rchips">' + elChip(j) + salChip(j) + '</div></div>' +
+      (S.saved[j.id] ? '<span class="saveddot">● saved</span>' : '') + '</button>';
+  }).join('') : '<div class="emptyrow">No jobs match. Lower the minimum score or clear the filters.</div>';
+  $('#hiddenNote').innerHTML = v.hidden ? '<div class="hiddenrow">' + v.hidden + ' more below your minimum score of ' + S.sl.min + '.</div>' : '';
+  renderDetail();
+}
+function renderDetail() {
+  var j = job(S.sl.sel), d = $('#detail');
+  if (!visible().shown.some(function (x) { return x.id === j.id; })) { d.innerHTML = '<div class="dscroll"><div class="emptyrow">Select a job to see details.</div></div>'; return; }
+  var reqs = j.met.map(function (x) { return ['met', x]; }).concat(j.part.map(function (x) { return ['partial', x]; })).concat(j.miss.map(function (x) { return ['missing', x]; }));
+  var cls = { met: 'ok', partial: 'warn', missing: 'bad' };
+  d.innerHTML = '<div class="dscroll"><div class="dwrap"><button class="back" id="back" type="button">‹ Back to list</button>' +
+    '<div class="crumb mono">shortlist / ' + esc(j.c.toLowerCase()) + ' / #' + j.id + '</div><h2 class="dh">' + esc(j.t) + '</h2><div class="sub" style="font-size:14px">' + esc(j.c) + ' · ' + esc(j.loc) + '</div>' +
+    '<div class="row" style="margin:14px 0 6px;gap:6px">' + elChip(j) + salChip(j) + chip('', 'posted ' + j.ago) + '</div>' +
+    '<div class="row" style="margin:12px 0 20px"><button class="btn primary" type="button" data-act="tailor">Tailor résumé <span class="kbd" style="color:inherit;border-color:currentColor;background:transparent;opacity:.8">t</span></button>' +
+    '<button class="btn" type="button" data-act="cover">Cover letter</button>' +
+    '<button class="btn" type="button" data-act="save" aria-pressed="' + (!!S.saved[j.id]) + '">' + (S.saved[j.id] ? 'Saved' : 'Save') + ' <span class="kbd">s</span></button>' +
+    '<a class="btn" href="#" data-act="open" onclick="return false">Apply on ' + esc(j.src) + ' ' + ico('ext', 14) + '</a><span class="help">Analysis uses about 5k tokens of Documents</span></div>' +
+    '<div class="sec"><h3 class="k">Fit</h3><div class="fit"><span class="big">' + j.s + '</span><span class="muted mono">/ 10</span>' + chip(j.conf === 'high' ? 'ok' : j.conf === 'medium' ? '' : 'warn', 'confidence: ' + j.conf) + '</div><ul class="plain">' + j.r.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+    '<div class="sec"><h3 class="k">Requirements vs your résumé</h3>' + reqs.map(function (r) { return '<div class="req">' + chip(cls[r[0]], r[0]) + '<span>' + esc(r[1]) + '</span></div>'; }).join('') + '</div>' +
+    '<div class="sec"><h3 class="k">Eligibility</h3><div>' + elChip(j) + '</div><div class="quote">“' + esc(j.ev) + '”</div>' + (j.el === 'unclear' ? '<div class="alert warn" style="margin-top:10px">' + ico('warn') + '<span>The listing does not say whether candidates in India are accepted. Check before applying.</span></div>' : '') + '</div>' +
+    '<div class="sec"><h3 class="k">Details</h3><div class="grid3 kv"><div><div class="kk">Compensation</div><div class="vv">' + (j.sk === 'not_listed' ? 'Not listed' : esc(j.sal) + ' <span class="muted">(stated)</span>') + '</div></div><div><div class="kk">Source</div><div class="vv"><a href="#" onclick="return false">Source: ' + esc(j.src) + ' ' + ico('ext', 12) + '</a></div></div><div><div class="kk">Posted</div><div class="vv">' + esc(j.ago) + '</div></div></div></div></div></div>';
+  var b = $('#back'); if (b) b.addEventListener('click', function () { $('#ms').classList.remove('detail-open'); });
+}
+function slAct(a) {
+  var j = job(S.sl.sel);
+  if (a === 'save') { S.saved[j.id] = !S.saved[j.id]; renderRows(); say(S.saved[j.id] ? 'Saved to tracker' : 'Removed from tracker'); }
+  else if (a === 'tailor') { S.tailorJob = j.id; S.tab = 'resume'; go('tailor'); }
+  else if (a === 'cover') { S.tailorJob = j.id; S.tab = 'cover'; go('tailor'); }
+  else if (a === 'open') say('Opens the ' + j.src + ' apply link in a new tab (prototype)');
+}
+function bShortlist() {
+  $('#pills').addEventListener('click', function (e) {
+    var b = e.target.closest('.pill'); if (!b) return;
+    $$('.pill', this).forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    S.sl.el = b.getAttribute('data-v'); renderRows();
+  });
+  $('#minScore').addEventListener('change', function () { S.sl.min = +this.value; renderRows(); });
+  $('#q').addEventListener('input', function () { S.sl.q = this.value; renderRows(); });
+  $('#rows').addEventListener('click', function (e) { var r = e.target.closest('.jrow'); if (!r) return; S.sl.sel = +r.getAttribute('data-id'); renderRows(); $('#ms').classList.add('detail-open'); });
+  $('#detail').addEventListener('click', function (e) { var a = e.target.closest('[data-act]'); if (a) slAct(a.getAttribute('data-act')); });
+  renderRows();
+}
+document.addEventListener('keydown', function (e) {
+  if (S.route !== 'shortlist') return;
+  var typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if (e.key === '/' && !typing) { e.preventDefault(); var q = $('#q'); if (q) q.focus(); return; }
+  if (e.key === 'Escape') { if (typing) document.activeElement.blur(); var ms = $('#ms'); if (ms) ms.classList.remove('detail-open'); return; }
+  if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+  var list = visible().shown, i = list.findIndex(function (x) { return x.id === S.sl.sel; });
+  if (e.key === 'j' && i < list.length - 1) { S.sl.sel = list[i + 1].id; renderRows(); var el = $('.jrow[aria-selected="true"]'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+  else if (e.key === 'k' && i > 0) { S.sl.sel = list[i - 1].id; renderRows(); var el2 = $('.jrow[aria-selected="true"]'); if (el2) el2.scrollIntoView({ block: 'nearest' }); }
+  else if (e.key === 's') slAct('save'); else if (e.key === 't') slAct('tailor'); else if (e.key === 'o') slAct('open');
+});
+routes.shortlist = { r: vShortlist, b: bShortlist, flush: true };
+
+/* ======================= TAILOR WORKSPACE ======================= */
+var COMPS = [['Keyword coverage', 52, 30], ['Requirements match', 60, 18], ['Title and seniority', 70, 8], ['Experience relevance', 64, 10], ['Format health', 85, 0]];
+var LETTERS = {
+  concise: 'Hello Acme Cloud team,\n\nI’m a backend engineer with six years of experience building .NET and PostgreSQL services for payments teams. Your Senior Backend Engineer role matches that work closely.\n\nAt Orbit Systems I built REST APIs and improved PostgreSQL query performance on a high-traffic payments platform. At Delta Soft I led a team of three through a billing migration.\n\nI work comfortably in distributed teams across APAC time zones and would be glad to talk through how I can help.\n\nBest regards,\nRavi Kumar',
+  confident: 'Hello Acme Cloud team,\n\nYou need a senior backend engineer who can own .NET and PostgreSQL services in production. That is what I have done for six years.\n\nAt Orbit Systems I designed the REST APIs behind a payments platform and cut query latency through PostgreSQL tuning. At Delta Soft I led three engineers through a billing migration and delivered it on schedule.\n\nI would bring the same ownership to Acme Cloud, working across APAC time zones from day one. I’d welcome a conversation about the role.\n\nBest regards,\nRavi Kumar'
+};
+function cnt(d) { return S.ed.filter(function (e) { return e.d === d; }).length; }
+function accW() { return S.ed.reduce(function (a, e) { return a + (e.d === 'accepted' ? e.w : 0); }, 0); }
+function totW() { return S.ed.reduce(function (a, e) { return a + e.w; }, 0); }
+function projected() { return Math.min(100, S.atsBase + accW()); }
+function needsSkill(e) { return e.flags.indexOf('new_fact') > -1 && S.skillOk !== true; }
+function curEdit() { return S.ed.filter(function (e) { return e.id === S.sel; })[0] || S.ed[0]; }
+function flagChip(f) { return f === 'new_fact' ? chip('warn', 'not in your résumé') : f === 'length' ? chip('warn', 'too long') : chip('info', 'formatting simplified'); }
+
+function skillCard() {
+  if (S.skillOk === true) return '<div class="alert ok" style="margin-bottom:14px">' + ico('check') + '<span><b>Kubernetes</b> confirmed and saved to your confirmed skills. Edits that use it can now be accepted.</span></div>';
+  if (S.skillOk === false) return '<div class="alert info" style="margin-bottom:14px">' + ico('info') + '<span>Kubernetes stays out of your résumé. Edits that need it are disabled.</span></div>';
+  return '<div class="card" style="margin-bottom:14px"><h2>Confirm skills</h2><p class="sub">This job asks for skills we could not find in your résumé. We only add a skill you confirm.</p>' +
+    '<div class="row between"><div><b>Kubernetes</b> ' + chip('bad', 'required · missing') + '</div><div class="row"><button class="btn primary sm" type="button" data-skill="yes">Yes, I have used it</button><button class="btn sm" type="button" data-skill="no">No</button></div></div></div>';
+}
+function editsPanel() {
+  var list = S.ed.map(function (e) {
+    var dot = e.d === 'accepted' ? '<span class="dot accepted">✓</span>' : e.d === 'rejected' ? '<span class="dot rejected">–</span>' : '<span class="dot"></span>';
+    return '<button class="edit" type="button" data-ed="' + e.id + '" aria-selected="' + (e.id === S.sel) + '">' + dot + '<span><div class="es">' + esc(e.sec) + '</div><div class="ep">' + esc(e.p) + '</div>' + (e.flags.length ? '<div class="row" style="margin-top:6px;gap:5px">' + e.flags.map(flagChip).join('') + '</div>' : '') + '</span></button>';
+  }).join('');
+  var e = curEdit(), ratio = accW() / totW();
+  var alerts = '';
+  if (e.flags.indexOf('new_fact') > -1) alerts += '<div class="alert warn">' + ico('warn') + '<span>' + (S.skillOk === true ? 'This edit adds Kubernetes, which you confirmed. Review the wording.' : 'This edit adds <b>Kubernetes</b>, which is not in your résumé. Confirm the skill above to enable it.') + '</span></div>';
+  if (e.flags.indexOf('formatting_simplified') > -1) alerts += '<div class="alert info">' + ico('info') + '<span>Part of this line has its own formatting (for example a bold word). Accepting applies the line’s main style to the whole line.</span></div>';
+  if (e.flags.indexOf('length') > -1) alerts += '<div class="alert warn">' + ico('warn') + '<span>This edit is about 2.5× longer than the original and may push your résumé onto another page. Consider rejecting it.</span></div>';
+  var blocked = needsSkill(e);
+  var cmp = COMPS.map(function (c) { var after = Math.min(100, Math.round(c[1] + c[2] * ratio)); return '<div class="cmp"><span>' + c[0] + '</span><span class="num muted">' + c[1] + '</span><span class="num" style="color:var(--accent)">' + after + '</span></div>'; }).join('');
+  return '<div class="tw"><div><div class="row between" style="margin-bottom:8px"><h2>Proposed changes <span class="muted mono" style="font-size:12px">' + S.ed.length + '</span></h2><button class="btn sm" type="button" id="safeAll">Accept all safe</button></div><div class="editlist">' + list + '</div></div>' +
+    '<div class="stack"><div class="card"><div class="row between" style="margin-bottom:12px"><div class="row" style="gap:6px"><span class="chip">' + esc(e.sec) + '</span>' + e.flags.map(flagChip).join('') + '</div><span class="mono muted" style="font-size:12px">' + e.id + ' · ' + statusPillText(e.d) + '</span></div>' +
+    '<div class="diffbox"><div class="lab">Original</div><div class="txt">' + diffHtml(e.o, e.p, 'o') + '</div><div class="lab">Proposed</div><div class="txt">' + diffHtml(e.o, e.p, 'p') + '</div></div>' +
+    '<p class="sub" style="margin:12px 0"><b>Why:</b> ' + esc(e.why) + '</p><div class="stack" style="margin-bottom:12px">' + alerts + '</div>' +
+    '<div class="row"><button class="btn primary" type="button" data-dec="accepted"' + (blocked ? ' disabled' : '') + '>Accept</button><button class="btn" type="button" data-dec="rejected">Reject</button><button class="btn ghost" type="button" data-dec="pending">Reset</button></div></div>' +
+    '<div class="card"><h2>ATS match breakdown</h2><p class="sub">Before and projected after your accepted changes. Estimated; real ATS systems vary.</p>' +
+    '<div class="cmp" style="border-bottom:1px solid var(--border)"><span class="help">Component</span><span class="num help">before</span><span class="num help">after</span></div>' + cmp + '</div></div></div>';
+}
+function statusPillText(d) { return d; }
+function coverPanel() {
+  var c = S.cover, t = c.tone;
+  var out;
+  if (c.st === 'idle') out = '<div class="empty">No draft yet. Choose a tone and generate one.</div>';
+  else if (c.st === 'ready') out = '<div class="field"><label for="letter" class="sr">Cover letter</label><textarea class="textarea letter" id="letter" style="min-height:300px">' + esc(c.text) + '</textarea><div class="help"><span id="wc">' + c.text.split(/\s+/).filter(Boolean).length + '</span> words · editable</div></div><div class="row"><button class="btn primary" type="button" data-cl="dl">Download .docx</button><button class="btn" type="button" data-cl="gen">Regenerate</button><span class="help">Regenerating uses about 3k tokens</span></div>';
+  else out = '<div class="row" style="margin-bottom:12px">' + statusPill(c.st === 'queued' ? 'queued' : 'running') + '<span class="help">Writing your letter…</span></div>' + skeleton();
+  return '<div class="grid2" style="grid-template-columns:minmax(260px,320px) minmax(0,1fr)"><div class="card"><h2>Cover letter</h2><p class="sub">Uses your résumé and this job. No invented facts.</p>' +
+    '<div class="field"><span class="lbl">Tone</span><div class="seg" id="tone" role="group" aria-label="Tone"><button type="button" data-tone="concise" aria-pressed="' + (t === 'concise') + '">Concise</button><button type="button" data-tone="confident" aria-pressed="' + (t === 'confident') + '">Confident</button></div><span class="help">' + (t === 'concise' ? 'Up to about 180 words.' : 'Up to about 250 words, achievement-led.') + '</span></div>' +
+    '<div class="field"><label for="notes">Notes (optional)</label><input class="input" id="notes" maxlength="500" placeholder="For example: referred by Priya" value="' + esc(c.notes) + '"></div>' +
+    '<button class="btn primary" type="button" data-cl="gen"' + (c.st === 'queued' || c.st === 'running' ? ' disabled' : '') + '>Generate cover letter</button></div><div class="card">' + out + '</div></div>';
+}
+function prepPanel() {
+  var p = S.prep, out;
+  if (p.st === 'idle') out = '<div class="empty">Generate prep notes from this job and your résumé.</div>';
+  else if (p.st === 'ready') out = '<div class="stack"><div><h3 class="k">Technical topics</h3><ul class="plain"><li><span><b>PostgreSQL indexing and query plans.</b> <span class="muted">Core to the role and to your performance work.</span></span></li><li><span><b>Designing REST APIs for payments.</b> <span class="muted">Matches the job description.</span></span></li><li><span><b>Kubernetes basics.</b> <span class="muted">Listed as required. A gap to prepare.</span></span></li></ul></div>' +
+    '<div><h3 class="k">Behavioural questions</h3><div class="stack"><div><b>Tell us about a time you improved system performance.</b><div class="help">From your résumé: Orbit Systems query tuning · latency focus</div></div><div><b>Describe leading a team through a migration.</b><div class="help">From your résumé: Delta Soft billing migration · team of 3</div></div></div></div>' +
+    '<div><h3 class="k">Gaps to prepare</h3><div class="row" style="gap:6px">' + chip('bad', 'Kubernetes') + '</div></div><div><h3 class="k">Questions to ask them</h3><ul class="plain"><li>How does the team handle on-call across time zones?</li><li>What does the first 90 days look like for this role?</li></ul></div></div>';
+  else out = '<div class="row" style="margin-bottom:12px">' + statusPill(p.st) + '<span class="help">Preparing your notes…</span></div>' + skeleton();
+  return '<div class="card"><div class="row between" style="margin-bottom:14px"><div><h2>Interview prep</h2><p class="sub" style="margin:0">Talking points use only your real experience.</p></div><button class="btn primary" type="button" data-prep="gen"' + (p.st === 'queued' || p.st === 'running' ? ' disabled' : '') + '>' + (p.st === 'ready' ? 'Regenerate' : 'Generate prep') + '</button></div>' + out + '</div>';
+}
+function vTailor() {
+  var j = job(S.tailorJob), proj = projected();
+  var st = [['Analysis', 'done'], ['Confirm skills', S.skillOk === null ? 'now' : 'done'], ['Review changes', S.final ? 'done' : (S.skillOk === null ? '' : 'now')], ['Download', S.final ? 'now' : '']];
+  var stepper = '<div class="stepper" aria-label="Progress">' + st.map(function (s, i) { return '<div class="step ' + s[1] + '"><span class="n">' + (s[1] === 'done' ? '✓' : i + 1) + '</span>' + s[0] + '</div>'; }).join('') + '</div>';
+  var tabs = '<div class="tabs" role="tablist">' + [['resume', 'Résumé changes'], ['cover', 'Cover letter'], ['prep', 'Interview prep']].map(function (t) { return '<button role="tab" type="button" data-tab="' + t[0] + '" aria-selected="' + (S.tab === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>';
+  var body = S.tab === 'resume' ? skillCard() + editsPanel() : S.tab === 'cover' ? coverPanel() : prepPanel();
+  var bar = '';
+  if (S.tab === 'resume') {
+    var busy = S.finSt === 'queued' || S.finSt === 'running';
+    bar = '<div class="actionbar"><div class="row"><span><b>' + cnt('accepted') + '</b> accepted</span><span class="muted">·</span><span><b>' + cnt('rejected') + '</b> rejected</span><span class="muted">·</span><span><b>' + cnt('pending') + '</b> pending</span>' + (busy ? statusPill(S.finSt) : '') + '</div>' +
+      '<div class="row">' + (S.final ? '<span class="chip ok">final ATS ' + proj + '</span><button class="btn primary" type="button" data-fin="dl">Download .docx</button>' : '<button class="btn" type="button" disabled title="PDF export is turned off (feature flag)">Download PDF</button><button class="btn primary" type="button" data-fin="go"' + (cnt('accepted') === 0 || busy ? ' disabled' : '') + '>Finalize and download .docx</button>') + '</div></div>';
+  }
+  return '<div class="page" style="padding-bottom:24px"><a href="#shortlist" class="row" style="margin-bottom:10px;width:fit-content">' + ico('back') + ' Back to shortlist</a>' +
+    '<div class="title"><div><h1>' + esc(j.t) + '</h1><div class="sub">' + esc(j.c) + ' · ' + esc(j.loc) + ' &nbsp;' + elChip(j) + '</div></div>' +
+    '<div class="card flat" style="padding:10px 14px"><div class="help">ATS match (estimated)</div><div class="mono" style="font-size:22px;font-weight:600">' + S.atsBase + ' → <span style="color:var(--accent)">' + proj + '</span></div><div class="help">' + (S.final ? 'Final' : 'Projected') + ' · real ATS systems vary</div></div></div>' +
+    stepper + tabs + body + '</div>' + bar;
+}
+function bTailor() {
+  $$('[data-tab]').forEach(function (b) { b.addEventListener('click', function () { S.tab = b.getAttribute('data-tab'); render(true); }); });
+  $$('[data-skill]').forEach(function (b) { b.addEventListener('click', function () {
+    S.skillOk = b.getAttribute('data-skill') === 'yes';
+    if (S.skillOk) { if (S.confirmed.indexOf('Kubernetes') < 0) S.confirmed.push('Kubernetes'); S.ed.forEach(function (e) { if (e.flags.indexOf('new_fact') > -1 && e.d === 'rejected') e.d = 'pending'; }); say('Kubernetes saved to your confirmed skills'); }
+    render(true);
+  }); });
+  $$('[data-ed]').forEach(function (b) { b.addEventListener('click', function () { S.sel = b.getAttribute('data-ed'); render(true); }); });
+  $$('[data-dec]').forEach(function (b) { b.addEventListener('click', function () {
+    var e = curEdit(), d = b.getAttribute('data-dec');
+    if (d === 'accepted' && needsSkill(e)) { say('Confirm the skill first'); return; }
+    e.d = d; render(true);
+  }); });
+  var sa = $('#safeAll'); if (sa) sa.addEventListener('click', function () {
+    var n = 0; S.ed.forEach(function (e) { if ((e.flags.indexOf('new_fact') < 0 && e.flags.indexOf('length') < 0) && e.d !== 'accepted') { e.d = 'accepted'; n++; } });
+    say(n + ' safe changes accepted. Review flagged ones yourself.'); render(true);
+  });
+  $$('[data-fin]').forEach(function (b) { b.addEventListener('click', function () {
+    if (b.getAttribute('data-fin') === 'go') { S.finSt = 'idle'; sim(S, 'finSt', function () { S.final = true; say('Résumé ready. ATS match re-scored to ' + projected()); }); }
+    else say('Downloading Resume - ' + job(S.tailorJob).c + '.docx (prototype)');
+  }); });
+  $$('[data-tone]').forEach(function (b) { b.addEventListener('click', function () { S.cover.tone = b.getAttribute('data-tone'); S.cover.st = 'idle'; render(true); }); });
+  var notes = $('#notes'); if (notes) notes.addEventListener('input', function () { S.cover.notes = this.value; });
+  $$('[data-cl]').forEach(function (b) { b.addEventListener('click', function () {
+    if (b.getAttribute('data-cl') === 'dl') { say('Downloading cover letter .docx (prototype)'); return; }
+    sim(S.cover, 'st', function () { S.cover.text = LETTERS[S.cover.tone]; });
+  }); });
+  var letter = $('#letter'); if (letter) letter.addEventListener('input', function () { S.cover.text = this.value; $('#wc').textContent = this.value.split(/\s+/).filter(Boolean).length; });
+  $$('[data-prep]').forEach(function (b) { b.addEventListener('click', function () { sim(S.prep, 'st'); }); });
+}
+routes.tailor = { r: vTailor, b: bTailor };
+
+/* ======================= TRACKER ======================= */
+var COLS = [['saved', 'Saved'], ['tailored', 'Tailored'], ['applied', 'Applied'], ['interviewing', 'Interviewing'], ['offer', 'Offer'], ['rejected', 'Rejected'], ['withdrawn', 'Withdrawn']];
+function stOpts(cur) { return COLS.map(function (c) { return '<option value="' + c[0] + '"' + (c[0] === cur ? ' selected' : '') + '>' + c[1] + '</option>'; }).join(''); }
+function atsChip(t) { return t.ats ? chip('info', 'ATS ' + t.ats[0] + '→' + t.ats[1]) : chip('', 'not analysed'); }
+function vTracker() {
+  var board = COLS.map(function (c) {
+    var items = S.track.filter(function (t) { return t.st === c[0]; });
+    return '<div class="col" data-col="' + c[0] + '"><h3>' + c[1] + ' <span>' + items.length + '</span></h3>' + (items.length ? items.map(function (t) {
+      return '<article class="kcard" draggable="true" data-kid="' + t.id + '"><div class="kt"><a href="#tailor" data-open="' + t.jid + '">' + esc(t.t) + '</a></div><div class="muted" style="font-size:12.5px">' + esc(t.c) + '</div>' +
+        '<div class="row" style="gap:6px">' + chip('ok', 'fit ' + t.fit) + atsChip(t) + '</div><div class="kf"><span>' + esc(t.upd) + '</span><select aria-label="Move ' + esc(t.t) + ' to another status" data-mv="' + t.id + '">' + stOpts(t.st) + '</select></div></article>';
+    }).join('') : '<div class="help" style="padding:10px 4px">Nothing here yet. Drag a card here.</div>') + '</div>';
+  }).join('');
+  var rows = S.track.map(function (t) {
+    return '<tr><td><a href="#tailor" data-open="' + t.jid + '">' + esc(t.t) + '</a></td><td>' + esc(t.c) + '</td><td><select class="select" style="width:auto;padding:3px 6px" aria-label="Status" data-mv="' + t.id + '">' + stOpts(t.st) + '</select></td><td class="mono">' + t.fit + '</td><td>' + atsChip(t) + '</td><td class="muted">' + esc(t.upd) + '</td></tr>';
+  }).join('');
+  return '<div class="page"><div class="title"><div><h1>Tracker</h1><div class="sub">Move cards yourself. Nothing here is sent anywhere.</div></div><div class="row"><div class="seg" id="tv" role="group" aria-label="View"><button type="button" data-v="board" aria-pressed="' + (S.tview === 'board') + '">Board</button><button type="button" data-v="list" aria-pressed="' + (S.tview === 'list') + '">List</button></div><a class="btn primary" href="#addjob">' + ico('plus', 14) + ' Add job</a></div></div>' +
+    (S.tview === 'board' ? '<div class="board" id="board">' + board + '</div>' : '<div class="tablewrap"><table><thead><tr><th>Role</th><th>Company</th><th>Status</th><th>Fit</th><th>ATS</th><th>Updated</th></tr></thead><tbody>' + rows + '</tbody></table></div>') + '</div>';
+}
+function moveCard(id, st) {
+  var t = S.track.filter(function (x) { return x.id === +id; })[0]; if (!t || t.st === st) return;
+  t.st = st; t.upd = 'Just now'; render(true); say('Moved to ' + COLS.filter(function (c) { return c[0] === st; })[0][1]);
+}
+function bTracker() {
+  $$('#tv button').forEach(function (b) { b.addEventListener('click', function () { S.tview = b.getAttribute('data-v'); render(true); }); });
+  $$('[data-open]').forEach(function (a) { a.addEventListener('click', function () { S.tailorJob = +a.getAttribute('data-open'); S.tab = 'resume'; }); });
+  $$('[data-mv]').forEach(function (s) { s.addEventListener('change', function () { moveCard(s.getAttribute('data-mv'), s.value); }); });
+  $$('.kcard').forEach(function (c) {
+    c.addEventListener('dragstart', function (e) { e.dataTransfer.setData('text/plain', c.getAttribute('data-kid')); c.classList.add('drag'); });
+    c.addEventListener('dragend', function () { c.classList.remove('drag'); });
+  });
+  $$('.col').forEach(function (col) {
+    col.addEventListener('dragover', function (e) { e.preventDefault(); col.classList.add('over'); });
+    col.addEventListener('dragleave', function () { col.classList.remove('over'); });
+    col.addEventListener('drop', function (e) { e.preventDefault(); col.classList.remove('over'); moveCard(e.dataTransfer.getData('text/plain'), col.getAttribute('data-col')); });
+  });
+}
+routes.tracker = { r: vTracker, b: bTracker };
+
+/* ======================= RÉSUMÉ ======================= */
+function upState() {
+  var u = S.up;
+  if (u.st === 'failed') return '<div class="alert bad" style="margin-top:12px">' + ico('warn') + '<span><b>' + esc(u.code) + '</b> ' + esc(u.err) + '</span></div>';
+  if (u.st === 'queued' || u.st === 'running') return '<div class="stack" style="margin-top:12px"><div class="row">' + statusPill(u.st) + '<span class="help">Reading ' + esc(u.name) + '…</span></div>' + skeleton() + '</div>';
+  if (u.st === 'ready') return '<div class="alert ok" style="margin-top:12px">' + ico('check') + '<span><b>' + esc(u.name) + '</b> was parsed as version 3. Review the profile below, then make it active.</span><button class="btn sm primary" type="button" id="activate" style="margin-left:auto">Make active</button></div>';
+  return '';
+}
+function vResume() {
+  var skills = S.skills.map(function (s, i) { return '<span class="tagx chipsin" style="border:0;padding:2px 4px 2px 8px;background:var(--surface-2)">' + esc(s) + '<button type="button" data-rmskill="' + i + '" aria-label="Remove ' + esc(s) + '">×</button></span>'; }).join('');
+  var conf = S.confirmed.map(function (s, i) { return '<span class="tagx chipsin" style="border:0;padding:2px 4px 2px 8px;background:var(--accent-soft)">' + esc(s) + '<button type="button" data-rmconf="' + i + '" aria-label="Remove ' + esc(s) + '">×</button></span>'; }).join('');
+  return '<div class="page"><div class="title"><div><h1>Résumé</h1><div class="sub">One active version drives matching and tailoring. Word (.docx) only.</div></div></div>' +
+    '<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(320px,1fr))">' +
+    '<div class="stack"><div class="card"><div class="row between"><div class="row" style="flex-wrap:nowrap">' + ico('file', 22) + '<div><b>ravi_kumar_resume.docx</b><div class="help">Version 2 · uploaded 12 Oct · 84 KB</div></div></div><div class="row" style="gap:6px">' + chip('ok', 'active') + statusPill('ready') + '</div></div>' +
+    '<div class="row" style="margin-top:14px"><button class="btn sm" type="button" data-r="dl">Download original</button><button class="btn sm danger" type="button" data-r="del">' + ico('trash', 14) + ' Delete</button></div></div>' +
+    '<div class="card"><h2>Upload a new version</h2><p class="sub">Up to 5 MB. Macros, linked files and password-protected files are rejected.</p><label class="drop" id="drop" for="file">' + ico('up', 26) + '<b>Choose a .docx file</b><span class="help">or drag it here</span></label><input class="sr" type="file" id="file" accept=".docx,.pdf">' + upState() + '<div class="help" style="margin-top:10px">Try choosing a PDF to see the rejection message.</div></div>' +
+    '<div class="card"><h2>Versions</h2><div class="tablewrap" style="margin-top:10px;border:0"><table><thead><tr><th>Version</th><th>Uploaded</th><th>Status</th><th></th></tr></thead><tbody><tr><td class="mono">v2</td><td>12 Oct</td><td>' + chip('ok', 'active') + '</td><td></td></tr><tr><td class="mono">v1</td><td>3 Sep</td><td>' + statusPill('ready') + '</td><td style="text-align:right"><button class="btn sm" type="button" data-r="act">Make active</button> <button class="btn sm danger" type="button" data-r="del">Delete</button></td></tr></tbody></table></div></div></div>' +
+    '<div class="stack"><div class="card"><div class="row between"><h2>Format health</h2><span class="chip ok">85 / 100</span></div><p class="sub">These affect how automated screens read your résumé. We never restructure your layout.</p><div class="stack">' +
+    '<div class="alert warn">' + ico('warn') + '<span><b>Two-column layout.</b> Some ATS tools read columns out of order. A single column is safer.</span></div>' +
+    '<div class="alert info">' + ico('info') + '<span><b>Text box found.</b> Your contact details sit in a text box, so they are read for scoring but never edited.</span></div>' +
+    '<div class="alert ok">' + ico('check') + '<span>14 bullet points are editable. 6 paragraphs are locked (headings, dates, company names).</span></div></div></div>' +
+    '<div class="card"><h2>Parsed profile</h2><p class="sub">Correcting this changes how we match jobs, not your file.</p><h3 class="k">Skills</h3><div class="profchips">' + skills + '</div>' +
+    '<div class="row" style="margin-top:10px"><input class="input" id="newSkill" placeholder="Add a skill and press Enter" style="max-width:260px" aria-label="Add a skill"></div><div class="divider"></div>' +
+    '<div class="grid3 kv"><div><div class="kk">Experience</div><div class="vv">6 years</div></div><div><div class="kk">Latest title</div><div class="vv">Backend Engineer</div></div><div><div class="kk">Domains</div><div class="vv">Payments, fintech</div></div></div></div>' +
+    '<div class="card"><h2>Confirmed skills</h2><p class="sub">Skills you confirmed during tailoring. They may be added to tailored résumés.</p><div class="profchips">' + (conf || '<span class="help">None yet.</span>') + '</div></div></div></div></div>';
+}
+function bResume() {
+  var f = $('#file');
+  function handle(file) {
+    if (!file) return;
+    if (!/\.docx$/i.test(file.name)) { S.up = { st: 'failed', code: 'UNSUPPORTED_FILE_TYPE', err: 'Please upload the Word (.docx) version of your résumé.', name: file.name }; render(true); return; }
+    if (file.size > 5 * 1024 * 1024) { S.up = { st: 'failed', code: 'FILE_TOO_LARGE', err: 'The file is larger than 5 MB.', name: file.name }; render(true); return; }
+    S.up = { st: 'idle', name: file.name }; sim(S.up, 'st');
+  }
+  f.addEventListener('change', function () { handle(f.files[0]); });
+  var d = $('#drop');
+  ['dragover', 'dragenter'].forEach(function (n) { d.addEventListener(n, function (e) { e.preventDefault(); }); });
+  d.addEventListener('drop', function (e) { e.preventDefault(); handle(e.dataTransfer.files[0]); });
+  var a = $('#activate'); if (a) a.addEventListener('click', function () { S.up = { st: 'idle' }; render(true); say('Version 3 is now active'); });
+  $$('[data-r]').forEach(function (b) { b.addEventListener('click', function () {
+    var k = b.getAttribute('data-r');
+    if (k === 'dl') say('Downloading original .docx (prototype)'); else if (k === 'act') say('Version 1 is now active (prototype)');
+    else openDialog('<h2>Delete this résumé?</h2><p class="sub">The file, its parsed profile, and any tailored copies made from it are deleted. This cannot be undone.</p><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" data-close>Cancel</button><button class="btn danger solid" type="button" data-close id="confirmDel">Delete</button></div>', function (m) { $('#confirmDel', m).addEventListener('click', function () { say('Résumé deleted (prototype)'); }); });
+  }); });
+  $$('[data-rmskill]').forEach(function (b) { b.addEventListener('click', function () { S.skills.splice(+b.getAttribute('data-rmskill'), 1); render(true); }); });
+  $$('[data-rmconf]').forEach(function (b) { b.addEventListener('click', function () { S.confirmed.splice(+b.getAttribute('data-rmconf'), 1); render(true); }); });
+  var ns = $('#newSkill'); ns.addEventListener('keydown', function (e) { if (e.key === 'Enter' && ns.value.trim()) { S.skills.push(ns.value.trim()); render(true); say('Skill added'); } });
+}
+routes.resume = { r: vResume, b: bResume };
+
+/* ======================= PREFERENCES ======================= */
+var PREF_SNAP = JSON.stringify(S.pref);
+function chipsInner(key, list) {
+  return list.map(function (v, i) { return '<span class="tagx">' + esc(v) + '<button type="button" data-rm="' + key + ':' + i + '" aria-label="Remove ' + esc(v) + '">×</button></span>'; }).join('') + '<input data-add="' + key + '" aria-label="Add" placeholder="Type and press Enter">';
+}
+function multi(key, opts) {
+  return '<div class="seg" role="group">' + opts.map(function (o) { return '<button type="button" data-multi="' + key + '" data-val="' + o[0] + '" aria-pressed="' + (S.pref[key].indexOf(o[0]) > -1) + '">' + o[1] + '</button>'; }).join('') + '</div>';
+}
+function single(key, opts) {
+  return '<div class="seg" role="group">' + opts.map(function (o) { return '<button type="button" data-single="' + key + '" data-val="' + o[0] + '" aria-pressed="' + (S.pref[key] === o[0]) + '">' + o[1] + '</button>'; }).join('') + '</div>';
+}
+function fmtMoney(v, cur) { var n = +v; if (!n) return ''; return cur === 'INR' ? '₹' + (n / 100000).toFixed(1).replace('.0', '') + 'L / year' : '$' + Math.round(n / 1000) + 'k / year'; }
+function vPrefs() {
+  var p = S.pref;
+  var watch = p.watch.map(function (w, i) { return '<span class="tagx">' + esc(w) + '<button type="button" data-rm="watch:' + i + '" aria-label="Remove ' + esc(w) + '">×</button></span>'; }).join('');
+  return '<div class="page narrow" style="padding-bottom:20px"><div class="title"><div><h1>Preferences</h1><div class="sub">These filters apply to your shortlist and your daily digest.</div></div></div><div class="stack">' +
+    '<div class="card"><h2>Where to look</h2><p class="sub">Which jobs can appear.</p>' +
+    '<div class="field"><span class="lbl">Search scope</span>' + single('scope', [['india_only', 'India only'], ['india_plus_global_remote', 'India + global remote'], ['global_remote_only', 'Global remote only']]) + '<span class="help">“India only” covers company career boards with India locations and jobs you add yourself.</span></div>' +
+    '<div class="field"><span class="lbl">Target roles</span><div class="chipsin" data-chips="roles">' + chipsInner('roles', p.roles) + '</div></div>' +
+    '<div class="field"><span class="lbl">Cities in India</span><div class="chipsin" data-chips="locations">' + chipsInner('locations', p.locations) + '</div></div>' +
+    '<div class="grid2"><div class="field"><span class="lbl">Work mode</span>' + multi('modes', [['remote', 'Remote'], ['hybrid', 'Hybrid'], ['onsite', 'On-site']]) + '</div><div class="field"><span class="lbl">Job type</span>' + multi('types', [['full_time', 'Full-time'], ['contract', 'Contract'], ['part_time', 'Part-time'], ['internship', 'Internship']]) + '</div></div>' +
+    '<div class="field"><span class="lbl">Hiring model</span>' + multi('hiring', [['employee', 'Employee'], ['contractor', 'Contractor']]) + '</div></div>' +
+    '<div class="card"><h2>Pay</h2><p class="sub">Annual amounts. Jobs in other currencies are shown with an approximate conversion.</p>' +
+    '<div class="field"><span class="lbl">Currency</span>' + single('cur', [['INR', 'INR'], ['USD', 'USD']]) + '</div>' +
+    '<div class="grid2"><div class="field"><label for="smin">Minimum</label><input class="input mono" id="smin" inputmode="numeric" value="' + esc(p.smin) + '"><span class="help" id="sminH">' + fmtMoney(p.smin, p.cur) + '</span></div><div class="field"><label for="smax">Maximum</label><input class="input mono" id="smax" inputmode="numeric" value="' + esc(p.smax) + '"><span class="help" id="smaxH">' + fmtMoney(p.smax, p.cur) + '</span></div></div>' +
+    '<div class="setting"><div><div class="t">Show jobs that do not list a salary</div><div class="d">Only when the match score is at or above your minimum.</div></div>' + sw('unspec', p.unspec) + '</div></div>' +
+    '<div class="card"><h2>Match quality</h2><p class="sub">Jobs below this score are hidden.</p>' +
+    '<div class="field"><div class="row between"><label for="minScore">Minimum match score</label><span class="mono" id="msv">' + p.minScore + ' / 10</span></div><input type="range" id="minScore" min="1" max="10" value="' + p.minScore + '"></div>' +
+    '<div class="setting"><div><div class="t">Show jobs with unclear eligibility in the email digest</div><div class="d">They always appear in the app with a warning.</div></div>' + sw('unclear', p.unclear) + '</div>' +
+    '<div class="field" style="margin-top:12px"><label for="overlap">Time-zone overlap</label><select class="select" id="overlap">' + ['Any', 'Up to 4h overlap with US East', 'Up to 4h overlap with Europe', 'Night shifts are fine'].map(function (o) { return '<option' + (o === p.overlap ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></div>' +
+    '<div class="field"><span class="lbl">Exclude companies</span><div class="chipsin" data-chips="exCo">' + chipsInner('exCo', p.exCo) + '</div></div>' +
+    '<div class="field"><span class="lbl">Exclude keywords</span><div class="chipsin" data-chips="exKw">' + chipsInner('exKw', p.exKw) + '</div></div></div>' +
+    '<div class="card"><h2>Companies to watch</h2><p class="sub">Add a company career board (Greenhouse, Lever or Ashby). We read its public job list.</p><div class="profchips" id="watchList" style="margin-bottom:12px">' + (watch || '<span class="help">No companies yet.</span>') + '</div>' +
+    '<div class="row" style="flex-wrap:nowrap"><input class="input" id="boardUrl" placeholder="https://boards.greenhouse.io/company" aria-label="Board URL"><button class="btn" type="button" id="addBoard">Add</button></div><div class="err" id="boardErr" role="alert"></div><div class="help">' + p.watch.length + ' of 25 used. We only open the board’s public job list, never the link you type.</div></div>' +
+    '<div class="card"><h2>Daily digest</h2><p class="sub">When your shortlist is prepared and emailed.</p>' +
+    '<div class="setting"><div><div class="t">Send a daily digest</div><div class="d">Turn off to stop emails. You can still run the search yourself.</div></div>' + sw('sched', p.sched) + '</div>' +
+    '<div class="grid2" style="margin-top:12px"><div class="field"><label for="time">Time</label><input class="input mono" id="time" type="time" value="' + p.time + '"><span class="help">Your time zone: Asia/Kolkata</span></div></div>' +
+    '<div class="setting"><div><div class="t">Send a message when nothing new matches</div></div>' + sw('empty', p.empty) + '</div></div></div></div>' +
+    '<div class="savebar"><span class="help" id="dirtyMsg">' + (S.dirty ? 'You have unsaved changes.' : 'All changes saved.') + '</span><div class="row"><button class="btn" type="button" id="discard">Discard</button><button class="btn primary" type="button" id="savePref">Save preferences</button></div></div>';
+}
+function markDirty() { S.dirty = true; var m = $('#dirtyMsg'); if (m) m.textContent = 'You have unsaved changes.'; }
+function bPrefs() {
+  var p = S.pref;
+  function refresh(key) { var c = $('[data-chips="' + key + '"]'); if (c) c.innerHTML = chipsInner(key, p[key]); bindChip(c); }
+  function bindChip(c) {
+    if (!c) return; var key = c.getAttribute('data-chips'), inp = $('input', c);
+    inp.addEventListener('keydown', function (e) { if ((e.key === 'Enter' || e.key === ',') && inp.value.trim()) { e.preventDefault(); p[key].push(inp.value.trim().replace(/,$/, '')); markDirty(); refresh(key); var n = $('[data-chips="' + key + '"] input'); if (n) n.focus(); } });
+    $$('[data-rm]', c).forEach(function (b) { b.addEventListener('click', function () { var kv = b.getAttribute('data-rm').split(':'); p[kv[0]].splice(+kv[1], 1); markDirty(); refresh(kv[0]); }); });
+  }
+  $$('[data-chips]').forEach(bindChip);
+  $$('[data-single]').forEach(function (b) { b.addEventListener('click', function () { p[b.getAttribute('data-single')] = b.getAttribute('data-val'); markDirty(); render(true); }); });
+  $$('[data-multi]').forEach(function (b) { b.addEventListener('click', function () {
+    var k = b.getAttribute('data-multi'), v = b.getAttribute('data-val'), i = p[k].indexOf(v);
+    if (i > -1) { if (p[k].length > 1) p[k].splice(i, 1); else { say('Keep at least one option selected'); return; } } else p[k].push(v);
+    markDirty(); render(true);
+  }); });
+  ['smin', 'smax'].forEach(function (id) { $('#' + id).addEventListener('input', function () { p[id] = this.value.replace(/[^0-9]/g, ''); $('#' + id + 'H').textContent = fmtMoney(p[id], p.cur); markDirty(); }); });
+  $('#minScore').addEventListener('input', function () { p.minScore = +this.value; $('#msv').textContent = this.value + ' / 10'; markDirty(); });
+  ['unspec', 'unclear', 'sched', 'empty'].forEach(function (id) { $('#' + id).addEventListener('change', function () { p[id] = this.checked; markDirty(); }); });
+  $('#overlap').addEventListener('change', function () { p.overlap = this.value; markDirty(); });
+  $('#time').addEventListener('change', function () { p.time = this.value; markDirty(); });
+  $('#addBoard').addEventListener('click', function () {
+    var v = $('#boardUrl').value.trim(), err = $('#boardErr'), m = v.match(/^https:\/\/(boards\.greenhouse\.io|job-boards\.greenhouse\.io|jobs\.lever\.co|jobs\.ashbyhq\.com)\/([a-z0-9_-]{2,60})(\/.*)?$/i);
+    if (!m) { err.textContent = 'INVALID_BOARD_URL: use a Greenhouse, Lever or Ashby board link such as https://boards.greenhouse.io/company'; return; }
+    if (p.watch.length >= 25) { err.textContent = 'WATCHLIST_LIMIT: you can watch up to 25 companies.'; return; }
+    var plat = /greenhouse/i.test(m[1]) ? 'Greenhouse' : /lever/i.test(m[1]) ? 'Lever' : 'Ashby';
+    p.watch.push(m[2].toLowerCase() + ' (' + plat + ')'); markDirty(); render(true); say('Board verified and added');
+  });
+  $('#savePref').addEventListener('click', function () { S.dirty = false; PREF_SNAP = JSON.stringify(p); render(true); say('Preferences saved'); });
+  $('#discard').addEventListener('click', function () { S.pref = JSON.parse(PREF_SNAP); S.dirty = false; render(true); say('Changes discarded'); });
+}
+routes.preferences = { r: vPrefs, b: bPrefs };
+
+/* ======================= USAGE ======================= */
+function vUsage() {
+  var rows = [['ats_analysis', 'Documents', 112, '420,000'], ['resume_tailor', 'Documents', 48, '360,000'], ['interview_prep', 'Documents', 29, '160,000'], ['cover_letter', 'Documents', 41, '150,000'], ['byo_job_enrichment', 'Documents', 14, '25,000'], ['resume_parse', 'Documents', 3, '15,000'], ['job_fit_score', 'Discovery', 198, '212,340']];
+  var vals = [12, 18, 9, 22, 30, 14, 8, 26, 35, 20, 11, 16, 40, 28, 19, 7, 24, 33, 15, 21, 38, 29, 13, 17, 44, 31, 22, 18, 36, 27];
+  return '<div class="page"><div class="title"><div><h1>Usage</h1><div class="sub">October · resets on <b>1 Nov</b> at 00:00 IST</div></div></div>' +
+    '<div class="alert warn" style="margin-bottom:14px">' + ico('warn') + '<span>Your Documents budget is 81% used. At 100%, tailoring, cover letters and interview prep pause until it resets. Your daily shortlist keeps working.</span></div>' +
+    '<div class="grid2" style="margin-bottom:14px"><div class="card"><div class="row between"><h2>Discovery</h2><span class="chip">Haiku</span></div><p class="sub">Daily matching and scoring</p><div class="mono" style="font-size:26px;font-weight:600">212,340 <span class="muted" style="font-size:14px">/ 600,000</span></div><div class="meter" style="margin-top:10px"><b style="width:35%"></b></div></div>' +
+    '<div class="card"><div class="row between"><h2>Documents</h2><span class="chip">Sonnet</span></div><p class="sub">Analysis, tailoring, cover letters, prep</p><div class="mono" style="font-size:26px;font-weight:600">1,130,000 <span class="muted" style="font-size:14px">/ 1,400,000</span></div><div class="meter" style="margin-top:10px"><b class="warn" style="width:81%"></b></div></div></div>' +
+    '<div class="card" style="margin-bottom:14px"><h2>Tokens per day</h2><p class="sub">Last 30 days</p><div class="bars" aria-hidden="true">' + vals.map(function (v) { return '<i style="height:' + (v * 2) + '%"></i>'; }).join('') + '</div></div>' +
+    '<h3 class="k">By task</h3><div class="tablewrap"><table><thead><tr><th>Task</th><th>Budget</th><th>Calls</th><th style="text-align:right">Tokens</th></tr></thead><tbody>' + rows.map(function (r) { return '<tr><td class="mono">' + r[0] + '</td><td>' + chip('', r[1]) + '</td><td class="mono">' + r[2] + '</td><td class="mono" style="text-align:right">' + r[3] + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+    '<p class="help" style="margin-top:10px">Cached prompt tokens count at a lower rate. Shared job analysis is paid by the platform and is not counted here.</p></div>';
+}
+routes.usage = { r: vUsage };
+
+/* ======================= ADD JOB ======================= */
+function vAdd() {
+  var a = S.add, busy = a.st === 'queued' || a.st === 'running';
+  var result = a.st === 'ready' ? '<div class="card" style="margin-top:14px"><div class="row between"><div><h2>Platform Engineer</h2><div class="sub">Brightwave · Remote</div></div><div class="sc hi" style="font-size:26px">9<span class="muted" style="font-size:13px">/10</span></div></div><div class="row" style="margin:10px 0 14px;gap:6px">' + chip('ok', 'india_eligible') + chip('', 'salary not listed') + chip('', 'source: added by you') + '</div><ul class="plain"><li>Strong CI/CD and cloud match</li><li>Eligibility evidence: “Remote, APAC time zones”</li></ul><div class="row" style="margin-top:14px"><button class="btn primary" type="button" data-add="tailor">Tailor résumé</button><a class="btn" href="#tracker">View in tracker</a></div></div>' : '';
+  return '<div class="page narrow"><div class="title"><div><h1>Add a job</h1><div class="sub">Found a role on LinkedIn, Naukri or a company site? Paste it here and get the same score, analysis and tailoring.</div></div></div>' +
+    '<div class="card"><div class="field"><label for="desc">Job description <span class="muted">(required)</span></label><textarea class="textarea" id="desc" style="min-height:220px" placeholder="Paste the full job description here" aria-describedby="descH">' + '</textarea><div class="row between"><span class="help" id="descH">Up to 30,000 characters.</span><span class="help mono" id="cnt">0 / 30,000</span></div><div class="err" id="descE" role="alert"></div></div>' +
+    '<div class="grid2"><div class="field"><label for="jt">Title</label><input class="input" id="jt" placeholder="Optional"></div><div class="field"><label for="jc">Company</label><input class="input" id="jc" placeholder="Optional"></div></div>' +
+    '<div class="field"><label for="ju">Link</label><input class="input" id="ju" placeholder="https://… (optional)"><span class="help">Saved for your reference only. We never open this link.</span></div>' +
+    '<div class="row"><button class="btn primary" type="button" id="addGo"' + (busy ? ' disabled' : '') + '>Add and score</button>' + (busy ? statusPill(a.st) : '') + '<span class="help">Uses about 3k tokens of Documents</span></div>' + (busy ? '<div style="margin-top:14px">' + skeleton() + '</div>' : '') + '</div>' + result + '</div>';
+}
+function bAdd() {
+  var d = $('#desc'); d.addEventListener('input', function () { $('#cnt').textContent = this.value.length.toLocaleString('en-US') + ' / 30,000'; this.removeAttribute('aria-invalid'); $('#descE').textContent = ''; });
+  $('#addGo').addEventListener('click', function () {
+    var v = d.value.trim();
+    if (v.length < 80) { d.setAttribute('aria-invalid', 'true'); $('#descE').textContent = 'Paste the full job description (at least 80 characters) so the score is accurate.'; return; }
+    S.add = { st: 'idle' }; sim(S.add, 'st');
+  });
+  var t = $('[data-add="tailor"]'); if (t) t.addEventListener('click', function () { S.tailorJob = 2; S.tab = 'resume'; go('tailor'); });
+}
+routes.addjob = { r: vAdd, b: bAdd };
+
+/* ======================= ACCOUNT ======================= */
+function vAccount() {
+  var tz = ['Asia/Kolkata', 'Asia/Singapore', 'Europe/London', 'America/New_York'].map(function (z) { return '<option' + (z === 'Asia/Kolkata' ? ' selected' : '') + '>' + z + '</option>'; }).join('');
+  return '<div class="page narrow"><div class="title"><div><h1>Account</h1><div class="sub">Profile, notifications and privacy.</div></div></div><div class="stack">' +
+    '<div class="card"><h2>Profile</h2><div class="grid2" style="margin-top:12px"><div class="field"><label for="nm">Name</label><input class="input" id="nm" value="Ravi Kumar"></div><div class="field"><label for="em">Email</label><div class="row" style="flex-wrap:nowrap"><input class="input" id="em" value="ravi@example.com" readonly>' + chip('ok', 'verified') + '</div></div></div>' +
+    '<div class="field"><label for="tz">Time zone</label><select class="select" id="tz" style="max-width:280px">' + tz + '</select><span class="help">Your daily digest time uses this time zone.</span></div><button class="btn primary" type="button" data-acc="save">Save profile</button></div>' +
+    '<div class="card"><h2>Notifications</h2><div class="setting"><div><div class="t">Daily digest email</div><div class="d">Every evening at 18:00 IST. Each email has a one-click unsubscribe link.</div></div>' + sw('dig', true) + '</div></div>' +
+    '<div class="card"><h2>Privacy</h2><p class="sub">You accepted the Privacy Notice (version 1) on 5 Oct 2026.</p><div class="alert info">' + ico('info') + '<span>Your résumé text and the jobs you analyse are sent to an AI provider (Anthropic) to create matches and documents. Your résumé is never shown to other users.</span></div></div>' +
+    '<div class="card" style="border-color:color-mix(in srgb,var(--red) 35%,var(--border))"><h2>Delete account</h2><p class="sub">Removes your résumés, tailored documents, tracker and preferences. We email a confirmation link first. This cannot be undone.</p><button class="btn danger" type="button" data-acc="del">Delete my account…</button></div></div></div>';
+}
+function bAccount() {
+  $$('[data-acc]').forEach(function (b) { b.addEventListener('click', function () {
+    if (b.getAttribute('data-acc') === 'save') { say('Profile saved'); return; }
+    openDialog('<h2>Delete your account?</h2><p class="sub">We will email you a confirmation link. After you confirm, your data is removed. Type <b class="mono">DELETE</b> to continue.</p><div class="field" style="margin-top:12px"><input class="input mono" id="delTxt" aria-label="Type DELETE" placeholder="DELETE"></div><div class="row" style="justify-content:flex-end"><button class="btn" type="button" data-close>Cancel</button><button class="btn danger solid" type="button" id="delGo" disabled data-close>Send confirmation email</button></div>', function (m) {
+      var t = $('#delTxt', m), g = $('#delGo', m); t.focus();
+      t.addEventListener('input', function () { g.disabled = t.value !== 'DELETE'; });
+      g.addEventListener('click', function () { say('Confirmation email sent (prototype)'); });
+    });
+  }); });
+  $('#dig').addEventListener('change', function () { say(this.checked ? 'Daily digest on' : 'Daily digest off'); });
+}
+routes.account = { r: vAccount, b: bAccount };
+
+/* ======================= ADMIN ======================= */
+var SRCS = [['himalayas', 'Himalayas', 'feed', 1440, '—', 0], ['remoteok', 'Remote OK', 'feed', 360, '12 min ago', 0], ['jobicy', 'Jobicy', 'feed', 360, '—', 0], ['wwr', 'We Work Remotely', 'feed', 360, '—', 0], ['greenhouse', 'Greenhouse boards', 'board', 360, '24 min ago', 1], ['lever', 'Lever boards', 'board', 360, '—', 0], ['ashby', 'Ashby boards', 'board', 360, '—', 0]];
+var TASKS = [['resume_parse', 'claude-sonnet-5-5', 4000, 'documents'], ['job_enrichment', 'claude-haiku-5-5', 1500, 'platform'], ['byo_job_enrichment', 'claude-haiku-5-5', 1500, 'documents'], ['job_fit_score', 'claude-haiku-5-5', 600, 'discovery'], ['ats_analysis', 'claude-sonnet-5-5', 3000, 'documents'], ['resume_tailor', 'claude-sonnet-5-5', 4000, 'documents'], ['cover_letter', 'claude-sonnet-5-5', 1200, 'documents'], ['interview_prep', 'claude-sonnet-5-5', 3000, 'documents']];
+function vAdmin() {
+  var t = S.admin.tab, A = S.admin;
+  var tabs = '<div class="tabs" role="tablist">' + [['status', 'Status'], ['sources', 'Sources'], ['companies', 'Companies'], ['ai', 'AI config'], ['coverage', 'Coverage'], ['flags', 'Flags']].map(function (x) { return '<button role="tab" type="button" data-at="' + x[0] + '" aria-selected="' + (t === x[0]) + '">' + x[1] + '</button>'; }).join('') + '</div>';
+  var body = '';
+  if (t === 'status') {
+    body = '<div class="grid3" style="margin-bottom:14px">' + [['Jobs fetched (24h)', '1,284'], ['Failed jobs', '0'], ['AI error rate (15 min)', '0.6%'], ['Disk used', '41%']].map(function (s) { return '<div class="card flat"><div class="help">' + s[0] + '</div><div class="mono" style="font-size:24px;font-weight:600">' + s[1] + '</div></div>'; }).join('') + '</div>' +
+      '<h3 class="k">Source health</h3><div class="tablewrap"><table><thead><tr><th>Source</th><th>Enabled</th><th>Last success</th><th>Failures</th><th>Circuit</th></tr></thead><tbody>' + SRCS.map(function (s) { return '<tr><td>' + s[1] + '</td><td>' + (A.srcOn[s[0]] ? chip('ok', 'on') : chip('', 'off')) + '</td><td class="muted">' + s[4] + '</td><td class="mono">' + s[5] + '</td><td>' + (A.srcOn[s[0]] ? statusPill('ready') : '<span class="muted">—</span>') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="alert info" style="margin-top:14px">' + ico('info') + '<span>Platform enrichment today: <b>412k</b> of 2M tokens. Last digest run: 18:02 IST, 10 users, 0 failed.</span></div>';
+  } else if (t === 'sources') {
+    body = '<p class="sub" style="margin-bottom:12px">A source cannot be enabled until its terms are marked as reviewed.</p><div class="tablewrap"><table><thead><tr><th>Source</th><th>Kind</th><th>Poll (min)</th><th>Terms reviewed</th><th>Enabled</th></tr></thead><tbody>' + SRCS.map(function (s) { return '<tr><td>' + s[1] + '</td><td>' + chip('', s[2]) + '</td><td class="mono">' + s[3] + '</td><td><input class="cb" type="checkbox" data-rev="' + s[0] + '" aria-label="Terms reviewed for ' + s[1] + '"' + (A.reviewed[s[0]] ? ' checked' : '') + '></td><td><label class="sw"><input type="checkbox" data-src="' + s[0] + '" aria-label="Enable ' + s[1] + '"' + (A.srcOn[s[0]] ? ' checked' : '') + '><span></span></label></td></tr>'; }).join('') + '</tbody></table></div>';
+  } else if (t === 'companies') {
+    var cs = [['stripe', 'Greenhouse', 'resolved', 'seed', '112'], ['gitlab', 'Greenhouse', 'resolved', 'seed', '64'], ['acme-cloud', 'Greenhouse', 'resolved', 'user', '9'], ['northwind', 'Lever', 'resolved', 'discovered', '14'], ['lumen', 'Ashby', 'not_found', 'discovered', '—'], ['kiln', 'Greenhouse', 'resolved', 'seed', '21']];
+    body = '<div class="row between" style="margin-bottom:12px"><span class="sub">' + cs.length + ' boards shown · 138 total</span><div class="row"><button class="btn" type="button" data-ad="seed">Load seed list</button><button class="btn primary" type="button" data-ad="add">' + ico('plus', 14) + ' Add board</button></div></div><div class="tablewrap"><table><thead><tr><th>Board</th><th>Platform</th><th>Status</th><th>Origin</th><th>Open jobs</th><th></th></tr></thead><tbody>' + cs.map(function (c) { return '<tr><td class="mono">' + c[0] + '</td><td>' + c[1] + '</td><td>' + chip(c[2] === 'resolved' ? 'ok' : 'warn', c[2]) + '</td><td>' + chip('', c[3]) + '</td><td class="mono">' + c[4] + '</td><td style="text-align:right"><button class="btn sm" type="button" data-ad="verify">Verify</button></td></tr>'; }).join('') + '</tbody></table></div>';
+  } else if (t === 'ai') {
+    body = '<p class="sub" style="margin-bottom:12px">Changes apply within 60 seconds. Model names are stored here only.</p><div class="tablewrap"><table><thead><tr><th>Task</th><th>Model</th><th>Max tokens</th><th>Budget</th><th>Enabled</th></tr></thead><tbody>' + TASKS.map(function (k) { return '<tr><td class="mono">' + k[0] + '</td><td><select class="select" style="width:auto;padding:3px 6px" data-ai="' + k[0] + '" aria-label="Model for ' + k[0] + '">' + ['claude-haiku-5-5', 'claude-sonnet-5-5', 'claude-opus-5-5'].map(function (m) { return '<option' + (m === k[1] ? ' selected' : '') + '>' + m + '</option>'; }).join('') + '</select></td><td class="mono">' + k[2] + '</td><td>' + chip('', k[3]) + '</td><td>' + sw('ai_' + k[0], true) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+  } else if (t === 'coverage') {
+    var cov = [['24 Oct', 38, 22, 31, 14, 9, 7, 5, 3], ['23 Oct', 34, 25, 29, 12, 10, 6, 6, 2], ['22 Oct', 41, 19, 33, 15, 8, 8, 4, 4], ['21 Oct', 29, 21, 26, 11, 7, 5, 5, 2], ['20 Oct', 22, 12, 18, 8, 5, 4, 3, 2]];
+    body = '<p class="sub" style="margin-bottom:12px">India-eligible jobs per day by source and by role keyword. Use this to decide if coverage is good enough.</p><div class="tablewrap"><table><thead><tr><th>Date</th><th>Himalayas</th><th>RemoteOK</th><th>Boards</th><th>Backend</th><th>Frontend</th><th>Data</th><th>DevOps</th><th>Mobile</th></tr></thead><tbody>' + cov.map(function (r) { return '<tr><td class="mono">' + r[0] + '</td>' + r.slice(1).map(function (v) { return '<td class="mono">' + v + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table></div><p class="help" style="margin-top:10px">Sample figures for the prototype.</p>';
+  } else {
+    body = '<div class="card"><div class="setting"><div><div class="t">Require invite code at signup</div><div class="d">Flag: signup.require_invite_code</div></div>' + sw('f1', false) + '</div><div class="setting"><div><div class="t">Send digest emails</div><div class="d">Flag: digest.email_enabled</div></div>' + sw('f2', true) + '</div><div class="setting"><div><div class="t">PDF export</div><div class="d">Flag: pdf_export.enabled (needs the converter container)</div></div>' + sw('f3', false) + '</div></div>' +
+      '<h3 class="k" style="margin-top:18px">Invite codes</h3><div class="tablewrap"><table><thead><tr><th>Code</th><th>Uses</th><th>Expires</th></tr></thead><tbody><tr><td class="mono">EARLY-7Q2K</td><td class="mono">3 / 10</td><td>30 Nov</td></tr><tr><td class="mono">TEAM-A91X</td><td class="mono">0 / 5</td><td>31 Dec</td></tr></tbody></table></div>';
+  }
+  return '<div class="page"><div class="title"><div><h1>Admin console</h1><div class="sub">Operations view. Shows counts and ids only, never résumé or job content.</div></div><span class="chip warn">admin only</span></div>' + tabs + body + '</div>';
+}
+function bAdmin() {
+  $$('[data-at]').forEach(function (b) { b.addEventListener('click', function () { S.admin.tab = b.getAttribute('data-at'); render(true); }); });
+  $$('[data-rev]').forEach(function (c) { c.addEventListener('change', function () { S.admin.reviewed[c.getAttribute('data-rev')] = c.checked; say(c.checked ? 'Terms marked as reviewed' : 'Terms review cleared'); }); });
+  $$('[data-src]').forEach(function (c) { c.addEventListener('change', function () {
+    var k = c.getAttribute('data-src');
+    if (c.checked && !S.admin.reviewed[k]) { c.checked = false; say('TERMS_NOT_REVIEWED: review this source’s terms first'); return; }
+    S.admin.srcOn[k] = c.checked; say((c.checked ? 'Enabled ' : 'Disabled ') + k);
+  }); });
+  $$('[data-ai]').forEach(function (s) { s.addEventListener('change', function () { say('Model for ' + s.getAttribute('data-ai') + ' set to ' + s.value + '. Applies within 60 seconds.'); }); });
+  $$('[data-ad]').forEach(function (b) { b.addEventListener('click', function () { var k = b.getAttribute('data-ad'); say(k === 'seed' ? 'Seed list loaded: 112 added, 26 skipped (prototype)' : k === 'verify' ? 'Board verified (prototype)' : 'Opens the add-board form (prototype)'); }); });
+}
+routes.admin = { r: vAdmin, b: bAdmin };
+
+/* ======================= ONBOARDING ======================= */
+function vWiz() {
+  var w = S.wiz, p = S.pref;
+  var labels = ['Résumé', 'Profile', 'Preferences', 'Schedule'];
+  var st = '<div class="stepper" aria-label="Progress">' + labels.map(function (l, i) { return '<div class="step ' + (i + 1 < w.step ? 'done' : i + 1 === w.step ? 'now' : '') + '"><span class="n">' + (i + 1 < w.step ? '✓' : i + 1) + '</span>' + l + '</div>'; }).join('') + '</div>';
+  var body = '';
+  if (w.step === 1) {
+    var s = w.up;
+    body = '<h1>Upload your résumé</h1><p class="sub" style="margin:4px 0 16px">We read it once to understand your skills. Word (.docx) only, up to 5 MB.</p><label class="drop" for="wfile">' + ico('up', 26) + '<b>Choose a .docx file</b><span class="help">or drag it here</span></label><input class="sr" type="file" id="wfile" accept=".docx">' +
+      (s === 'queued' || s === 'running' ? '<div class="stack" style="margin-top:14px"><div class="row">' + statusPill(s) + '<span class="help">Reading your résumé…</span></div>' + skeleton() + '</div>' : '') +
+      (s === 'ready' ? '<div class="alert ok" style="margin-top:14px">' + ico('check') + '<span>Parsed <b>ravi_kumar_resume.docx</b>.</span></div>' : '') +
+      '<div class="alert info" style="margin-top:14px">' + ico('info') + '<span>Your résumé text is processed by an AI provider (Anthropic) and is never shown to other users. You can delete it at any time.</span></div>' +
+      '<div class="row" style="margin-top:12px"><label class="row" style="gap:8px;font-weight:400"><input class="cb" type="checkbox" id="wconsent"> <span class="help">I accept the Terms and Privacy Notice.</span></label></div>';
+  } else if (w.step === 2) {
+    body = '<h1>Check what we found</h1><p class="sub" style="margin:4px 0 16px">Fix anything that looks wrong. This is only used for matching.</p><div class="card"><h3 class="k">Skills</h3><div class="profchips">' + S.skills.map(function (x) { return '<span class="tagx chipsin" style="border:0;background:var(--surface-2);padding:2px 8px">' + esc(x) + '</span>'; }).join('') + '</div><div class="divider"></div><div class="grid3 kv"><div><div class="kk">Experience</div><div class="vv">6 years</div></div><div><div class="kk">Latest title</div><div class="vv">Backend Engineer</div></div><div><div class="kk">Domains</div><div class="vv">Payments, fintech</div></div></div></div><div class="alert warn" style="margin-top:14px">' + ico('warn') + '<span><b>Two-column layout detected.</b> Some ATS tools read columns out of order. You can fix this later in Résumé.</span></div>';
+  } else if (w.step === 3) {
+    body = '<h1>What are you looking for?</h1><p class="sub" style="margin:4px 0 16px">You can change all of this later in Preferences.</p><div class="card"><div class="field"><span class="lbl">Search scope</span>' + single('scope', [['india_only', 'India only'], ['india_plus_global_remote', 'India + global remote'], ['global_remote_only', 'Global remote only']]) + '</div><div class="field"><label for="wr">Target roles</label><input class="input" id="wr" value="' + esc(p.roles.join(', ')) + '"><span class="help">Separate with commas.</span></div><div class="grid2"><div class="field"><span class="lbl">Currency</span>' + single('cur', [['INR', 'INR'], ['USD', 'USD']]) + '</div><div class="field"><label for="wmin">Minimum salary (per year)</label><input class="input mono" id="wmin" value="' + esc(p.smin) + '"></div></div><div class="field"><div class="row between"><label for="wms">Minimum match score</label><span class="mono" id="wmsv">' + p.minScore + ' / 10</span></div><input type="range" id="wms" min="1" max="10" value="' + p.minScore + '"></div></div>';
+  } else {
+    body = '<h1>When should we send your shortlist?</h1><p class="sub" style="margin:4px 0 16px">One email a day with new matches. You can turn it off any time.</p><div class="card"><div class="grid2"><div class="field"><label for="wt">Time</label><input class="input mono" type="time" id="wt" value="' + p.time + '"></div><div class="field"><label for="wtz">Time zone</label><select class="select" id="wtz"><option>Asia/Kolkata</option><option>Asia/Singapore</option></select></div></div><div class="setting"><div><div class="t">Send a daily digest</div><div class="d">to ravi@example.com</div></div>' + sw('wsched', true) + '</div></div>';
+  }
+  var can = w.step === 1 ? (w.up === 'ready' && w.consent) : true;
+  return '<div class="wiz"><div class="brand"><svg width="24" height="24" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" fill="var(--accent)"/><path d="M8 9h12M14 9v11" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round"/></svg><span>Tailorly</span><span class="tag">remote</span></div>' + st + body +
+    '<div class="row between" style="margin-top:22px"><button class="btn" type="button" id="wback"' + (w.step === 1 ? ' disabled' : '') + '>Back</button><button class="btn primary" type="button" id="wnext"' + (can ? '' : ' disabled') + '>' + (w.step === 4 ? 'Finish and see my shortlist' : 'Continue') + '</button></div></div>';
+}
+function bWiz() {
+  var w = S.wiz;
+  var f = $('#wfile'); if (f) f.addEventListener('change', function () {
+    var file = f.files[0]; if (!file) return;
+    if (!/\.docx$/i.test(file.name)) { say('Please upload the Word (.docx) version of your résumé.'); return; }
+    sim(w, 'up');
+  });
+  var c = $('#wconsent'); if (c) { c.checked = !!w.consent; c.addEventListener('change', function () { w.consent = c.checked; render(true); }); }
+  $$('[data-single]').forEach(function (b) { b.addEventListener('click', function () { S.pref[b.getAttribute('data-single')] = b.getAttribute('data-val'); render(true); }); });
+  var ms = $('#wms'); if (ms) ms.addEventListener('input', function () { S.pref.minScore = +this.value; $('#wmsv').textContent = this.value + ' / 10'; });
+  var wr = $('#wr'); if (wr) wr.addEventListener('input', function () { S.pref.roles = this.value.split(',').map(function (x) { return x.trim(); }).filter(Boolean); });
+  $('#wback').addEventListener('click', function () { if (w.step > 1) { w.step--; render(); } });
+  $('#wnext').addEventListener('click', function () { if (w.step < 4) { w.step++; render(); } else { w.step = 1; say('Welcome. Your first shortlist is ready.'); go('shortlist'); } });
+}
+routes.onboarding = { r: vWiz, b: bWiz, noshell: true };
+
+/* ======================= DESIGN SYSTEM ======================= */
+function vSystem() {
+  var sw2 = [['--bg', '#F7FAF8', 'Page background'], ['--surface', '#FFFFFF', 'Cards, panels'], ['--surface-2', '#EAF3EE', 'Soft panels, tab track'], ['--border', '#D5E3DB', 'Borders'], ['--text', '#16150F', 'Body text'], ['--muted', '#6A675C', 'Secondary text'], ['--accent', '#0E7A53', 'Primary actions, success'], ['--amber', '#9A5F00', 'Warnings'], ['--red', '#B3362F', 'Errors, destructive'], ['--blue', '#2563EB', 'Informational'], ['--ink', '#14130F', 'Sidebar and brand panel']];
+  return '<div class="page"><div class="title"><div><h1>Design system</h1><div class="sub">Tokens and components used across the app. Toggle the theme to check dark mode.</div></div></div><div class="stack">' +
+    '<div class="card"><h2>Colour tokens</h2><div class="grid3" style="margin-top:12px">' + sw2.map(function (s) { return '<div class="swatch"><i style="background:var(' + s[0] + ')"></i><div><b class="mono">' + s[0] + '</b><div class="help">' + s[1] + ' · ' + s[2] + '</div></div></div>'; }).join('') + '</div></div>' +
+    '<div class="card"><h2>Type</h2><div class="stack" style="margin-top:12px"><div><div class="help mono">IBM Plex Sans · 22 / 600 · page title</div><h1>Today’s shortlist</h1></div><div><div class="help mono">16 / 600 · section title</div><h2>Requirements vs your résumé</h2></div><div><div class="help mono">14 / 400 · body</div>Built REST APIs in .NET and PostgreSQL for the payments team.</div><div><div class="help mono">IBM Plex Mono · data, labels, scores</div><span class="mono">india_eligible · fit 9/10 · ATS 58 → 81</span></div></div></div>' +
+    '<div class="card"><h2>Buttons and chips</h2><div class="row" style="margin:12px 0"><button class="btn primary" type="button">Primary</button><button class="btn" type="button">Secondary</button><button class="btn ghost" type="button">Ghost</button><button class="btn danger" type="button">Destructive</button><button class="btn" type="button" disabled>Disabled</button></div><div class="row" style="gap:6px">' + chip('ok', 'india_eligible') + chip('warn', 'unclear ⚠') + chip('bad', 'missing') + chip('info', 'ATS 58→81') + chip('', 'salary not listed') + '<span class="kbd">j</span><span class="kbd">s</span><span class="kbd">t</span></div></div>' +
+    '<div class="card"><h2>Form controls</h2><div class="grid2" style="margin-top:12px"><div class="field"><label for="sx1">Text field</label><input class="input" id="sx1" placeholder="Placeholder"></div><div class="field"><label for="sx2">Field with error</label><input class="input" id="sx2" aria-invalid="true" value="not-an-email"><span class="err">Enter a valid email address.</span></div><div class="field"><span class="lbl">Segmented</span><div class="seg"><button type="button" aria-pressed="true">Concise</button><button type="button" aria-pressed="false">Confident</button></div></div><div class="field"><span class="lbl">Switch and chips input</span><div class="row">' + sw('sx3', true) + '</div><div class="chipsin"><span class="tagx">Backend engineer<button type="button" aria-label="Remove">×</button></span><input aria-label="Add" placeholder="Type and press Enter"></div></div></div></div>' +
+    '<div class="card"><h2>Feedback</h2><div class="stack" style="margin-top:12px"><div class="alert info">' + ico('info') + '<span>Information: your résumé is processed by an AI provider.</span></div><div class="alert ok">' + ico('check') + '<span>Success: résumé ready. ATS match re-scored to 81.</span></div><div class="alert warn">' + ico('warn') + '<span>Warning: Documents budget is 81% used.</span></div><div class="alert bad">' + ico('warn') + '<span>Error: <b>UNSUPPORTED_FILE_TYPE</b> Please upload the Word (.docx) version.</span></div>' +
+    '<div class="row">' + statusPill('queued') + statusPill('running') + statusPill('ready') + statusPill('failed') + '</div><div>' + skeleton() + '</div><div class="empty">Empty state: nothing here yet.</div>' +
+    '<div class="row"><button class="btn" type="button" id="sysToast">Show toast</button><button class="btn" type="button" id="sysDialog">Show dialog</button></div></div></div>' +
+    '<div class="card"><h2>Principles</h2><ul class="plain" style="margin-top:10px"><li>Show the evidence: eligibility quotes, score reasons, exact diffs, source links.</li><li>Label estimates as estimates. Never promise outcomes.</li><li>Every AI task shows queued, running, ready and failed states.</li><li>Keyboard first: j / k to move, s to save, t to tailor, / to search.</li><li>Pair every colour with text or an icon. Never use colour alone.</li></ul></div></div></div>';
+}
+function bSystem() {
+  $('#sysToast').addEventListener('click', function () { say('This is a toast message'); });
+  $('#sysDialog').addEventListener('click', function () { openDialog('<h2>Dialog title</h2><p class="sub">Dialogs confirm destructive actions and explain what happens next.</p><div class="row" style="justify-content:flex-end;margin-top:16px"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="button" data-close>Confirm</button></div>'); });
+}
+routes.system = { r: vSystem, b: bSystem };
+
+/* ---------- Start ---------- */
+route();
+})();
+</script>
+</body>
+</html>

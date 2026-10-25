@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tailorly Remote — Shortlist (B)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7faf8; --surface: #ffffff; --surface-2: #eaf3ee; --border: #d5e3db;
+    --text: #16150f; --muted: #6a675c;
+    --accent: #0e7a53; --accent-hover: #0b6544; --accent-soft: rgba(14,122,83,.10); --on-accent: #ffffff;
+    --amber: #9a5f00; --amber-soft: rgba(154,95,0,.12);
+    --red: #b3362f; --red-soft: rgba(179,54,47,.10);
+    --ink: #14130f; --ink-text: #eceae1; --ink-muted: #9a978b; --ink-line: #2a2922; --ink-active: #23221b;
+    --ring: rgba(14,122,83,.38);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f100d; --surface: #171813; --surface-2: #1e1f19; --border: #2b2c24;
+      --text: #eeede6; --muted: #9b998c;
+      --accent: #3ddc97; --accent-hover: #6ae8b1; --accent-soft: rgba(61,220,151,.12); --on-accent: #0b1a12;
+      --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+      --red: #f08a82; --red-soft: rgba(240,138,130,.12);
+      --ink: #0a0b09; --ink-line: #1d1e19; --ink-active: #171813;
+      --ring: rgba(61,220,151,.45);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f100d; --surface: #171813; --surface-2: #1e1f19; --border: #2b2c24;
+    --text: #eeede6; --muted: #9b998c;
+    --accent: #3ddc97; --accent-hover: #6ae8b1; --accent-soft: rgba(61,220,151,.12); --on-accent: #0b1a12;
+    --amber: #f0b44c; --amber-soft: rgba(240,180,76,.13);
+    --red: #f08a82; --red-soft: rgba(240,138,130,.12);
+    --ink: #0a0b09; --ink-line: #1d1e19; --ink-active: #171813;
+    --ring: rgba(61,220,151,.45);
+    color-scheme: dark;
+  }
+
+  :root { box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); height: 100%; }
+  *, *::before, *::after { box-sizing: inherit; }
+  body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; overflow: hidden; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  a { color: var(--accent); text-decoration: none; } a:hover { text-decoration: underline; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .app { height: 100%; display: grid; grid-template-columns: 224px minmax(340px, 470px) minmax(0, 1fr); }
+
+  /* Sidebar */
+  .side { background: var(--ink); color: var(--ink-text); display: flex; flex-direction: column; padding: 18px 12px; gap: 18px; }
+  .brand { display: flex; align-items: center; gap: 9px; padding: 0 8px; font-weight: 600; letter-spacing: -.01em; }
+  .brand .tag { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; color: #3ddc97; border: 1px solid #2c5a45; padding: 1px 6px; border-radius: 4px; }
+  .side nav { display: grid; gap: 2px; }
+  .side nav a { display: flex; justify-content: space-between; align-items: center; color: var(--ink-muted); padding: 8px 10px; border-radius: 7px; font-weight: 500; }
+  .side nav a:hover { color: var(--ink-text); background: var(--ink-active); text-decoration: none; }
+  .side nav a[aria-current="page"] { color: var(--ink-text); background: var(--ink-active); box-shadow: inset 2px 0 0 #3ddc97; }
+  .side nav .n { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--ink-muted); }
+  .budget { margin-top: auto; border-top: 1px solid var(--ink-line); padding: 14px 8px 0; display: grid; gap: 10px; font-size: 12px; color: var(--ink-muted); }
+  .budget .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .budget .bar { height: 4px; border-radius: 9px; background: var(--ink-line); overflow: hidden; }
+  .budget .bar b { display: block; height: 100%; background: #3ddc97; }
+  .budget .bar b.warn { background: #f0b44c; }
+  .userrow { display: flex; align-items: center; gap: 9px; padding: 8px; }
+  .avatar { width: 28px; height: 28px; border-radius: 6px; background: #23221b; color: #3ddc97; display: grid; place-items: center; font-family: "IBM Plex Mono", monospace; font-size: 12px; font-weight: 600; }
+  .userrow .who { flex: 1; min-width: 0; color: var(--ink-text); font-size: 13px; line-height: 1.25; }
+  .userrow .who small { display: block; color: var(--ink-muted); font-size: 11px; }
+  .icon-btn { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--ink-line); background: transparent; color: var(--ink-muted); border-radius: 7px; cursor: pointer; }
+  .icon-btn:hover { color: var(--ink-text); }
+
+  /* List column */
+  .listcol { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--border); background: var(--bg); }
+  .lhead { padding: 18px 18px 12px; border-bottom: 1px solid var(--border); display: grid; gap: 12px; }
+  .mbrand { display: none; align-items: center; gap: 8px; font-weight: 600; }
+  .ltitle { display: flex; justify-content: space-between; align-items: baseline; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
+  .meta { color: var(--muted); font-size: 12px; }
+  .searchbox { position: relative; }
+  .search { width: 100%; font: inherit; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 34px 8px 10px; }
+  .search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--ring); }
+  .kbd { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); border: 1px solid var(--border); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface); }
+  .searchbox .kbd { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+  .pills { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .pill { border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; cursor: pointer; }
+  .pill:hover { color: var(--text); }
+  .pill[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 500; }
+  select { font: inherit; font-size: 12.5px; color: var(--text); background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 3px 6px; }
+  .lscroll { overflow: auto; flex: 1; min-height: 0; }
+  .row { display: grid; grid-template-columns: 34px minmax(0,1fr); gap: 10px; padding: 13px 18px; border-bottom: 1px solid var(--border); cursor: pointer; position: relative; background: transparent; width: 100%; text-align: left; border-left: 0; border-top: 0; border-right: 0; }
+  .row:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+  .row[aria-selected="true"] { background: var(--surface); box-shadow: inset 3px 0 0 var(--accent); }
+  .sc { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 17px; color: var(--muted); padding-top: 1px; }
+  .sc.hi { color: var(--accent); }
+  .rt { font-weight: 600; font-size: 14px; line-height: 1.3; }
+  .rm { color: var(--muted); font-size: 12.5px; margin-top: 1px; }
+  .rchips { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+  .chip { font-family: "IBM Plex Mono", monospace; font-size: 11px; padding: 1px 7px; border-radius: 4px; border: 1px solid var(--border); color: var(--muted); }
+  .chip.ok { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+  .chip.warn { color: var(--amber); background: var(--amber-soft); border-color: transparent; }
+  .chip.bad { color: var(--red); background: var(--red-soft); border-color: transparent; }
+  .saveddot { position: absolute; right: 16px; top: 14px; color: var(--accent); font-size: 12px; }
+  .lfoot { padding: 9px 18px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--muted); display: flex; gap: 12px; flex-wrap: wrap; background: var(--bg); }
+  .hiddenrow { padding: 14px 18px; color: var(--muted); font-size: 12.5px; }
+  .emptyrow { padding: 40px 18px; color: var(--muted); text-align: center; }
+
+  /* Detail */
+  .detail { display: flex; flex-direction: column; min-height: 0; background: var(--surface); }
+  .dscroll { overflow: auto; flex: 1; padding: 22px 30px 40px; }
+  .dwrap { max-width: 760px; }
+  .back { display: none; margin-bottom: 12px; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; }
+  .crumb { color: var(--muted); font-size: 12.5px; margin-bottom: 8px; }
+  h2 { margin: 0; font-size: 24px; letter-spacing: -.02em; line-height: 1.2; }
+  .dsub { color: var(--muted); margin-top: 4px; }
+  .dchips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0; }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; align-items: center; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface); padding: 8px 13px; border-radius: 8px; cursor: pointer; font-weight: 500; }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-hover); }
+  .btn[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: var(--accent-soft); }
+  .cost { font-size: 12px; color: var(--muted); }
+  .sec { border-top: 1px solid var(--border); padding: 16px 0; }
+  .sec h3 { margin: 0 0 10px; font-family: "IBM Plex Mono", monospace; font-size: 11.5px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .fit { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
+  .fit .big { font-family: "IBM Plex Mono", monospace; font-size: 34px; font-weight: 600; color: var(--accent); line-height: 1; }
+  .fit .of { color: var(--muted); font-family: "IBM Plex Mono", monospace; }
+  ul.plain { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; }
+  ul.plain li { display: flex; gap: 8px; }
+  ul.plain li::before { content: "›"; color: var(--accent); font-family: "IBM Plex Mono", monospace; }
+  .req { display: grid; grid-template-columns: 78px minmax(0,1fr); gap: 10px; align-items: center; padding: 5px 0; }
+  .quote { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; background: var(--surface-2); border-left: 3px solid var(--accent); padding: 9px 12px; border-radius: 0 6px 6px 0; margin: 8px 0 0; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+  .k { color: var(--muted); font-size: 12px; margin-bottom: 2px; }
+  .v { font-weight: 500; }
+  .info { font-size: 12.5px; color: var(--muted); background: var(--surface-2); border-radius: 8px; padding: 10px 12px; margin-top: 4px; }
+
+  .toast { position: fixed; left: 50%; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 20px); background: var(--text); color: var(--bg); padding: 9px 15px; border-radius: 8px; font-size: 13px; opacity: 0; pointer-events: none; transition: all .2s; z-index: 60; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 1100px) { .app { grid-template-columns: 72px minmax(320px, 440px) minmax(0,1fr); } .side nav a span:not(.n):not(.ic), .brand span, .budget, .userrow .who { display: none; } .side nav a { justify-content: center; } .side nav .n { display: none; } .side nav a::before { content: attr(data-i); font-family: "IBM Plex Mono", monospace; font-size: 13px; } }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .side { display: none; }
+    .mbrand { display: flex; }
+    .detail { position: fixed; inset: 0; z-index: 40; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); transform: translateX(100%); transition: transform .2s; }
+    .app.detail-open .detail { transform: translateX(0); }
+    .dscroll { padding: 18px 18px 40px; }
+    .back { display: inline-block; }
+    .lfoot { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="side" aria-label="Sidebar">
+    <div class="brand">
+      <svg width="24" height="24" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" fill="#3ddc97"/><path d="M8 9h12M14 9v11" stroke="#0b1a12" stroke-width="2.4" stroke-linecap="round"/><path d="M8 21h12" stroke="#0b1a12" stroke-opacity=".55" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="2 3"/></svg>
+      <span>Tailorly</span><span class="tag">remote</span>
+    </div>
+    <nav aria-label="Main">
+      <a href="#" aria-current="page" data-i="S" onclick="return false"><span>Shortlist</span><span class="n">8</span></a>
+      <a href="#" data-i="T" onclick="return false"><span>Tracker</span><span class="n">12</span></a>
+      <a href="#" data-i="R" onclick="return false"><span>Résumé</span><span class="n">v2</span></a>
+      <a href="#" data-i="P" onclick="return false"><span>Preferences</span></a>
+      <a href="#" data-i="U" onclick="return false"><span>Usage</span></a>
+    </nav>
+    <div class="budget" aria-label="AI budget this month">
+      <div><div class="row"><span>Discovery</span><span class="mono">35%</span></div><div class="bar"><b style="width:35%"></b></div></div>
+      <div><div class="row"><span>Documents</span><span class="mono">81%</span></div><div class="bar"><b class="warn" style="width:81%"></b></div></div>
+    </div>
+    <div class="userrow">
+      <div class="avatar">RK</div>
+      <div class="who">Ravi K.<small>Asia/Kolkata</small></div>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle light and dark theme"><svg id="themeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"></svg></button>
+    </div>
+  </aside>
+
+  <section class="listcol" aria-label="Shortlist">
+    <div class="lhead">
+      <div class="mbrand"><svg width="22" height="22" viewBox="0 0 28 28" aria-hidden="true"><rect width="28" height="28" rx="6" fill="var(--accent)"/><path d="M8 9h12M14 9v11" stroke="var(--on-accent)" stroke-width="2.4" stroke-linecap="round"/></svg>Tailorly <span class="chip ok">remote</span></div>
+      <div class="ltitle"><h1>Today’s shortlist</h1><span class="meta mono" id="meta"></span></div>
+      <div class="searchbox"><input class="search" id="q" type="search" placeholder="Filter by title or company" aria-label="Filter jobs"><span class="kbd">/</span></div>
+      <div class="pills" id="pills" role="group" aria-label="Eligibility filter">
+        <button class="pill" type="button" data-v="all" aria-pressed="true">All</button>
+        <button class="pill" type="button" data-v="india_eligible" aria-pressed="false">India-eligible</button>
+        <button class="pill" type="button" data-v="worldwide" aria-pressed="false">Worldwide</button>
+        <button class="pill" type="button" data-v="unclear" aria-pressed="false">Unclear</button>
+        <label class="meta" style="margin-left:auto">min <select id="minScore" aria-label="Minimum match score"><option>6</option><option>7</option><option selected>8</option><option>9</option></select></label>
+      </div>
+    </div>
+    <div class="lscroll" id="lscroll"><div id="rows" role="listbox" aria-label="Jobs"></div><div id="hiddenNote"></div></div>
+    <div class="lfoot"><span><span class="kbd">j</span> <span class="kbd">k</span> move</span><span><span class="kbd">s</span> save</span><span><span class="kbd">t</span> tailor</span><span><span class="kbd">o</span> open source</span></div>
+  </section>
+
+  <section class="detail" aria-label="Job detail" id="detail"></section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  var root = document.documentElement, app = document.getElementById('app');
+  var SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+  var MOON = '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>';
+  function applyTheme(t) { root.setAttribute('data-theme', t); document.getElementById('themeIcon').innerHTML = t === 'dark' ? SUN : MOON; }
+  var sv = null; try { sv = localStorage.getItem('tailorly-theme-b'); } catch (e) {}
+  applyTheme(sv === 'dark' ? 'dark' : 'light');
+  document.getElementById('themeBtn').addEventListener('click', function () {
+    var n = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; applyTheme(n);
+    try { localStorage.setItem('tailorly-theme-b', n); } catch (e) {}
+  });
+
+  var jobs = [
+    { id: 1, t: 'Senior Backend Engineer (.NET)', c: 'Acme Cloud', loc: 'Remote · APAC', el: 'india_eligible', s: 9, conf: 'high', sal: '$60k–$90k', sk: 'stated', src: 'Himalayas', ago: '3h ago',
+      r: ['Strong .NET and PostgreSQL match', 'Seniority aligns with your 6 years', 'Payments-adjacent domain'], met: ['5+ years C# / .NET', 'PostgreSQL in production', 'REST API design'], part: ['Cloud deployment (Azure only)'], miss: ['Kubernetes'], ev: 'Open to candidates in APAC time zones.' },
+    { id: 2, t: 'Platform Engineer', c: 'Northwind Labs', loc: 'Remote · Worldwide', el: 'worldwide', s: 9, conf: 'high', sal: '', sk: 'not_listed', src: 'Greenhouse', ago: '5h ago',
+      r: ['Cloud and CI/CD experience matches', 'Salary not listed, shown because your score is 9'], met: ['CI/CD pipelines', 'Linux and networking basics'], part: ['Terraform (limited)'], miss: [], ev: 'We hire anywhere our team can legally employ or contract you.' },
+    { id: 3, t: 'Full-stack Engineer (React, Node)', c: 'Lumen Health', loc: 'Remote · India, UK, EU', el: 'india_eligible', s: 8, conf: 'medium', sal: '$45k–$70k', sk: 'stated', src: 'RemoteOK', ago: '8h ago',
+      r: ['React and API skills match', 'Missing: GraphQL'], met: ['React', 'Node.js APIs'], part: [], miss: ['GraphQL'], ev: 'Location: India, UK, EU.' },
+    { id: 4, t: 'Backend Engineer, Payments', c: 'Orbit Pay', loc: 'Remote · overlap with CET', el: 'unclear', s: 8, conf: 'medium', sal: '€55k–€75k', sk: 'stated', src: 'Himalayas', ago: '9h ago',
+      r: ['Payments domain experience matches', 'Check hours: CET overlap required'], met: ['Payments domain', 'C# services'], part: ['Event-driven systems'], miss: [], ev: 'Must overlap at least 5 hours with CET. Country not stated.' },
+    { id: 5, t: 'DevOps Engineer', c: 'Kiln Systems', loc: 'Remote · Worldwide', el: 'worldwide', s: 8, conf: 'high', sal: '', sk: 'not_listed', src: 'Greenhouse', ago: '1d ago',
+      r: ['Kubernetes and Terraform match', 'Salary not listed, shown because your score is 8'], met: ['Kubernetes', 'Terraform'], part: [], miss: ['On-call rota'], ev: 'Remote-first, work from anywhere.' },
+    { id: 6, t: 'Data Engineer', c: 'Meridian Analytics', loc: 'Remote · India', el: 'india_eligible', s: 8, conf: 'high', sal: '₹30L–₹45L', sk: 'stated', src: 'Himalayas', ago: '1d ago',
+      r: ['SQL and pipelines match', 'Missing: Spark'], met: ['SQL', 'ETL pipelines'], part: [], miss: ['Spark'], ev: 'Hiring in India only.' },
+    { id: 7, t: 'Mobile Engineer (Flutter)', c: 'Paperplane', loc: 'Remote · APAC', el: 'india_eligible', s: 7, conf: 'low', sal: '$40k–$60k', sk: 'stated', src: 'RemoteOK', ago: '1d ago',
+      r: ['Partial mobile experience'], met: ['REST integration'], part: ['Mobile UI'], miss: ['Flutter'], ev: 'APAC time zones.' },
+    { id: 8, t: 'QA Automation Engineer', c: 'Fieldnote', loc: 'Remote · Worldwide', el: 'worldwide', s: 6, conf: 'low', sal: '$35k–$50k', sk: 'stated', src: 'Greenhouse', ago: '2d ago',
+      r: ['Limited test-automation background'], met: [], part: ['Test design'], miss: ['Selenium', 'Playwright'], ev: 'Open worldwide.' }
+  ];
+  var st = { el: 'all', min: 8, q: '', sel: 1 }, saved = {};
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function visible() {
+    var q = st.q.toLowerCase();
+    var base = jobs.filter(function (j) { return (st.el === 'all' || j.el === st.el) && (!q || (j.t + ' ' + j.c).toLowerCase().indexOf(q) > -1); });
+    return { shown: base.filter(function (j) { return j.s >= st.min; }), hidden: base.filter(function (j) { return j.s < st.min; }).length };
+  }
+  function salChip(j) { return j.sk === 'not_listed' ? '<span class="chip">salary not listed</span>' : '<span class="chip">' + esc(j.sal) + '</span>'; }
+  function elChip(j) { return '<span class="chip ' + (j.el === 'unclear' ? 'warn' : 'ok') + '">' + j.el + (j.el === 'unclear' ? ' ⚠' : '') + '</span>'; }
+
+  function renderList() {
+    var v = visible();
+    if (v.shown.length && !v.shown.some(function (j) { return j.id === st.sel; })) st.sel = v.shown[0].id;
+    document.getElementById('rows').innerHTML = v.shown.length ? v.shown.map(function (j) {
+      return '<button class="row" role="option" data-id="' + j.id + '" aria-selected="' + (j.id === st.sel) + '">' +
+        '<div class="sc ' + (j.s >= 9 ? 'hi' : '') + '">' + j.s + '</div>' +
+        '<div><div class="rt">' + esc(j.t) + '</div><div class="rm">' + esc(j.c) + ' · ' + esc(j.loc) + '</div>' +
+        '<div class="rchips">' + elChip(j) + salChip(j) + '</div></div>' + (saved[j.id] ? '<span class="saveddot" title="Saved">● saved</span>' : '') + '</button>';
+    }).join('') : '<div class="emptyrow">No jobs match. Lower the minimum score or clear filters.</div>';
+    document.getElementById('hiddenNote').innerHTML = v.hidden ? '<div class="hiddenrow">' + v.hidden + ' more below your minimum score of ' + st.min + '.</div>' : '';
+    document.getElementById('meta').textContent = v.shown.length + ' matches';
+    renderDetail();
+  }
+
+  function renderDetail() {
+    var j = jobs.filter(function (x) { return x.id === st.sel; })[0], d = document.getElementById('detail');
+    if (!j || !visible().shown.some(function (x) { return x.id === j.id; })) { d.innerHTML = '<div class="dscroll"><div class="dwrap"><div class="emptyrow">Select a job to see details.</div></div></div>'; return; }
+    var reqs = j.met.map(function (x) { return ['met', x]; }).concat(j.part.map(function (x) { return ['partial', x]; })).concat(j.miss.map(function (x) { return ['missing', x]; }));
+    var cls = { met: 'ok', partial: 'warn', missing: 'bad' };
+    d.innerHTML = '<div class="dscroll"><div class="dwrap">' +
+      '<button class="back" id="back" type="button">‹ Back to list</button>' +
+      '<div class="crumb mono">shortlist / ' + esc(j.c.toLowerCase()) + ' / #' + j.id + '</div>' +
+      '<h2>' + esc(j.t) + '</h2><div class="dsub">' + esc(j.c) + ' · ' + esc(j.loc) + '</div>' +
+      '<div class="dchips">' + elChip(j) + salChip(j) + '<span class="chip">posted ' + esc(j.ago) + '</span></div>' +
+      '<div class="btnrow"><button class="btn primary" type="button" data-act="tailor">Tailor résumé <span class="kbd" style="color:inherit;border-color:currentColor;background:transparent;opacity:.8">t</span></button>' +
+      '<button class="btn" type="button" data-act="cover">Cover letter</button>' +
+      '<button class="btn" type="button" data-act="save" aria-pressed="' + (!!saved[j.id]) + '">' + (saved[j.id] ? 'Saved' : 'Save') + ' <span class="kbd">s</span></button>' +
+      '<a class="btn" href="#" data-act="open" onclick="return false">Apply on ' + esc(j.src) + ' ↗</a>' +
+      '<span class="cost">Analysis uses about 5k tokens of Documents</span></div>' +
+      '<div class="sec"><h3>Fit</h3><div class="fit"><span class="big">' + j.s + '</span><span class="of">/ 10</span><span class="chip ' + (j.conf === 'high' ? 'ok' : j.conf === 'medium' ? '' : 'warn') + '">confidence: ' + j.conf + '</span></div>' +
+      '<ul class="plain">' + j.r.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+      '<div class="sec"><h3>Requirements vs your résumé</h3>' + reqs.map(function (r) { return '<div class="req"><span class="chip ' + cls[r[0]] + '">' + r[0] + '</span><span>' + esc(r[1]) + '</span></div>'; }).join('') + '</div>' +
+      '<div class="sec"><h3>Eligibility</h3><div>' + elChip(j) + '</div><div class="quote">“' + esc(j.ev) + '”</div>' +
+      (j.el === 'unclear' ? '<div class="info">The listing does not state whether candidates in India are accepted. Check before applying.</div>' : '') + '</div>' +
+      '<div class="sec"><h3>Details</h3><div class="grid2">' +
+      '<div><div class="k">Compensation</div><div class="v">' + (j.sk === 'not_listed' ? 'Not listed' : esc(j.sal) + ' <span class="meta">(stated)</span>') + '</div></div>' +
+      '<div><div class="k">Source</div><div class="v"><a href="#" onclick="return false">Source: ' + esc(j.src) + ' ↗</a></div></div>' +
+      '<div><div class="k">Posted</div><div class="v">' + esc(j.ago) + '</div></div></div></div>' +
+      '</div></div>';
+    var b = document.getElementById('back'); if (b) b.addEventListener('click', function () { app.classList.remove('detail-open'); });
+  }
+
+  var toast = document.getElementById('toast'), tt;
+  function say(m) { toast.textContent = m; toast.classList.add('show'); clearTimeout(tt); tt = setTimeout(function () { toast.classList.remove('show'); }, 2000); }
+  function act(a) {
+    var j = jobs.filter(function (x) { return x.id === st.sel; })[0]; if (!j) return;
+    if (a === 'save') { saved[j.id] = !saved[j.id]; renderList(); say(saved[j.id] ? 'Saved to tracker' : 'Removed from tracker'); }
+    else if (a === 'tailor') say('Starts ATS analysis for ' + j.c + ' (prototype)');
+    else if (a === 'cover') say('Opens cover letter options (prototype)');
+    else if (a === 'open') say('Opens ' + j.src + ' apply link (prototype)');
+  }
+  document.getElementById('rows').addEventListener('click', function (e) {
+    var r = e.target.closest('.row'); if (!r) return; st.sel = +r.getAttribute('data-id'); renderList(); app.classList.add('detail-open');
+  });
+  document.getElementById('detail').addEventListener('click', function (e) { var a = e.target.closest('[data-act]'); if (a) act(a.getAttribute('data-act')); });
+  document.getElementById('pills').addEventListener('click', function (e) {
+    var b = e.target.closest('.pill'); if (!b) return;
+    Array.prototype.forEach.call(this.querySelectorAll('.pill'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    st.el = b.getAttribute('data-v'); renderList();
+  });
+  document.getElementById('minScore').addEventListener('change', function () { st.min = +this.value; renderList(); });
+  document.getElementById('q').addEventListener('input', function () { st.q = this.value; renderList(); });
+
+  document.addEventListener('keydown', function (e) {
+    var typing = /^(INPUT|SELECT|TEXTAREA)$/.test(document.activeElement.tagName);
+    if (e.key === '/' && !typing) { e.preventDefault(); document.getElementById('q').focus(); return; }
+    if (e.key === 'Escape') { if (typing) document.activeElement.blur(); app.classList.remove('detail-open'); return; }
+    if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
+    var list = visible().shown, i = list.findIndex(function (x) { return x.id === st.sel; });
+    if (e.key === 'j' && i < list.length - 1) { st.sel = list[i + 1].id; renderList(); scrollSel(); }
+    else if (e.key === 'k' && i > 0) { st.sel = list[i - 1].id; renderList(); scrollSel(); }
+    else if (e.key === 's') act('save');
+    else if (e.key === 't') act('tailor');
+    else if (e.key === 'o') act('open');
+  });
+  function scrollSel() { var el = document.querySelector('.row[aria-selected="true"]'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+  renderList();
+})();
+</script>
+</body>
+</html>
