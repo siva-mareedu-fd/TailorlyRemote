@@ -771,6 +771,12 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasColumnType("text")
                         .HasColumnName("notification_email");
 
+                    b.Property<int>("ResumeVersionsIssued")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("resume_versions_issued");
+
                     b.Property<string>("TimeZone")
                         .IsRequired()
                         .ValueGeneratedOnAdd()

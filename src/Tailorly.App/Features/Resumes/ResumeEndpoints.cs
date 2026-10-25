@@ -94,7 +94,12 @@ public static partial class ResumeEndpoints
 
         for (var attempt = 0; ; attempt++)
         {
-            resume.Version = (await db.Resumes.MaxAsync(r => (int?)r.Version, ct) ?? 0) + 1;
+            // Monotonic per-user counter: a deleted latest version's number is never handed out again (M3 scores key on it).
+            // ToListAsync, not SingleAsync: composing would wrap the UPDATE in a subquery, which PostgreSQL rejects.
+            resume.Version = (await db.Database.SqlQuery<int>($"""
+                UPDATE user_profiles SET resume_versions_issued = resume_versions_issued + 1
+                WHERE user_id = {userId} RETURNING resume_versions_issued AS "Value"
+                """).ToListAsync(ct)).Single();
             db.Resumes.Add(resume);
             try
             {

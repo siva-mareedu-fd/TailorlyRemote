@@ -15,6 +15,7 @@ internal sealed class UserProfileConfig : IEntityTypeConfiguration<UserProfile>
         e.Property(x => x.UserId).ValueGeneratedNever();
         e.Property(x => x.TimeZone).HasDefaultValue("Asia/Kolkata");
         e.Property(x => x.AccountStatus).HasDefaultValue(AccountStatus.Active);
+        e.Property(x => x.ResumeVersionsIssued).HasDefaultValue(0);
         e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
         e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
         e.HasOne<AppUser>().WithOne().HasForeignKey<UserProfile>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);

@@ -43,6 +43,9 @@ public sealed class ResumeTests(PostgresAppFixture fx)
         (await Db.ScalarAsync<long>(fx.ConnectionString, "SELECT count(*) FROM resume_profiles WHERE resume_id = @id", ("id", v2)))
             .Should().Be(0, "the profile cascades with the résumé");
         Directory.Exists(Path.Combine(F.StorageRoot, u.Id.ToString("D"), "resumes", v2.ToString("D"))).Should().BeFalse();
+
+        var v3 = await TestUsers.UploadParsedResumeAsync(F, u, fileName: "third.docx");
+        (await Get(u, v3)).GetProperty("version").GetInt32().Should().Be(3, "the deleted version 2's number is not reused");
     }
 
     [Fact]

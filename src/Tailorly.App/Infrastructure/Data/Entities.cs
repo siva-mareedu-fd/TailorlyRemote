@@ -39,6 +39,8 @@ public sealed class UserProfile : IUserOwned
     public string? ConsentVersion { get; set; }
     public DateTimeOffset? ConsentedAt { get; set; }
     public string? ConsentIpHash { get; set; }
+    /// <summary>Highest résumé version ever issued; versions are never reused after a delete (proposal 15).</summary>
+    public int ResumeVersionsIssued { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 }
