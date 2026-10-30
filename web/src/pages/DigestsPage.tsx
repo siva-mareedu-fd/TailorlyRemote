@@ -8,7 +8,7 @@ import { Alert, Skeleton, StatusPill } from '@/components/Feedback';
 import { Segmented } from '@/components/Controls';
 import { Button } from '@/components/ui/button';
 import { EligibilityChip } from '@/features/shortlist/EligibilityChip';
-import { localDate, salaryShort, stamp } from '@/lib/format';
+import { clock, localDate, salaryShort, stamp } from '@/lib/format';
 
 const kinds = [
   { value: 'all', label: 'All' },
@@ -111,7 +111,7 @@ function DigestRow({ digest: d, timeZone }: { digest: DigestSummary; timeZone: s
     <tr>
       <td>
         <Link to={`/digests/${d.id}`}>{localDate(d.localDate)}</Link>
-        {d.startedAt && <div className="help font-mono">{stamp(d.startedAt, timeZone)}</div>}
+        {d.startedAt && <div className="help font-mono">{clock(d.startedAt, timeZone)}</div>}
       </td>
       <td>{d.kind === 'scheduled' ? 'Daily digest' : 'Run now'}</td>
       <td>

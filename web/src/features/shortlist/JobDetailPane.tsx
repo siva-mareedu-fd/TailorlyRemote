@@ -1,4 +1,5 @@
 import { ExternalLink, TriangleAlert } from 'lucide-react';
+import { useState } from 'react';
 import { isApiError } from '@/api/client';
 import { useJob, type JobDetail, type JobSummary } from '@/api/queries';
 import { Skeleton } from '@/components/Feedback';
@@ -8,6 +9,9 @@ import { cn } from '@/lib/utils';
 import { EligibilityChip } from './EligibilityChip';
 
 const confidenceTone: Record<string, string> = { high: 'ok', medium: '', low: 'warn' };
+
+/** Skill rows shown before "Show all": real postings often list a dozen tools. */
+const SKILL_ROWS = 10;
 
 /**
  * The right-hand pane of the Shortlist (prototype `renderDetail`): fit and reasons, skills against the résumé,
@@ -24,6 +28,7 @@ export function JobDetailPane({
   onBack: () => void;
 }) {
   const detail = useJob(id);
+  const [allSkillsFor, setAllSkillsFor] = useState<string | null>(null);
   const job: (JobSummary & Partial<JobDetail>) | null = detail.data ?? fallback;
 
   if (!id || (!job && !detail.isPending))
@@ -47,11 +52,17 @@ export function JobDetailPane({
   const applyLabel = job.source.attributionText ? job.source.name : host(job.applyUrl);
   const matched = score?.matchedSkills ?? [];
   const missing = score?.missingSkills ?? [];
-  const required = (job.skillsRequired ?? []).filter(
+  const listed = (job.skillsRequired ?? []).filter(
     (s) =>
       !matched.some((m) => m.toLowerCase() === s.toLowerCase()) &&
       !missing.some((m) => m.toLowerCase() === s.toLowerCase()),
   );
+  const skillRows: [string, string][] = [
+    ...matched.map((s): [string, string] => ['met', s]),
+    ...missing.map((s): [string, string] => ['missing', s]),
+    ...listed.map((s): [string, string] => ['required', s]),
+  ];
+  const allSkills = allSkillsFor === job.id;
 
   return (
     <div className="dscroll">
@@ -118,27 +129,20 @@ export function JobDetailPane({
           )}
         </div>
 
-        {(matched.length > 0 || missing.length > 0 || required.length > 0) && (
+        {skillRows.length > 0 && (
           <div className="sec">
             <h3 className="label-k">Skills vs your résumé</h3>
-            {matched.map((s) => (
-              <div className="req" key={`m-${s}`}>
-                <span className="chip ok">met</span>
-                <span>{s}</span>
+            {(allSkills ? skillRows : skillRows.slice(0, SKILL_ROWS)).map(([kind, skill]) => (
+              <div className="req" key={`${kind}-${skill}`}>
+                <span className={cn('chip', kind === 'met' ? 'ok' : kind === 'missing' ? 'bad' : '')}>{kind}</span>
+                <span>{skill}</span>
               </div>
             ))}
-            {missing.map((s) => (
-              <div className="req" key={`x-${s}`}>
-                <span className="chip bad">missing</span>
-                <span>{s}</span>
-              </div>
-            ))}
-            {required.map((s) => (
-              <div className="req" key={`r-${s}`}>
-                <span className="chip">required</span>
-                <span>{s}</span>
-              </div>
-            ))}
+            {skillRows.length > SKILL_ROWS && !allSkills && (
+              <Button variant="ghost" size="sm" className="mt-1" onClick={() => setAllSkillsFor(job.id)}>
+                Show all {skillRows.length} skills
+              </Button>
+            )}
           </div>
         )}
 

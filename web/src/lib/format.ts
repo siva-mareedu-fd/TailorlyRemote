@@ -70,6 +70,11 @@ export function stamp(iso: string, timeZone: string): string {
   return `${get('weekday')} ${get('day')} ${get('month')} · ${get('hour')}:${get('minute')} ${get('timeZoneName')}`;
 }
 
+/** "23:55 IST" in the user's time zone. */
+export function clock(iso: string, timeZone: string): string {
+  return stamp(iso, timeZone).split(' · ')[1] ?? '';
+}
+
 /** "Fri 30 Oct 2026" for a local date (YYYY-MM-DD) as stored on a digest. */
 export function localDate(date: string): string {
   const [y, m, d] = date.split('-').map(Number);
