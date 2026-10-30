@@ -1,0 +1,458 @@
+{
+  "schemaVersion": 1,
+  "candidates": {
+    "dotnet-6y": {
+      "profile": {
+        "contact": {
+          "name": null,
+          "email": null,
+          "phone": null,
+          "location": "Hyderabad, India",
+          "links": []
+        },
+        "summary": "Backend engineer with 6 years building .NET and PostgreSQL services for payments teams.",
+        "skills": [
+          {
+            "name": "C#",
+            "category": "language"
+          },
+          {
+            "name": ".NET",
+            "category": "framework"
+          },
+          {
+            "name": "ASP.NET Core",
+            "category": "framework"
+          },
+          {
+            "name": "PostgreSQL",
+            "category": "database"
+          },
+          {
+            "name": "REST APIs",
+            "category": "other"
+          },
+          {
+            "name": "Docker",
+            "category": "devops"
+          },
+          {
+            "name": "Azure",
+            "category": "cloud"
+          },
+          {
+            "name": "RabbitMQ",
+            "category": "tool"
+          }
+        ],
+        "experience": [
+          {
+            "company": "Orbit Systems",
+            "title": "Senior Software Engineer",
+            "start": "2021-01",
+            "end": null,
+            "bullets": [
+              "Built REST APIs for the payments team."
+            ]
+          },
+          {
+            "company": "Delta Soft",
+            "title": "Software Engineer",
+            "start": "2018-07",
+            "end": "2020-12",
+            "bullets": [
+              "Maintained billing services."
+            ]
+          }
+        ],
+        "education": [],
+        "certifications": [],
+        "totalYears": 6,
+        "domains": [
+          "payments",
+          "fintech"
+        ]
+      },
+      "confirmedSkills": [],
+      "preferences": {
+        "targetRoles": [
+          "Backend engineer",
+          ".NET developer"
+        ],
+        "experienceLevel": "senior",
+        "timezoneOverlap": "Up to 4h overlap with US East"
+      }
+    },
+    "react-3y": {
+      "profile": {
+        "contact": {
+          "name": null,
+          "email": null,
+          "phone": null,
+          "location": "Pune, India",
+          "links": []
+        },
+        "summary": "Frontend engineer with 3 years of React and TypeScript.",
+        "skills": [
+          {
+            "name": "React",
+            "category": "framework"
+          },
+          {
+            "name": "TypeScript",
+            "category": "language"
+          },
+          {
+            "name": "JavaScript",
+            "category": "language"
+          },
+          {
+            "name": "CSS",
+            "category": "language"
+          },
+          {
+            "name": "Jest",
+            "category": "tool"
+          },
+          {
+            "name": "Next.js",
+            "category": "framework"
+          }
+        ],
+        "experience": [
+          {
+            "company": "Pixel Works",
+            "title": "Frontend Engineer",
+            "start": "2022-06",
+            "end": null,
+            "bullets": [
+              "Built the checkout UI in React."
+            ]
+          }
+        ],
+        "education": [],
+        "certifications": [],
+        "totalYears": 3,
+        "domains": [
+          "e-commerce"
+        ]
+      },
+      "confirmedSkills": [],
+      "preferences": {
+        "targetRoles": [
+          "Frontend engineer"
+        ],
+        "experienceLevel": "mid",
+        "timezoneOverlap": "Any"
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "dotnet-senior-backend",
+      "candidateId": "dotnet-6y",
+      "label": 9,
+      "job": {
+        "title": "Senior Backend Engineer (.NET)",
+        "company": "Acme Cloud",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "C#",
+            ".NET",
+            "PostgreSQL",
+            "REST APIs"
+          ],
+          "skills_preferred": [
+            "Kubernetes"
+          ],
+          "skill_aliases": [],
+          "seniority": "senior",
+          "years_experience_min": 5,
+          "years_experience_max": null,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Senior backend role building .NET services on PostgreSQL for payments."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    },
+    {
+      "id": "dotnet-java-backend",
+      "candidateId": "dotnet-6y",
+      "label": 5,
+      "job": {
+        "title": "Backend Engineer (Java)",
+        "company": "Brightwave",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "Java",
+            "Spring Boot",
+            "PostgreSQL",
+            "Kafka"
+          ],
+          "skills_preferred": [],
+          "skill_aliases": [],
+          "seniority": "senior",
+          "years_experience_min": 5,
+          "years_experience_max": null,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Java and Spring backend services for logistics."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    },
+    {
+      "id": "dotnet-react-frontend",
+      "candidateId": "dotnet-6y",
+      "label": 2,
+      "job": {
+        "title": "Frontend Engineer",
+        "company": "Pixel Co",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "React",
+            "TypeScript",
+            "CSS"
+          ],
+          "skills_preferred": [
+            "Next.js"
+          ],
+          "skill_aliases": [],
+          "seniority": "mid",
+          "years_experience_min": 3,
+          "years_experience_max": null,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Frontend engineer building React user interfaces."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    },
+    {
+      "id": "dotnet-k8s-staff",
+      "candidateId": "dotnet-6y",
+      "label": 4,
+      "job": {
+        "title": "Staff Platform Engineer",
+        "company": "Kiln Systems",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "Kubernetes",
+            "Terraform",
+            "Go",
+            "AWS"
+          ],
+          "skills_preferred": [
+            "C#"
+          ],
+          "skill_aliases": [],
+          "seniority": "staff",
+          "years_experience_min": 8,
+          "years_experience_max": null,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Staff engineer owning the Kubernetes platform and infrastructure as code."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    },
+    {
+      "id": "dotnet-junior",
+      "candidateId": "dotnet-6y",
+      "label": 5,
+      "job": {
+        "title": ".NET Developer",
+        "company": "Quill",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "C#",
+            ".NET",
+            "SQL Server"
+          ],
+          "skills_preferred": [],
+          "skill_aliases": [],
+          "seniority": "junior",
+          "years_experience_min": 1,
+          "years_experience_max": 2,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Junior .NET developer maintaining internal tools."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    },
+    {
+      "id": "dotnet-payments-limited",
+      "candidateId": "dotnet-6y",
+      "label": 8,
+      "notes": "Limited description: confidence should be lower.",
+      "job": {
+        "title": "Backend Engineer, Payments",
+        "company": "Orbit Pay",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "limited",
+        "enrichment": {
+          "skills_required": [
+            "C#",
+            "Payments"
+          ],
+          "skills_preferred": [],
+          "skill_aliases": [],
+          "seniority": null,
+          "years_experience_min": null,
+          "years_experience_max": null,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Backend engineer for a payments product."
+        }
+      },
+      "labelSource": "starter (unreviewed)"
+    },
+    {
+      "id": "react-frontend",
+      "candidateId": "react-3y",
+      "label": 9,
+      "job": {
+        "title": "Frontend Engineer (React)",
+        "company": "Lumen Health",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "React",
+            "TypeScript",
+            "Jest"
+          ],
+          "skills_preferred": [
+            "Next.js"
+          ],
+          "skill_aliases": [],
+          "seniority": "mid",
+          "years_experience_min": 2,
+          "years_experience_max": 5,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Frontend engineer building the patient portal in React and TypeScript."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    },
+    {
+      "id": "react-backend",
+      "candidateId": "react-3y",
+      "label": 2,
+      "job": {
+        "title": "Senior Backend Engineer (.NET)",
+        "company": "Acme Cloud",
+        "locationText": "Remote",
+        "workMode": "remote",
+        "employmentType": "full_time",
+        "eligibility": "worldwide",
+        "descriptionCompleteness": "full",
+        "enrichment": {
+          "skills_required": [
+            "C#",
+            ".NET",
+            "PostgreSQL"
+          ],
+          "skills_preferred": [],
+          "skill_aliases": [],
+          "seniority": "senior",
+          "years_experience_min": 5,
+          "years_experience_max": null,
+          "employment_type": "full_time",
+          "work_mode": "remote",
+          "eligibility": "worldwide",
+          "eligibility_evidence": null,
+          "restricted_regions": [],
+          "timezone_requirement": null,
+          "hiring_model_hint": "employee",
+          "salary_extracted": null,
+          "summary": "Senior backend role building .NET services."
+        }
+      },
+      "labelSource": "starter (unreviewed)",
+      "notes": null
+    }
+  ]
+}

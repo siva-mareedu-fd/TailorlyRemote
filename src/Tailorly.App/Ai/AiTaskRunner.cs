@@ -149,7 +149,8 @@ public sealed partial class AiTaskRunner(
         return sb.ToString().TrimEnd();
     }
 
-    private static (T? Value, string? Json, List<string> Errors) Validate<T>(AiTask<T> task, PromptTemplate prompt, ModelResponse r)
+    /// <summary>Schema then domain validation of one reply (also used by Tailorly.Eval, so it measures the same checks).</summary>
+    internal static (T? Value, string? Json, List<string> Errors) Validate<T>(AiTask<T> task, PromptTemplate prompt, ModelResponse r)
     {
         if (r.StopReason == "refusal") return (default, null, ["The request was declined."]);
         if (r.StopReason == "max_tokens") return (default, null, ["The reply was cut off before the JSON was complete; return a shorter reply."]);
@@ -186,7 +187,7 @@ public sealed partial class AiTaskRunner(
         return domain.Count > 0 ? (default, null, domain.ToList()) : (value, json, []);
     }
 
-    private static string RepairInstruction(IReadOnlyList<string> errors)
+    internal static string RepairInstruction(IReadOnlyList<string> errors)
     {
         var sb = new StringBuilder("Your previous reply did not pass validation:\n");
         foreach (var e in errors.Take(MaxErrorsInRepair)) sb.Append("- ").AppendLine(e);

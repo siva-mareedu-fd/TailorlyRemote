@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tailorly.Eval fit-score dataset v1",
+  "description": "(candidate, job) pairs labelled with a 1–10 fit (PRD §14.3). Candidates use the app's parsed-profile shape; jobs carry the enrichment the app would send to job_fit_score (never the raw description).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "candidates", "items"],
+  "definitions": {
+    "stringList": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+    "nullableString": { "type": ["string", "null"] }
+  },
+  "properties": {
+    "schemaVersion": { "type": "integer", "enum": [1] },
+    "candidates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["profile", "confirmedSkills", "preferences"],
+        "properties": {
+          "profile": {
+            "type": "object",
+            "required": ["contact", "summary", "skills", "experience", "education", "certifications", "totalYears", "domains"],
+            "properties": {
+              "skills": { "type": "array", "items": { "type": "object", "required": ["name", "category"] } },
+              "experience": { "type": "array", "items": { "type": "object", "required": ["company", "title", "start", "end", "bullets"] } },
+              "totalYears": { "type": ["number", "null"] },
+              "domains": { "$ref": "#/definitions/stringList" }
+            }
+          },
+          "confirmedSkills": { "$ref": "#/definitions/stringList" },
+          "preferences": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["targetRoles", "experienceLevel", "timezoneOverlap"],
+            "properties": {
+              "targetRoles": { "$ref": "#/definitions/stringList" },
+              "experienceLevel": { "$ref": "#/definitions/nullableString" },
+              "timezoneOverlap": { "$ref": "#/definitions/nullableString" }
+            }
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "candidateId", "job", "label", "labelSource", "notes"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]{3,60}$" },
+          "candidateId": { "type": "string", "minLength": 1 },
+          "job": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["title", "company", "locationText", "workMode", "employmentType", "eligibility", "descriptionCompleteness", "enrichment"],
+            "properties": {
+              "title": { "type": "string", "minLength": 1 },
+              "company": { "type": "string", "minLength": 1 },
+              "locationText": { "$ref": "#/definitions/nullableString" },
+              "workMode": { "enum": ["remote", "hybrid", "onsite", null] },
+              "employmentType": { "enum": ["full_time", "contract", "part_time", "internship", null] },
+              "eligibility": { "enum": ["worldwide", "india_eligible", "restricted", "unclear"] },
+              "descriptionCompleteness": { "enum": ["full", "limited"] },
+              "enrichment": {
+                "description": "The job_enrichment reply shape (src/Tailorly.App/Ai/Schemas/job_enrichment.schema.json).",
+                "type": "object",
+                "required": ["skills_required", "skills_preferred", "skill_aliases", "seniority", "years_experience_min", "years_experience_max",
+                  "employment_type", "work_mode", "eligibility", "eligibility_evidence", "restricted_regions", "timezone_requirement",
+                  "hiring_model_hint", "salary_extracted", "summary"]
+              }
+            }
+          },
+          "label": { "type": "integer", "minimum": 1, "maximum": 10 },
+          "labelSource": { "type": "string", "minLength": 1 },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

@@ -21,6 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Tailorly.Tests" />
+    <InternalsVisibleTo Include="Tailorly.Eval" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Anthropic" />

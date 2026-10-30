@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Tailorly.Eval eligibility dataset v1",
+  "description": "Job postings labelled with whether a candidate who lives in India can be hired (PRD §14.3). Fields mirror what the app sends to job_enrichment.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "items"],
+  "properties": {
+    "schemaVersion": { "type": "integer", "enum": [1] },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title", "company", "locationText", "workMode", "employmentType", "countries", "description", "label", "labelSource", "notes"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9-]{3,60}$" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "company": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "locationText": { "type": ["string", "null"], "maxLength": 200 },
+          "workMode": { "enum": ["remote", "hybrid", "onsite", null] },
+          "employmentType": { "enum": ["full_time", "contract", "part_time", "internship", null] },
+          "countries": {
+            "description": "Structured country restrictions as a source like Himalayas supplies them: null = none, [] = worldwide.",
+            "type": ["array", "null"],
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "description": { "type": ["string", "null"], "maxLength": 30000 },
+          "label": { "enum": ["worldwide", "india_eligible", "restricted", "unclear"] },
+          "labelSource": { "type": "string", "minLength": 1, "description": "Who labelled it, e.g. \"owner 2026-11-02\" or \"starter (unreviewed)\"." },
+          "notes": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

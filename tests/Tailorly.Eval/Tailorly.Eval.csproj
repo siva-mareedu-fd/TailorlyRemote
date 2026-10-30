@@ -5,5 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Tailorly.Core\Tailorly.Core.csproj" />
+    <!-- The same prompts, schemas, input builders, validators and provider as production (SDD §9.4). -->
+    <ProjectReference Include="..\..\src\Tailorly.App\Tailorly.App.csproj" />
   </ItemGroup>
 </Project>

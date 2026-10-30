@@ -1,0 +1,244 @@
+{
+  "runAt": "2026-10-30T17:57:55.7132683+00:00",
+  "promptVersions": {
+    "job_enrichment": "job_enrichment/2026-10-30.1",
+    "job_fit_score": "job_fit_score/2026-10-30.2"
+  },
+  "eligibilityItems": 16,
+  "fitItems": 8,
+  "runs": [
+    {
+      "model": "rules (no model)",
+      "eligibility": {
+        "items": 16,
+        "answered": 16,
+        "accuracy": 1,
+        "unclearTolerantAccuracy": 1,
+        "criticalErrors": 0,
+        "confusion": {
+          "worldwide": {
+            "worldwide": 3,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "india_eligible": {
+            "worldwide": 0,
+            "india_eligible": 5,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "restricted": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 6,
+            "unclear": 0
+          },
+          "unclear": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 2
+          }
+        },
+        "misses": []
+      },
+      "eligibilityModelOnly": null,
+      "enrichmentCalls": null,
+      "fit": null,
+      "fitCalls": null
+    },
+    {
+      "model": "claude-haiku-5-5",
+      "eligibility": {
+        "items": 16,
+        "answered": 16,
+        "accuracy": 1,
+        "unclearTolerantAccuracy": 1,
+        "criticalErrors": 0,
+        "confusion": {
+          "worldwide": {
+            "worldwide": 3,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "india_eligible": {
+            "worldwide": 0,
+            "india_eligible": 5,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "restricted": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 6,
+            "unclear": 0
+          },
+          "unclear": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 2
+          }
+        },
+        "misses": []
+      },
+      "eligibilityModelOnly": {
+        "items": 16,
+        "answered": 16,
+        "accuracy": 1,
+        "unclearTolerantAccuracy": 1,
+        "criticalErrors": 0,
+        "confusion": {
+          "worldwide": {
+            "worldwide": 3,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "india_eligible": {
+            "worldwide": 0,
+            "india_eligible": 5,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "restricted": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 6,
+            "unclear": 0
+          },
+          "unclear": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 2
+          }
+        },
+        "misses": []
+      },
+      "enrichmentCalls": {
+        "calls": 16,
+        "jsonValidFirstTry": 1,
+        "jsonValidAfterRepair": 1,
+        "countedTokens": 11156,
+        "medianLatencyMs": 1625,
+        "errors": []
+      },
+      "fit": {
+        "items": 8,
+        "answered": 8,
+        "spearman": 0.994,
+        "meanAbsoluteError": 0.25,
+        "withinOne": 1,
+        "misses": []
+      },
+      "fitCalls": {
+        "calls": 8,
+        "jsonValidFirstTry": 1,
+        "jsonValidAfterRepair": 1,
+        "countedTokens": 3447,
+        "medianLatencyMs": 1562,
+        "errors": []
+      }
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "eligibility": {
+        "items": 16,
+        "answered": 16,
+        "accuracy": 1,
+        "unclearTolerantAccuracy": 1,
+        "criticalErrors": 0,
+        "confusion": {
+          "worldwide": {
+            "worldwide": 3,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "india_eligible": {
+            "worldwide": 0,
+            "india_eligible": 5,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "restricted": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 6,
+            "unclear": 0
+          },
+          "unclear": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 2
+          }
+        },
+        "misses": []
+      },
+      "eligibilityModelOnly": {
+        "items": 16,
+        "answered": 16,
+        "accuracy": 1,
+        "unclearTolerantAccuracy": 1,
+        "criticalErrors": 0,
+        "confusion": {
+          "worldwide": {
+            "worldwide": 3,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "india_eligible": {
+            "worldwide": 0,
+            "india_eligible": 5,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "restricted": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 6,
+            "unclear": 0
+          },
+          "unclear": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 2
+          }
+        },
+        "misses": []
+      },
+      "enrichmentCalls": {
+        "calls": 16,
+        "jsonValidFirstTry": 1,
+        "jsonValidAfterRepair": 1,
+        "countedTokens": 11245,
+        "medianLatencyMs": 2310,
+        "errors": []
+      },
+      "fit": {
+        "items": 8,
+        "answered": 8,
+        "spearman": 0.969,
+        "meanAbsoluteError": 0.5,
+        "withinOne": 0.875,
+        "misses": [
+          "dotnet-k8s-staff: 4 \u2192 2"
+        ]
+      },
+      "fitCalls": {
+        "calls": 8,
+        "jsonValidFirstTry": 1,
+        "jsonValidAfterRepair": 1,
+        "countedTokens": 10180,
+        "medianLatencyMs": 1875,
+        "errors": []
+      }
+    }
+  ]
+}
