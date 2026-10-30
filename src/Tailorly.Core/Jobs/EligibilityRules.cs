@@ -12,8 +12,29 @@ public static class Eligibility
     public static bool OpenToIndia(string eligibility) => eligibility is Worldwide or IndiaEligible;
 }
 
+/// <summary>What decided an <see cref="EligibilityHint"/>.</summary>
+public static class EligibilityBasis
+{
+    /// <summary>The source's structured location field (Himalayas country list). Authoritative.</summary>
+    public const string Structured = "structured";
+
+    /// <summary>A phrase or location rule. A <c>restricted</c> result is a hard rule that beats the model (SDD §8.6).</summary>
+    public const string Phrase = "phrase";
+
+    /// <summary>Nothing matched (<c>unclear</c>).</summary>
+    public const string None = "none";
+}
+
 /// <param name="Evidence">A short quote (≤ 120 characters) or a description of the structured field that decided it.</param>
-public sealed record EligibilityHint(string Eligibility, string? Evidence);
+/// <param name="Basis">One of <see cref="EligibilityBasis"/>.</param>
+public sealed record EligibilityHint(string Eligibility, string? Evidence, string Basis = EligibilityBasis.Phrase)
+{
+    /// <summary>
+    /// True when this hint must win over the model (SDD §8.6): a structured source field, or an explicit restriction
+    /// that excludes India ("US only", "must reside in the EU", a non-Indian country as the location).
+    /// </summary>
+    public bool IsHard => Basis == EligibilityBasis.Structured || Eligibility == Jobs.Eligibility.Restricted;
+}
 
 /// <summary>
 /// Deterministic eligibility pre-rules (PRD §7.4, SDD §8.6), run before any model call:
@@ -36,10 +57,11 @@ public static partial class EligibilityRules
     {
         if (countryRestrictions is not null)
         {
-            if (countryRestrictions.Count == 0) return new(Eligibility.Worldwide, "Open worldwide (source location field)");
+            if (countryRestrictions.Count == 0)
+                return new(Eligibility.Worldwide, "Open worldwide (source location field)", EligibilityBasis.Structured);
             return countryRestrictions.Any(c => IndiaCountry().IsMatch(c))
-                ? new(Eligibility.IndiaEligible, Quote("Open to: " + string.Join(", ", countryRestrictions)))
-                : new(Eligibility.Restricted, Quote("Limited to: " + string.Join(", ", countryRestrictions)));
+                ? new(Eligibility.IndiaEligible, Quote("Open to: " + string.Join(", ", countryRestrictions)), EligibilityBasis.Structured)
+                : new(Eligibility.Restricted, Quote("Limited to: " + string.Join(", ", countryRestrictions)), EligibilityBasis.Structured);
         }
 
         var location = locationText ?? "";
@@ -55,8 +77,14 @@ public static partial class EligibilityRules
         if (Worldwide().Match(head) is { Success: true } w1) return new(Eligibility.Worldwide, Around(head, w1));
         if (Worldwide().Match(description) is { Success: true } w2) return new(Eligibility.Worldwide, Around(description, w2));
         if (IndiaPlace().Match(description) is { Success: true } i2) return new(Eligibility.IndiaEligible, Around(description, i2));
-        return new(Eligibility.Unclear, null);
+        return new(Eligibility.Unclear, null, EligibilityBasis.None);
     }
+
+    /// <summary>True if the text names a place in India (a city, "India"); used for India-located jobs (scope india_only).</summary>
+    public static bool NamesIndia(string? text) => !string.IsNullOrWhiteSpace(text) && IndiaCity().IsMatch(text);
+
+    /// <summary>True if a structured country list contains India.</summary>
+    public static bool ListsIndia(IReadOnlyList<string>? countries) => countries is not null && countries.Any(c => IndiaCountry().IsMatch(c));
 
     private static string Around(string text, Match m)
     {
@@ -77,6 +105,11 @@ public static partial class EligibilityRules
     [GeneratedRegex(@"\b(india|bengaluru|bangalore|hyderabad|pune|mumbai|new delhi|delhi|ncr|gurgaon|gurugram|noida|chennai|kolkata|ahmedabad|kochi|jaipur|coimbatore|apac|asia[- ]pacific|asia)\b",
         RegexOptions.IgnoreCase, 1000)]
     private static partial Regex IndiaPlace();
+
+    /// <summary>India itself or an Indian city (not APAC/Asia, which says "open to the region", not "located in India").</summary>
+    [GeneratedRegex(@"\b(india|bengaluru|bangalore|hyderabad|pune|mumbai|new delhi|delhi|ncr|gurgaon|gurugram|noida|chennai|kolkata|ahmedabad|kochi|jaipur|coimbatore|trivandrum|thiruvananthapuram|indore|chandigarh|mysore|mysuru|vadodara|nagpur|bhubaneswar)\b",
+        RegexOptions.IgnoreCase, 1000)]
+    private static partial Regex IndiaCity();
 
     private const string Regions =
         @"(the )?(us|u\.s\.?|usa|united states( of america)?|uk|u\.k\.|united kingdom|canada|eu|e\.u\.|european union|europe|eea|emea|latam|latin america|north america|americas|australia|germany|france|spain|brazil|mexico)";
