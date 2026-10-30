@@ -31,7 +31,8 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
     [
         "GET /api/v1/meta", "GET /api/v1/auth/csrf", "POST /api/v1/auth/register", "POST /api/v1/auth/verify-email",
         "POST /api/v1/auth/login", "POST /api/v1/auth/forgot-password", "POST /api/v1/auth/reset-password",
-        "POST /api/v1/account/confirm-deletion",
+        "POST /api/v1/account/confirm-deletion", "GET /api/v1/email/unsubscribe", "POST /api/v1/email/unsubscribe",
+        "POST /api/v1/me/notification-email/verify",
     ];
 
     /// <summary>Routes without an id that only act on the caller's own data (not called blindly: they create or send mail).</summary>
@@ -47,13 +48,14 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ["DELETE /api/v1/account"] = "mails the caller a deletion link",
         ["PUT /api/v1/preferences"] = "replaces the caller's preferences",
         ["POST /api/v1/watched-companies"] = "adds a board to the caller's watch list",
+        ["POST /api/v1/runs"] = "starts a search for the caller",
     };
 
     /// <summary>Admin routes: a signed-in user without the Admin role gets 403 on every one, whatever the id.</summary>
     private const string AdminPrefix = "/api/v1/admin/";
 
     private sealed record Owner(TestUser User, Guid ResumeId, Guid SkillId, string FileName, string Skill, Guid WatchedLinkId,
-        string Role, string BoardToken);
+        string Role, string BoardToken, Guid JobId, Guid DigestId);
 
     /// <summary>How to find user A's resource for a route with an id, by route prefix (longest prefix wins).</summary>
     private static readonly (string Prefix, Func<Owner, Guid> Id)[] Resolvers =
@@ -61,6 +63,8 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ("/api/v1/resumes/{", o => o.ResumeId),
         ("/api/v1/me/confirmed-skills/{", o => o.SkillId),
         ("/api/v1/watched-companies/{", o => o.WatchedLinkId),
+        ("/api/v1/jobs/{", o => o.JobId),
+        ("/api/v1/digests/{", o => o.DigestId),
     ];
 
     /// <param name="Multipart">The endpoint only accepts multipart/form-data (otherwise routing answers 415 first).</param>
@@ -122,7 +126,8 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         var markers = new[]
         {
             owner.User.Id.ToString(), owner.User.Email, owner.ResumeId.ToString(), owner.SkillId.ToString(), owner.FileName,
-            owner.Skill, "Isolation Owner A", owner.Role, owner.BoardToken, owner.WatchedLinkId.ToString(),
+            owner.Skill, "Isolation Owner A", owner.Role, owner.BoardToken, owner.WatchedLinkId.ToString(), owner.JobId.ToString(),
+            owner.DigestId.ToString(),
         };
 
         var failures = new List<string>();
@@ -286,7 +291,12 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         watched.StatusCode.Should().Be(HttpStatusCode.Created, await ApiClient.TextAsync(watched));
         var linkId = (await ApiClient.JsonAsync(watched)).GetProperty("id").GetGuid();
         F.Jobs.Clear(); // the eager board poll is not part of this test
-        return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token);
+
+        // A job scored for A (in A's digest): only A may see it, although the jobs table is shared.
+        var jobId = await MatchingTestData.InsertJobAsync(F, $"{role} Engineer");
+        var digest = await MatchingTestData.RunNowAsync(F, a);
+        MatchingTestData.Items(digest).Should().Contain(i => i.GetProperty("job").GetProperty("id").GetGuid() == jobId);
+        return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token, jobId, digest.GetProperty("id").GetGuid());
     }
 
     [GeneratedRegex(@":[a-z]+(?=\})")]

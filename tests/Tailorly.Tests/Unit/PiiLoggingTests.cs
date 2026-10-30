@@ -45,6 +45,9 @@ public sealed class PiiLoggingTests
     [InlineData("SizeBytes", false)]
     [InlineData("NotificationEmail", true)]
     [InlineData("EmailConfirmed", false)]
+    [InlineData("QueryString", true)]
+    [InlineData("UnsubscribeToken", true)]
+    [InlineData("CountedTokens", false)]
     public void Blocklist_matches_the_documented_names(string name, bool blocked) =>
         PiiFields.IsBlocked(name).Should().Be(blocked);
 

@@ -18,6 +18,9 @@ public enum AccountEmailKind
     AlreadyRegistered,
     ResetPassword,
     ConfirmDeletion,
+
+    /// <summary>Sent to the new notification email (not the sign-in email) to confirm it before digests go there.</summary>
+    VerifyNotificationEmail,
 }
 
 /// <summary>
@@ -31,6 +34,7 @@ public sealed partial class AccountEmailJob(
     IEmailSender sender,
     AppLinks links,
     AccountDeletionTokens deletionTokens,
+    Digests.NotificationEmailTokens notificationTokens,
     ILogger<AccountEmailJob> logger)
 {
     [AutomaticRetry(Attempts = 3, DelaysInSeconds = [60, 300, 1800])]
@@ -44,8 +48,19 @@ public sealed partial class AccountEmailJob(
         }
 
         string? name;
+        string? notificationEmail;
         using (CurrentUser.ActAs(userId))
-            name = await db.UserProfiles.Where(p => p.UserId == userId).Select(p => p.DisplayName).FirstOrDefaultAsync(ct);
+        {
+            var p = await db.UserProfiles.Where(x => x.UserId == userId)
+                .Select(x => new { x.DisplayName, x.NotificationEmail, x.NotificationEmailVerifiedAt }).FirstOrDefaultAsync(ct);
+            name = p?.DisplayName;
+            notificationEmail = p is { NotificationEmailVerifiedAt: null } ? p.NotificationEmail : null;
+        }
+        if (kind == AccountEmailKind.VerifyNotificationEmail && notificationEmail is null)
+        {
+            LogSkipped(logger, kind, userId); // already confirmed, or the profile is gone
+            return;
+        }
 
         var message = kind switch
         {
@@ -66,6 +81,11 @@ public sealed partial class AccountEmailJob(
                 ["userId"] = userId.ToString(),
                 ["token"] = deletionTokens.Create(userId, await users.GetSecurityStampAsync(user)),
             })),
+            AccountEmailKind.VerifyNotificationEmail => EmailTemplates.VerifyNotificationEmail(notificationEmail!, name,
+                links.Spa("/verify-notification-email", new Dictionary<string, string?>
+                {
+                    ["token"] = notificationTokens.Create(userId, notificationEmail!),
+                })),
             _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null),
         };
 
@@ -92,7 +112,7 @@ public sealed partial class AccountEmailJob(
     [LoggerMessage(Level = LogLevel.Information, Message = "Sent {Kind} email for user {UserId}")]
     private static partial void LogSent(ILogger logger, AccountEmailKind kind, Guid userId);
 
-    [LoggerMessage(Level = LogLevel.Information, Message = "Skipped {Kind} email: user {UserId} no longer exists")]
+    [LoggerMessage(Level = LogLevel.Information, Message = "Skipped {Kind} email for user {UserId}: nothing to send")]
     private static partial void LogSkipped(ILogger logger, AccountEmailKind kind, Guid userId);
 }
 
@@ -154,6 +174,13 @@ public static class EmailTemplates
         "and preferences. This cannot be undone. The link works for 1 hour.",
         "Delete my account", link,
         "If you did not ask for this, ignore this email and consider changing your password.");
+
+    public static EmailMessage VerifyNotificationEmail(string to, string? name, string link) => Build(to,
+        "Confirm the email for your Tailorly Remote digest", name,
+        "You asked us to send your daily Tailorly Remote digest to this address. Please confirm it; until you do, digests " +
+        "keep going to your sign-in email. The link works for 24 hours.",
+        "Confirm this address", link,
+        "If you did not ask for this, you can ignore this email; nothing will be sent here.");
 
     private static EmailMessage Build(string to, string subject, string? name, string body, string action, string link, string footer)
     {

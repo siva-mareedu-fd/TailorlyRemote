@@ -9,7 +9,7 @@ namespace Tailorly.App.Features.Admin;
 
 /// <summary>
 /// <c>GET /admin/coverage</c> (the M2 one-week coverage report) and <c>GET /admin/status</c> (the single operational view,
-/// SDD §15.2). Status covers what exists in M2; digest runs join in M3.
+/// SDD §15.2), including digest runs (M3).
 /// </summary>
 public static class AdminReportsEndpoints
 {
@@ -55,10 +55,12 @@ public static class AdminReportsEndpoints
             .Where(u => u.UserId == null && u.Task == "job_enrichment" && u.CreatedAt >= dayStart)
             .SumAsync(u => (long)u.CountedTokens, ct);
 
+        var d = await system.DigestRunStatsAsync(now.AddHours(-24), now.AddHours(-1), ct);
         return TypedResults.Ok(new AdminStatusDto(
             sources.Select(s => new StatusSourceDto(s.Key, s.DisplayName, s.Enabled, AdminEndpoints.Health(s.h))).ToList(),
             jobs, boards, Queue(), await system.StuckResourceCountAsync(now.AddMinutes(-30), ct), ai, enrichment,
-            config.GetValue<long?>("Ai:PlatformDailyEnrichmentTokenCeiling"), Disk(storage.Value.RootPath)));
+            config.GetValue<long?>("Ai:PlatformDailyEnrichmentTokenCeiling"), Disk(storage.Value.RootPath),
+            new StatusDigestsDto(d.Ready, d.Failed, d.Running, d.Degraded, d.Unsent, d.LastFinished)));
     }
 
     private static StatusQueueDto? Queue()

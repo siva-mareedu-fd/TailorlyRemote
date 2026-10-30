@@ -23,6 +23,10 @@ public sealed record DeletionStatusResponse(string Status);
 
 public sealed record ConsentInfo(string Version, DateTimeOffset At);
 
+/// <param name="NotificationEmailVerified">
+/// True when the notification email is the sign-in email or was confirmed through its own link. Until then digests go to
+/// the sign-in email.
+/// </param>
 public sealed record MeResponse(
     Guid Id,
     string Email,
@@ -30,6 +34,7 @@ public sealed record MeResponse(
     string DisplayName,
     string TimeZone,
     string NotificationEmail,
+    bool NotificationEmailVerified,
     ConsentInfo? Consent,
     string AccountStatus,
     IReadOnlyList<string> Roles);

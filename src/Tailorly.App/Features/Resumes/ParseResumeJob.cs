@@ -165,10 +165,11 @@ public sealed partial class SweepStuckWorkJob(SystemQueries system, TimeProvider
     {
         var cutoff = clock.GetUtcNow() - StuckAfter;
         var resumes = await system.FailStuckResumesAsync(cutoff, ErrorCodes.Timeout, ct);
-        // Analyses, tailored documents, interview preps and digests join this sweep with their tables (M3–M5).
-        if (resumes > 0) LogSwept(logger, resumes);
+        var digests = await system.FailStuckDigestsAsync(cutoff, ErrorCodes.Timeout, ct);
+        // Analyses, tailored documents and interview preps join this sweep with their tables (M4–M5).
+        if (resumes + digests > 0) LogSwept(logger, resumes, digests);
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Stuck-work sweep marked {ResumeCount} résumé(s) as TIMEOUT")]
-    private static partial void LogSwept(ILogger logger, int resumeCount);
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Stuck-work sweep marked {ResumeCount} résumé(s) and {DigestCount} digest run(s) as TIMEOUT")]
+    private static partial void LogSwept(ILogger logger, int resumeCount, int digestCount);
 }

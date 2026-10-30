@@ -88,6 +88,79 @@
         }
       }
     },
+    "/api/v1/runs": {
+      "post": {
+        "tags": [
+          "Digests"
+        ],
+        "operationId": "StartRun",
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestDetailDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestDetailDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/notification-email/verify": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "VerifyNotificationEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyNotificationEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/auth/register": {
       "post": {
         "tags": [
@@ -1134,6 +1207,324 @@
         }
       }
     },
+    "/api/v1/jobs": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "operationId": "ListJobs",
+        "parameters": [
+          {
+            "name": "digestId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "minScore",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "eligibility",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "workMode",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "salary",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "savedOnly",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "tags": [
+          "Jobs"
+        ],
+        "operationId": "GetJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDetailDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/digests": {
+      "get": {
+        "tags": [
+          "Digests"
+        ],
+        "operationId": "ListDigests",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/digests/{id}": {
+      "get": {
+        "tags": [
+          "Digests"
+        ],
+        "operationId": "GetDigest",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DigestDetailDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/email/unsubscribe": {
+      "get": {
+        "tags": [
+          "Email links"
+        ],
+        "operationId": "OpenUnsubscribeLink",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Email links"
+        ],
+        "operationId": "Unsubscribe",
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnsubscribeResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/sources": {
       "get": {
         "tags": [
@@ -1891,7 +2282,8 @@
           "ai",
           "platformEnrichmentTokensToday",
           "platformEnrichmentCeiling",
-          "disk"
+          "disk",
+          "digests"
         ],
         "type": "object",
         "properties": {
@@ -1947,6 +2339,28 @@
                 "$ref": "#/components/schemas/StatusDiskDto"
               }
             ]
+          },
+          "digests": {
+            "$ref": "#/components/schemas/StatusDigestsDto"
+          }
+        }
+      },
+      "AlsoOnDto": {
+        "required": [
+          "sourceKey",
+          "sourceName",
+          "sourceUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "sourceKey": {
+            "type": "string"
+          },
+          "sourceName": {
+            "type": "string"
+          },
+          "sourceUrl": {
+            "type": "string"
           }
         }
       },
@@ -1991,6 +2405,29 @@
           },
           "extra": {
             "type": "object"
+          }
+        }
+      },
+      "ApproxInrDto": {
+        "required": [
+          "min",
+          "max"
+        ],
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "max": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -2238,6 +2675,225 @@
           }
         }
       },
+      "DigestDetailDto": {
+        "required": [
+          "id",
+          "kind",
+          "localDate",
+          "status",
+          "errorCode",
+          "degraded",
+          "jobsConsidered",
+          "jobsScored",
+          "startedAt",
+          "finishedAt",
+          "emailedAt",
+          "createdAt",
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "localDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "degraded": {
+            "type": "boolean"
+          },
+          "jobsConsidered": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "jobsScored": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "startedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emailedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DigestItemDto"
+            }
+          }
+        }
+      },
+      "DigestItemDto": {
+        "required": [
+          "rank",
+          "job"
+        ],
+        "type": "object",
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "job": {
+            "$ref": "#/components/schemas/JobSummaryDto"
+          }
+        }
+      },
+      "DigestPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DigestSummaryDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "DigestSummaryDto": {
+        "required": [
+          "id",
+          "kind",
+          "localDate",
+          "status",
+          "errorCode",
+          "degraded",
+          "jobsConsidered",
+          "jobsScored",
+          "itemCount",
+          "startedAt",
+          "finishedAt",
+          "emailedAt",
+          "createdAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "localDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "degraded": {
+            "type": "boolean"
+          },
+          "jobsConsidered": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "jobsScored": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "emailedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "ForgotPasswordRequest": {
         "required": [
           "email"
@@ -2327,6 +2983,314 @@
         "type": "string",
         "format": "binary"
       },
+      "JobDetailDto": {
+        "required": [
+          "skillsRequired",
+          "skillsPreferred",
+          "id",
+          "title",
+          "companyName",
+          "eligibility",
+          "salary",
+          "salaryLabel",
+          "descriptionCompleteness",
+          "applyUrl",
+          "source",
+          "alsoOn"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "skillsRequired": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skillsPreferred": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "seniority": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timezoneRequirement": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "locationText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workMode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "employmentType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eligibility": {
+            "type": "string"
+          },
+          "eligibilityEvidence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "salary": {
+            "$ref": "#/components/schemas/SalaryDto"
+          },
+          "salaryLabel": {
+            "type": "string"
+          },
+          "descriptionCompleteness": {
+            "type": "string"
+          },
+          "postedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "applyUrl": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceInfoDto"
+          },
+          "alsoOn": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlsoOnDto"
+            }
+          },
+          "score": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JobScoreDto"
+              }
+            ]
+          },
+          "tracked": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TrackedDto"
+              }
+            ]
+          }
+        }
+      },
+      "JobPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JobSummaryDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "JobScoreDto": {
+        "required": [
+          "fitScore",
+          "reasons",
+          "matchedSkills",
+          "missingSkills",
+          "confidence"
+        ],
+        "type": "object",
+        "properties": {
+          "fitScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "matchedSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confidence": {
+            "type": "string"
+          }
+        }
+      },
+      "JobSummaryDto": {
+        "required": [
+          "id",
+          "title",
+          "companyName",
+          "eligibility",
+          "salary",
+          "salaryLabel",
+          "descriptionCompleteness",
+          "applyUrl",
+          "source",
+          "alsoOn"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "companyName": {
+            "type": "string"
+          },
+          "locationText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workMode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "employmentType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "eligibility": {
+            "type": "string"
+          },
+          "eligibilityEvidence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "salary": {
+            "$ref": "#/components/schemas/SalaryDto"
+          },
+          "salaryLabel": {
+            "type": "string"
+          },
+          "descriptionCompleteness": {
+            "type": "string"
+          },
+          "postedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "applyUrl": {
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/SourceInfoDto"
+          },
+          "alsoOn": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AlsoOnDto"
+            }
+          },
+          "score": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JobScoreDto"
+              }
+            ]
+          },
+          "tracked": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/TrackedDto"
+              }
+            ]
+          }
+        }
+      },
       "JsonElement": { },
       "LoginRequest": {
         "required": [
@@ -2357,6 +3321,7 @@
           "displayName",
           "timeZone",
           "notificationEmail",
+          "notificationEmailVerified",
           "consent",
           "accountStatus",
           "roles"
@@ -2381,6 +3346,9 @@
           },
           "notificationEmail": {
             "type": "string"
+          },
+          "notificationEmailVerified": {
+            "type": "boolean"
           },
           "consent": {
             "oneOf": [
@@ -3064,6 +4032,62 @@
           }
         }
       },
+      "SalaryDto": {
+        "required": [
+          "min",
+          "max",
+          "currency",
+          "period",
+          "originalPeriod",
+          "kind",
+          "approxInr"
+        ],
+        "type": "object",
+        "properties": {
+          "min": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "max": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int64"
+          },
+          "currency": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "period": {
+            "type": "string"
+          },
+          "originalPeriod": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "kind": {
+            "type": "string"
+          },
+          "approxInr": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/ApproxInrDto"
+              }
+            ]
+          }
+        }
+      },
       "SeedLoadResult": {
         "required": [
           "added",
@@ -3140,6 +4164,39 @@
           }
         }
       },
+      "SourceInfoDto": {
+        "required": [
+          "key",
+          "name",
+          "attributionText",
+          "attributionUrl",
+          "sourceUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "attributionText": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "attributionUrl": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "sourceUrl": {
+            "type": "string"
+          }
+        }
+      },
       "StatusAiRowDto": {
         "required": [
           "task",
@@ -3189,6 +4246,46 @@
           "blocked": {
             "type": "integer",
             "format": "int32"
+          }
+        }
+      },
+      "StatusDigestsDto": {
+        "required": [
+          "ready",
+          "failed",
+          "inFlight",
+          "degraded",
+          "unsent",
+          "lastFinishedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "ready": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inFlight": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "degraded": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unsent": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastFinishedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
           }
         }
       },
@@ -3293,6 +4390,33 @@
           },
           "health": {
             "$ref": "#/components/schemas/SourceHealthDto"
+          }
+        }
+      },
+      "TrackedDto": {
+        "required": [
+          "userJobId",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "userJobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "UnsubscribeResult": {
+        "required": [
+          "done"
+        ],
+        "type": "object",
+        "properties": {
+          "done": {
+            "type": "boolean"
           }
         }
       },
@@ -3657,6 +4781,20 @@
           }
         }
       },
+      "VerifyNotificationEmailRequest": {
+        "required": [
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "WatchedCompanyDto": {
         "required": [
           "id",
@@ -3710,6 +4848,9 @@
       "name": "Usage"
     },
     {
+      "name": "Digests"
+    },
+    {
       "name": "Account"
     },
     {
@@ -3717,6 +4858,12 @@
     },
     {
       "name": "Preferences"
+    },
+    {
+      "name": "Jobs"
+    },
+    {
+      "name": "Email links"
     },
     {
       "name": "Admin"

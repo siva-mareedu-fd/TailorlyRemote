@@ -51,6 +51,13 @@ public sealed class AccountRateLimits : IDisposable
         throw problem;
     }
 
+    /// <summary>Takes one permit if available; false when the limit is reached (for optional mail that must not fail the request).</summary>
+    public bool TryAcquire(string name, string key)
+    {
+        using var lease = _limiters[name].Limiter.AttemptAcquire(Hash(key));
+        return lease.IsAcquired;
+    }
+
     private static string Hash(string key) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(key.Trim().ToLowerInvariant())));
 

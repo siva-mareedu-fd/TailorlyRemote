@@ -73,4 +73,68 @@ public sealed class LogScanTests(PostgresAppFixture fx)
         foreach (var secret in secrets)
             logs.Where(l => l.Contains(secret, StringComparison.OrdinalIgnoreCase)).Should().BeEmpty($"'{secret[..Math.Min(12, secret.Length)]}…' must never be logged");
     }
+
+    /// <summary>
+    /// The M3 flows (enrichment, scoring, scheduled digest, email, unsubscribe, notification-email confirmation) with
+    /// verbose logging: no job text, model reply, email address, role or link token is logged.
+    /// </summary>
+    [Fact]
+    public async Task No_job_text_model_reply_address_or_link_token_reaches_the_logs_in_the_digest_flow()
+    {
+        await using var f = new TailorlyAppFactory(fx.ConnectionString, new Dictionary<string, string?>
+        {
+            ["Serilog:MinimumLevel:Default"] = "Verbose",
+            ["Serilog:MinimumLevel:Override:Microsoft.AspNetCore"] = "Debug",
+            ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Debug",
+            ["Serilog:MinimumLevel:Override:Hangfire"] = "Debug",
+        });
+        const string jobSentinel = "SENTINEL-JOB-TEXT-4471";
+        const string summarySentinel = "SENTINEL-ENRICH-8830";
+        const string reasonSentinel = "SENTINEL-REASON-2290";
+        var india = TimeZoneInfo.FindSystemTimeZoneById("Asia/Kolkata");
+        var schedule = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, india).AddMinutes(-1).ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+        var role = MatchingTestData.NewRole();
+        var u = await MatchingTestData.CreateMatcherAsync(f, role, "sentinel-digest", p =>
+        {
+            p["scheduleEnabled"] = true;
+            p["scheduleLocalTime"] = schedule;
+        });
+        var alerts = TestUsers.NewEmail("sentinel-alerts");
+        (await u.Api.PutAsync("/api/v1/me", new { displayName = "Test User", timeZone = "Asia/Kolkata", notificationEmail = alerts }))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        await MatchingTestData.InsertJobAsync(f, $"{role} Engineer", description: MatchingTestData.Description + " " + jobSentinel);
+        f.Ai.Enqueue(AiTaskNames.JobEnrichment, System.Text.Json.JsonSerializer.Serialize(new
+        {
+            skills_required = new[] { "C#" }, skills_preferred = Array.Empty<string>(), skill_aliases = Array.Empty<object>(),
+            seniority = "senior", years_experience_min = 5, years_experience_max = (int?)null, employment_type = "full_time",
+            work_mode = "remote", eligibility = "worldwide", eligibility_evidence = jobSentinel, restricted_regions = Array.Empty<string>(),
+            timezone_requirement = (string?)null, hiring_model_hint = "employee", salary_extracted = (object?)null, summary = summarySentinel,
+        }));
+        f.Ai.Enqueue(AiTaskNames.JobFitScore, System.Text.Json.JsonSerializer.Serialize(new
+        {
+            fit_score = 9, reasons = new[] { reasonSentinel }, matched_skills = new[] { "C#" }, missing_skills = Array.Empty<string>(),
+            confidence = "high",
+        }));
+
+        (await MatchingTestData.DispatchAsync(f, DateTimeOffset.UtcNow)).Should().NotBeEmpty();
+        await f.Jobs.RunAllAsync();
+        var digestMail = f.Emails.To(u.Email).Single(m => m.ListUnsubscribeUrl is not null);
+        System.Net.WebUtility.HtmlDecode(digestMail.HtmlBody).Should().Contain(reasonSentinel);
+        var unsubscribeToken = Uri.UnescapeDataString(digestMail.ListUnsubscribeUrl!.Split("token=")[1]);
+        var verifyLink = System.Text.RegularExpressions.Regex.Match(f.Emails.To(alerts).Single().TextBody,
+            @"/verify-notification-email\?token=([^\s""<]+)");
+        verifyLink.Success.Should().BeTrue();
+        var verifyToken = Uri.UnescapeDataString(verifyLink.Groups[1].Value);
+        (await u.Api.PostAsync("/api/v1/me/notification-email/verify", new { token = verifyToken })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        var anon = f.CreateHttpsClient();
+        (await anon.PostAsync(new Uri(digestMail.ListUnsubscribeUrl!).PathAndQuery, null, TestContext.Current.CancellationToken))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var logs = f.Logs.Lines.ToList();
+        logs.Should().Contain(l => l.Contains("emailed", StringComparison.Ordinal), "the send itself is logged (ids and counts)");
+        foreach (var secret in new[] { jobSentinel, summarySentinel, reasonSentinel, u.Email, alerts, role, unsubscribeToken, verifyToken,
+                     "payment infrastructure" })
+            logs.Where(l => l.Contains(secret, StringComparison.OrdinalIgnoreCase)).Should().BeEmpty($"'{secret[..Math.Min(12, secret.Length)]}…' must never be logged");
+    }
 }

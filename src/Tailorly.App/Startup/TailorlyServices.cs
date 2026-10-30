@@ -11,6 +11,8 @@ using Serilog.Formatting.Compact;
 using Tailorly.App.Ai;
 using Tailorly.App.Api;
 using Tailorly.App.Features.Accounts;
+using Tailorly.App.Features.Digests;
+using Tailorly.App.Features.Jobs;
 using Tailorly.App.Features.Health;
 using Tailorly.App.Features.Resumes;
 using Tailorly.App.Features.Sources;
@@ -142,7 +144,7 @@ public static class TailorlyServices
         services.Configure<StorageOptions>(config.GetSection("Storage"));
         services.AddSingleton<IFileStore, LocalFileStore>();
         services.AddSingleton<IEmailSender, SmtpEmailSender>();
-        services.AddSingleton<IFxRateProvider, StaticFxRateProvider>();
+        AddFx(services, config);
         AddAi(services, config);
 
         // Features (plain classes; no interfaces outside the five ports)
@@ -159,6 +161,7 @@ public static class TailorlyServices
         services.AddScoped<ParseResumeJob>();
         services.AddScoped<SweepStuckWorkJob>();
         AddSources(services, config);
+        AddDigests(services, config);
 
         return builder;
     }
@@ -186,6 +189,43 @@ public static class TailorlyServices
         services.AddScoped<SeedLoader>();
         services.AddScoped<VerifyLinksJob>();
         services.AddScoped<Tailorly.App.Features.Admin.CoverageReport>();
+    }
+
+    /// <summary>Enrichment, scoring and the daily digest (PRD F5–F7): the per-user run, dispatcher, email and API.</summary>
+    private static void AddDigests(IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<EnrichmentOptions>(config.GetSection("Enrichment"));
+        services.Configure<ScoringOptions>(config.GetSection("Scoring"));
+        services.Configure<DigestOptions>(config.GetSection("Digest"));
+        services.AddSingleton<UnsubscribeTokens>();
+        services.AddSingleton<NotificationEmailTokens>();
+        services.AddScoped<ScoredJobs>();
+        services.AddScoped<EnrichmentService>();
+        services.AddScoped<ScoringService>();
+        services.AddScoped<PerUserRunJob>();
+        services.AddScoped<DigestDispatcherJob>();
+        services.AddScoped<DigestEmailJob>();
+    }
+
+    /// <summary>FX rates for salary comparison and "≈ INR" (<c>Fx:Provider</c>: Frankfurter, or Static for tests/offline).</summary>
+    private static void AddFx(IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<FxOptions>(config.GetSection("Fx"));
+        services.AddSingleton<StaticFxRateProvider>();
+        var provider = config["Fx:Provider"] ?? "Frankfurter";
+        if (provider.Equals("Static", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddSingleton<IFxRateProvider>(sp => sp.GetRequiredService<StaticFxRateProvider>());
+        }
+        else if (provider.Equals("Frankfurter", StringComparison.OrdinalIgnoreCase))
+        {
+            FrankfurterFxRateProvider.AddClient(services);
+            services.AddSingleton<IFxRateProvider, FrankfurterFxRateProvider>();
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown Fx:Provider '{provider}'. Use Frankfurter or Static.");
+        }
     }
 
     /// <summary>AI runner (SDD §9): routing from ai_task_config, prompt files, budgets, ledger, one provider.</summary>

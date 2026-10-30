@@ -33,16 +33,25 @@ public sealed class CoverageReport(AppDbContext db, TimeProvider clock)
 
         var days = Enumerable.Range(0, end.DayNumber - start.DayNumber + 1).Select(i => start.AddDays(i))
             .ToDictionary(d => d, _ => new DayAcc());
-        var rows = db.Jobs.AsNoTracking()
-            .Where(j => j.DuplicateOfJobId == null && j.CreatedAt >= fromUtc && j.CreatedAt < toUtc)
-            .Select(j => new { j.SourceKey, j.CreatedAt, j.Title, j.LocationText, j.SourceMeta, j.DescriptionText })
+        var rows = (from j in db.Jobs.AsNoTracking()
+                    where j.DuplicateOfJobId == null && j.CreatedAt >= fromUtc && j.CreatedAt < toUtc
+                    join e in db.JobEnrichment.AsNoTracking() on j.Id equals e.JobId into ej
+                    from e in ej.DefaultIfEmpty()
+                    select new
+                    {
+                        j.SourceKey, j.CreatedAt, j.Title, j.LocationText, j.SourceMeta,
+                        DescriptionText = e == null ? j.DescriptionText : null,
+                        Enriched = e == null ? null : e.Eligibility,
+                    })
             .AsAsyncEnumerable();
 
         await foreach (var r in rows.WithCancellation(ct))
         {
             var day = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(r.CreatedAt, india).Date);
             if (!days.TryGetValue(day, out var acc)) continue;
-            var eligibility = EligibilityRules.Classify(Countries(r.SourceMeta), r.LocationText, r.Title, r.DescriptionText).Eligibility;
+            // The enrichment's final eligibility when the job was enriched (M3), else the deterministic pre-rules.
+            var eligibility = r.Enriched
+                              ?? EligibilityRules.Classify(Countries(r.SourceMeta), r.LocationText, r.Title, r.DescriptionText).Eligibility;
             acc.Add(r.SourceKey, eligibility);
             if (!Eligibility.OpenToIndia(eligibility)) continue;
             foreach (var (role, regex) in matchers)
@@ -53,12 +62,12 @@ public sealed class CoverageReport(AppDbContext db, TimeProvider clock)
         var all = new DayAcc();
         foreach (var d in days.Values) all.Merge(d);
         var totals = all.ToDto(end, roles);
-        return new CoverageReportDto(start, end, roles, "rules", totals.Total, totals.OpenToIndia,
+        return new CoverageReportDto(start, end, roles, "enrichment_or_rules", totals.Total, totals.OpenToIndia,
             Math.Round(totals.OpenToIndia / (double)dayDtos.Count, 1), totals.Sources, totals.Roles, dayDtos);
     }
 
     /// <summary>Structured country restrictions stored by sources that have them (<c>source_meta.locationRestriction</c>).</summary>
-    private static List<string>? Countries(string? sourceMeta)
+    internal static List<string>? Countries(string? sourceMeta)
     {
         if (string.IsNullOrEmpty(sourceMeta)) return null;
         using var doc = JsonDocument.Parse(sourceMeta);

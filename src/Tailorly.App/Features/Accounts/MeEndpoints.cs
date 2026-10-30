@@ -36,6 +36,7 @@ public static partial class MeEndpoints
             p.DisplayName,
             p.TimeZone,
             p.NotificationEmail,
+            string.Equals(p.NotificationEmail, user.Email, StringComparison.OrdinalIgnoreCase) || p.NotificationEmailVerifiedAt is not null,
             p.ConsentVersion is { } v && p.ConsentedAt is { } at ? new ConsentInfo(v, at) : null,
             p.AccountStatus,
             [.. roles.Order(StringComparer.Ordinal)]);
@@ -49,8 +50,13 @@ public static partial class MeEndpoints
         CancellationToken ct) =>
         TypedResults.Ok(await BuildMeAsync(db, users, await RequireUserAsync(users, current), ct));
 
+    /// <summary>
+    /// Updates the profile. A notification email that changes to an address other than the sign-in email must be confirmed
+    /// before digests go to it (proposal 18): a link is mailed to it (at most a few per hour) and, until it is used, digests
+    /// keep going to the sign-in email.
+    /// </summary>
     private static async Task<Ok<MeResponse>> UpdateMe(UpdateMeRequest body, AppDbContext db, UserManager<AppUser> users,
-        ICurrentUser current, TimeProvider clock, CancellationToken ct)
+        ICurrentUser current, IBackgroundJobClient jobs, AccountRateLimits limits, TimeProvider clock, CancellationToken ct)
     {
         var errors = new FieldErrors();
         var name = errors.Text("displayName", body.DisplayName, 100, label: "Name");
@@ -61,11 +67,20 @@ public static partial class MeEndpoints
 
         var user = await RequireUserAsync(users, current);
         var profile = await db.UserProfiles.FirstAsync(p => p.UserId == user.Id, ct);
+        var changed = !string.Equals(profile.NotificationEmail, email, StringComparison.OrdinalIgnoreCase);
+        var needsConfirmation = changed && !string.Equals(email, user.Email, StringComparison.OrdinalIgnoreCase);
         profile.DisplayName = name!;
         profile.TimeZone = tz!;
         profile.NotificationEmail = email!;
+        if (changed) profile.NotificationEmailVerifiedAt = null;
         profile.UpdatedAt = clock.GetUtcNow();
         await db.SaveChangesAsync(ct);
+
+        if (needsConfirmation && limits.TryAcquire(AccountRateLimits.ResendUser, "notification:" + user.Id))
+        {
+            var id = user.Id;
+            jobs.Enqueue<AccountEmailJob>(j => j.SendAsync(AccountEmailKind.VerifyNotificationEmail, id, CancellationToken.None));
+        }
         return TypedResults.Ok(await BuildMeAsync(db, users, user, ct));
     }
 

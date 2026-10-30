@@ -149,7 +149,7 @@ public sealed class AdminSourcesTests(PostgresAppFixture fx) : IAsyncLifetime
 
         var admin = await TestUsers.CreateAdminAsync(F);
         var report = await ApiClient.JsonAsync(await admin.Api.GetAsync("/api/v1/admin/coverage"));
-        report.GetProperty("basis").GetString().Should().Be("rules");
+        report.GetProperty("basis").GetString().Should().Be("enrichment_or_rules");
         report.GetProperty("days").GetArrayLength().Should().Be(7);
         report.GetProperty("roles").EnumerateArray().Select(r => r.GetString()).Should().Equal("backend", "frontend", "data", "devops", "mobile");
         report.GetProperty("total").GetInt32().Should().Be(23);

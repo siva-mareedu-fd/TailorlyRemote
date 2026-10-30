@@ -81,7 +81,7 @@ public sealed record CoverageSourceDto(string SourceKey, int Total, int Worldwid
 public sealed record CoverageDayDto(DateOnly Date, int Total, int OpenToIndia, IReadOnlyList<CoverageSourceDto> Sources,
     IReadOnlyDictionary<string, int> Roles);
 
-/// <param name="Basis"><c>rules</c>: eligibility from structured source fields and phrase rules (no model calls).</param>
+/// <param name="Basis"><c>enrichment_or_rules</c>: the enrichment's final eligibility for enriched jobs, else structured source fields and phrase rules.</param>
 /// <param name="Total">Unique listings first seen in the range (suppressed duplicates excluded; by canonical source).</param>
 public sealed record CoverageReportDto(
     DateOnly From,
@@ -107,6 +107,10 @@ public sealed record StatusAiRowDto(string Task, string Model, int Calls, long T
 
 public sealed record StatusDiskDto(long TotalBytes, long FreeBytes, int UsedPercent);
 
+/// <summary>Digest runs created in the last 24 hours (counts only, no user data).</summary>
+/// <param name="Unsent">Scheduled digests with items, ready for over an hour and not emailed (SDD §15.2 alert condition).</param>
+public sealed record StatusDigestsDto(int Ready, int Failed, int InFlight, int Degraded, int Unsent, DateTimeOffset? LastFinishedAt);
+
 /// <param name="Queue">Hangfire counts; null if the job storage could not be read.</param>
 /// <param name="StuckResources">Async resources still queued/running after 30 minutes (swept every 15 minutes).</param>
 /// <param name="PlatformEnrichmentCeiling">Null when no ceiling is configured.</param>
@@ -119,4 +123,5 @@ public sealed record AdminStatusDto(
     IReadOnlyList<StatusAiRowDto> Ai,
     long PlatformEnrichmentTokensToday,
     long? PlatformEnrichmentCeiling,
-    StatusDiskDto? Disk);
+    StatusDiskDto? Disk,
+    StatusDigestsDto Digests);

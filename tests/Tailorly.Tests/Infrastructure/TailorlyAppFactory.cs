@@ -42,6 +42,7 @@ public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDiction
         builder.UseSetting("App:PublicBaseUrl", "https://tailorly.test");
         builder.UseSetting("Security:IpHashKey", "test-ip-hash-key");
         builder.UseSetting("Ai:Provider", "Fake");
+        builder.UseSetting("Fx:Provider", "Static");
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
         // Source clients: fast retries and timeouts, no rate limiting (the fake answers instantly).
         builder.UseSetting("Sources:RetryDelayMilliseconds", "1");
