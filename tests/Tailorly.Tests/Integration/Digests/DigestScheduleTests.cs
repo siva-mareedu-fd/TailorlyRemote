@@ -251,6 +251,26 @@ public sealed partial class DigestScheduleTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task The_daily_retention_sweep_deletes_digests_older_than_12_months_with_their_items()
+    {
+        var role = NewRole();
+        var u = await CreateMatcherAsync(F, role, "retain");
+        await InsertJobAsync(F, $"{role} Engineer");
+        var old = await RunNowAsync(F, u);
+        Items(old).Should().NotBeEmpty();
+        await Db.ExecAsync(Cs, "UPDATE digests SET created_at = now() - interval '13 months' WHERE id = @d", ("d", old.GetProperty("id").GetGuid()));
+        var kept = await RunNowAsync(F, u); // the old one no longer counts as in flight or as a manual run today
+        var keptId = kept.GetProperty("id").GetGuid();
+
+        await using (var scope = F.Services.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<Tailorly.App.Features.Sources.RetentionJob>().RunDailyAsync(Ct);
+
+        (await Db.ScalarAsync<long>(Cs, "SELECT count(*) FROM digests WHERE user_id = @u", ("u", u.Id))).Should().Be(1);
+        (await Db.ScalarAsync<long>(Cs, "SELECT count(*) FROM digests WHERE id = @d", ("d", keptId))).Should().Be(1);
+        (await Db.ScalarAsync<long>(Cs, "SELECT count(*) FROM digest_items WHERE user_id = @u", ("u", u.Id))).Should().Be(Items(kept).Count());
+    }
+
+    [Fact]
     public async Task One_click_unsubscribe_turns_the_digest_off_without_signing_in()
     {
         var (u, _, _) = await DueNowAsync();

@@ -151,6 +151,10 @@ public sealed class SystemQueries(AppDbContext db)
         + await db.Digests.IgnoreQueryFilters().AsNoTracking()
             .CountAsync(d => (d.Status == WorkStatus.Queued || d.Status == WorkStatus.Running) && (d.StartedAt ?? d.CreatedAt) < cutoff, ct);
 
+    /// <summary>Retention sweep (daily): digests older than the cutoff; their items cascade (DatabaseDesign §7).</summary>
+    public Task<int> DeleteDigestsCreatedBeforeAsync(DateTimeOffset cutoff, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM digests WHERE created_at < {cutoff}", ct);
+
     /// <summary>Purge job (hourly): accounts confirmed for deletion that still exist.</summary>
     public Task<List<Guid>> UsersPendingDeletionAsync(CancellationToken ct) =>
         db.UserProfiles.IgnoreQueryFilters().AsNoTracking()

@@ -1472,8 +1472,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "302": {
+            "description": "Found"
           },
           "default": {
             "description": "Error (RFC 7807)",

@@ -15,7 +15,7 @@ public static partial class EmailLinkEndpoints
     public static void MapEmailLinkEndpoints(this RouteGroupBuilder api)
     {
         var g = api.MapGroup("/email").WithTags("Email links").AllowAnonymous();
-        g.MapGet("/unsubscribe", UnsubscribePage).WithName("OpenUnsubscribeLink");
+        g.MapGet("/unsubscribe", UnsubscribePage).WithName("OpenUnsubscribeLink").Produces(StatusCodes.Status302Found);
         // One-click POST from mail clients carries "List-Unsubscribe=One-Click" as a form body and no CSRF header.
         g.MapPost("/unsubscribe", Unsubscribe).WithName("Unsubscribe").WithMetadata(new SkipCsrfAttribute());
 

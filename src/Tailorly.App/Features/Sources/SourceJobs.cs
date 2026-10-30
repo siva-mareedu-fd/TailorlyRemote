@@ -205,10 +205,11 @@ public sealed class PollBoardJob(AppDbContext db, SourceRegistry registry, Board
 /// <summary>
 /// Retention sweeps (DatabaseDesign §7, SDD §8.1 "Expiry"). Hourly: listings of <c>purge_on_expiry</c> sources (Himalayas)
 /// are deleted once their <c>expires_at</c> passes. Daily: listings older than 60 days, listings closed for 7 days, and
-/// audit rows older than 12 months. Deleting a listing cascades to its enrichment and scores; tracker cards keep their
+/// digests and audit rows older than 12 months. Deleting a listing cascades to its enrichment and scores; tracker cards keep their
 /// snapshot (M5). Survivors sharing a dedupe key get a fresh canonical pick.
 /// </summary>
-public sealed partial class RetentionJob(AppDbContext db, DedupeResolver dedupe, TimeProvider clock, ILogger<RetentionJob> logger)
+public sealed partial class RetentionJob(AppDbContext db, SystemQueries system, DedupeResolver dedupe, TimeProvider clock,
+    ILogger<RetentionJob> logger)
 {
     public const string ExpiryRecurringId = "purge-expired-jobs";
     public const string DailyRecurringId = "retention-sweep";
@@ -239,9 +240,11 @@ public sealed partial class RetentionJob(AppDbContext db, DedupeResolver dedupe,
             DELETE FROM jobs WHERE closed_at < {now.AddDays(-7)} RETURNING dedupe_key AS "Value"
             """).ToListAsync(ct);
         await dedupe.ResolveAsync(old.Concat(closed).ToHashSet(StringComparer.Ordinal), ct);
+        var digests = await system.DeleteDigestsCreatedBeforeAsync(now.AddMonths(-12), ct);
         var audit = await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM audit_log WHERE at < {now.AddMonths(-12)}", ct);
         LogPurged(logger, "older than 60 days", old.Count);
         LogPurged(logger, "closed over 7 days", closed.Count);
+        LogPurged(logger, "digests over 12 months", digests);
         LogPurged(logger, "audit rows over 12 months", audit);
         return total + old.Count + closed.Count;
     }
