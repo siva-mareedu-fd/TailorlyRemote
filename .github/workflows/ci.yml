@@ -42,10 +42,13 @@ jobs:
         run: dotnet ef migrations has-pending-model-changes --project src/Tailorly.App --no-build --configuration Release
 
       - name: Unit tests
-        run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Unit"
+        run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Unit*"
 
       - name: Integration tests (Testcontainers PostgreSQL)
-        run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Integration"
+        run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Integration*"
+
+      - name: Eval datasets are valid (rules baseline, no model calls)
+        run: dotnet run --project tests/Tailorly.Eval --no-build -c Release -- --no-write
 
       - name: Dependency vulnerability scan
         run: |

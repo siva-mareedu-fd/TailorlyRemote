@@ -63,7 +63,7 @@ Do not edit the docs on your own. Propose doc changes in `DECISIONS.md`.
 ## Commands
 Run from the repo root. Docker must be running for integration tests.
 - Build: `dotnet tool restore && dotnet build -warnaserror` (also writes `web/openapi/openapi.json`) · `cd web && npm ci && npm run build`
-- Test: `dotnet test` · unit only: `dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Unit"` · integration only: `--filter-namespace "Tailorly.Tests.Integration"`
+- Test: `dotnet test` · unit only: `dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Unit*"` · integration only: `--filter-namespace "Tailorly.Tests.Integration*"` (the `*` includes sub-namespaces such as `.Sources` and `.Digests`)
 - Lint (web): `cd web && npm run lint && npx prettier --check "src/**/*.{ts,tsx,css}"`
 - Run (Docker): `cp deploy/.env.example deploy/.env` (set `POSTGRES_PASSWORD`), then `docker compose -f deploy/docker-compose.yml up -d --build` → https://localhost · `--profile dev` adds Mailpit (http://localhost:8025) · `--profile pdf` adds Gotenberg
 - Run (local): Postgres on 5432 (see README), `dotnet run --project src/Tailorly.App` (https://localhost:7080), `cd web && npm run dev` (http://localhost:5173)

@@ -5,8 +5,27 @@
 Tailorly Remote helps developers in India find remote jobs that are actually open to them, and tailors their
 résumé (.docx) to each job without breaking formatting or inventing facts.
 
-**Status:** M2 (preferences, job sourcing, source compliance, admin sources/companies/coverage). See
-`docs/PRD_TailorlyRemote.md` §15 for the milestone plan. M3 starts only after the one-week coverage review.
+**Status:** M3 (enrichment, fit scoring, the scheduled daily digest by email, the Shortlist). See
+`docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+
+### What works (M3)
+- **Daily digest**: a dispatcher (every 5 min) claims one scheduled digest per user per local day at the user's
+  schedule time (any IANA time zone, DST-safe, windows that cross midnight included, caught up for 4 hours). The run
+  takes new jobs since the last digest, filters them on raw fields, **enriches** the survivors once for everyone
+  (`job_enrichment`, platform cost, daily ceiling), applies the enriched filters (India eligibility vs scope, work mode,
+  job type, hiring model, cities), **scores** up to 20 (`job_fit_score`, Discovery budget), then applies the salary rule,
+  the minimum score and the eligibility display rule. The email lists each match with fit, reasons, eligibility,
+  salary, Open in app, Apply and a followed "via {Source}" link, and carries one-click unsubscribe.
+- **Never silent**: failures retry at 10/30/60 minutes inside the 4-hour window; when the AI stays down, the Discovery
+  budget is used up or the enrichment ceiling is reached, jobs are ranked by title and skills instead (`degraded`), and
+  the email says so.
+- **Shortlist** (`/shortlist`): master-detail list with filters (eligibility, minimum score, text), "N more below your
+  minimum score", keyboard shortcuts (`/`, `j`/`k`, `o`, `Esc`), job detail with fit, skills, eligibility evidence,
+  description and source attribution, and **Run now** (3 a day, no email). **Digest history** at `/digests`.
+- **Eligibility**: source fields first, phrase rules next, then the model; explicit restrictions always win.
+- **Notification email**: a changed address gets digests only after it is confirmed (until then, the sign-in email).
+- **FX**: daily Frankfurter rates for "≈ ₹" and salary comparison (static fallback).
+- **Eval** (`tests/Tailorly.Eval`): labelled eligibility and fit datasets, real-model runs and a comparison report.
 
 ### What works (M2)
 - **Preferences** (`/preferences`, onboarding steps 3–4): search scope, roles, cities, work modes, job types, hiring
@@ -60,9 +79,9 @@ All commands run from the repository root unless stated.
 dotnet tool restore                      # dotnet-ef (local tool)
 dotnet build -warnaserror                # also regenerates web/openapi/openapi.json
 dotnet test                              # all tests (needs Docker running for Testcontainers)
-dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Unit"          # unit only
-dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Integration"   # integration only
-dotnet run --project tests/Tailorly.Eval  # evaluation harness (eval sets start in M3)
+dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Unit*"          # unit only
+dotnet test --project tests/Tailorly.Tests --filter-namespace "Tailorly.Tests.Integration*"   # integration only
+dotnet run --project tests/Tailorly.Eval  # eval: validate datasets + rules baseline (see "Evaluation" below)
 
 cd web && npm ci && npm run lint && npm run build
 ```
@@ -83,8 +102,10 @@ saved in `tests/Tailorly.Tests/Fixtures/Sources` (see its README) and records ev
 exact requests made (incremental fetches, SSRF cases with zero calls).
 
 Trust tests worth knowing: `IsolationTests` discovers every `/api/v1` route and fails on one that is not classified
-(new routes are covered automatically); `LogScanTests` runs the M1 flows with verbose logging and fails if résumé
-text, prompts, replies, emails, passwords or tokens appear in any log event; `UploadSafetyTests` and
+(new routes are covered automatically; jobs and digests included); `LogScanTests` runs the M1 and M3 flows with verbose
+logging and fails if résumé or job text, prompts, replies, emails, passwords or tokens appear in any log event;
+`DigestScheduleTests` (own database) covers claim idempotency across ticks and instances, IST/DST/midnight windows,
+retries, the fallback digest, the email and one-click unsubscribe; `UploadSafetyTests` and
 `DocxSafetyInspectorTests` cover macros, OLE, external links, zip bombs, nested archives, DOCTYPE, password protection
 and a PDF renamed to `.docx`.
 
@@ -136,6 +157,29 @@ exists. Existing rows are never overwritten, so admin changes survive redeploys.
 Enabling another source needs its terms reviewed first (tick **Terms reviewed**, then enable). Keep Himalayas off
 until Himalayas confirms in writing that a personal job-matching service is allowed.
 
+### See a digest locally (M3)
+1. With the stack running (`--profile dev` for Mailpit), sign up, verify, upload a résumé and save Preferences with a
+   **digest time a minute or two from now** in your time zone.
+2. Load jobs (Admin → Companies → Load seed list, then Sources → Run now on Greenhouse), or wait for the schedules.
+3. Within 5 minutes of the digest time the dispatcher claims it; the email arrives in Mailpit (http://localhost:8025)
+   and the run shows on `/digests`. **Run now** on `/shortlist` runs the same search without email.
+
+With `Ai__Provider=Fake` every job gets the recorded enrichment and fit score, so the flow works without a key.
+
+### Evaluation (`tests/Tailorly.Eval`)
+```bash
+dotnet run --project tests/Tailorly.Eval                                   # validate datasets, rules baseline only
+Anthropic__ApiKey=sk-ant-... dotnet run --project tests/Tailorly.Eval -- --models claude-haiku-5-5,claude-sonnet-5-5
+#   --tasks eligibility,fit · --limit N · --effort low|medium|high · --no-write
+```
+Datasets: `tests/Tailorly.Eval/datasets/eligibility.json` and `fit_scores.json`, each with a JSON schema next to it.
+Items carry `labelSource`; the starter items are `starter (unreviewed)` until the owner labels them. The runner uses
+the production prompts, input builders and validators (one repair turn) and the same hard-rule resolver as the app;
+the report (`tests/Tailorly.Eval/reports/eval-*.md|json`) shows eligibility accuracy (also "unclear allowed"), critical
+errors (said open when restricted), JSON validity first try / after repair, fit Spearman, MAE, ±1 agreement and
+tokens. Model ids are passed with `--models`; production routing stays in `ai_task_config` and is changed only after
+the owner reviews a report.
+
 ### Regenerate the TypeScript API client
 ```bash
 dotnet build src/Tailorly.App            # writes web/openapi/openapi.json (the committed contract snapshot)
@@ -164,6 +208,10 @@ following PRD Appendix A). No secrets live in the repository. `Ai__Provider=Fake
 | `Sources__DefaultRequestsPerMinute`, `Sources__{key}__RequestsPerMinute` | Per-source rate limit (default 60/min) |
 | `Sources__Himalayas__ApiKey` | Optional Himalayas key (higher limits) |
 | `Fetch__MaxPagesPerRun`, `Fetch__FirstRunBackfillDays`, `Fetch__BoardBulkDetailThreshold` | Feed page cap (50), first-run backfill (14 days), new-job count above which a board is read once with content (25) |
+| `Enrichment__MaxPerRun`, `Scoring__MaxPerRun` | Jobs enriched (60) and scored (20) per run |
+| `Ai__PlatformDailyEnrichmentTokenCeiling` | Platform `job_enrichment` tokens per Asia/Kolkata day (2,000,000); empty = no ceiling |
+| `Digest__WindowHours`, `Digest__RetryDelayMinutes__0..2`, `Digest__MaxManualRunsPerDay`, `Digest__LookbackHours`, `Digest__EmailMaxItems` | Catch-up window (4 h), retry delays (10/30/60 min), Run now per day (3), how far back new jobs are read (72 h), jobs listed per email (20) |
+| `Fx__Provider`, `Fx__StaticRates__USD_INR` | `Frankfurter` (daily public rates, no key) or `Static`; the static rate is also the fallback |
 
 Poll intervals are not configuration: they are `job_sources.poll_interval_minutes`, edited in Admin → Sources.
 
@@ -194,7 +242,7 @@ otherwise come back (SDD §13.4). The full runbook arrives with M6.
 ## Open items before launch
 - Written reply from Himalayas on whether a per-user matching service is permitted. Keep Himalayas disabled until confirmed.
 - We Work Remotely's terms could not be read automatically (403); review them in a browser before building/enabling it.
-- One-week coverage report review with the owner before M3.
+- Label the eval sets (≥ 100 eligibility, ≥ 50 fit pairs, PRD §14.3) and run the AI quality gate before launch.
 - Adzuna is excluded from the MVP.
 - Confirm the default assumptions in PRD §17 (INR default, unclear-eligibility handling, tones, 600K/1.4M split).
 - Legal review of the privacy notice (résumé text is processed by an AI provider).
