@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, 'm*-*']
+    branches: [main, done, 'm*-*']
   pull_request:
 
 permissions:
@@ -39,7 +39,7 @@ jobs:
         run: git diff --exit-code -- web/openapi/openapi.json
 
       - name: EF model matches the migrations
-        run: dotnet ef migrations has-pending-model-changes --project src/Tailorly.App --no-build -c Release
+        run: dotnet ef migrations has-pending-model-changes --project src/Tailorly.App --no-build --configuration Release
 
       - name: Unit tests
         run: dotnet test --project tests/Tailorly.Tests --no-build -c Release --filter-namespace "Tailorly.Tests.Unit"
