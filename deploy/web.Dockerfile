@@ -1,6 +1,6 @@
 # Caddy serving the built SPA and reverse-proxying the API. Build context: repository root.
 
-FROM node:24-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /web
 COPY web/package.json web/package-lock.json ./
 RUN npm ci --no-audit --no-fund
