@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using FluentAssertions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Tailorly.App.Features.Digests;
 using Tailorly.App.Features.Resumes;
 using Tailorly.App.Infrastructure.Jobs;
 using Tailorly.Tests.Infrastructure;
@@ -268,6 +269,45 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         await F.Jobs.RunAllAsync(); // A's own job still parses it
         (await ApiClient.JsonAsync(await owner.Api.GetAsync($"/api/v1/resumes/{resumeId}")))
             .GetProperty("parseStatus").GetString().Should().Be("ready");
+    }
+
+    [Fact]
+    public async Task A_digest_id_in_a_query_string_never_opens_another_users_digest()
+    {
+        var owner = await CreateOwnerAsync();
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+
+        var res = await intruder.Api.GetAsync($"/api/v1/jobs?digestId={owner.DigestId}");
+        res.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        var all = await ApiClient.TextAsync(await intruder.Api.GetAsync("/api/v1/jobs?pageSize=50"));
+        all.Should().NotContain(owner.JobId.ToString("D"), "the jobs table is shared; scores are not");
+        (await ApiClient.TextAsync(await intruder.Api.GetAsync("/api/v1/digests"))).Should().NotContain(owner.DigestId.ToString("D"));
+
+        (await owner.User.Api.GetAsync($"/api/v1/jobs?digestId={owner.DigestId}")).StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task A_run_job_given_another_users_id_cannot_touch_the_digest()
+    {
+        var owner = await MatchingTestData.CreateMatcherAsync(F, MatchingTestData.NewRole(), "isolation-run");
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+        var started = await owner.Api.PostAsync("/api/v1/runs");
+        started.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(started));
+        var digestId = (await ApiClient.JsonAsync(started)).GetProperty("id").GetGuid();
+        F.Jobs.Clear(); // the queued run is not what this test runs
+
+        // A's digest id with B's user id: what a tampered job argument would look like.
+        await using (var scope = F.Services.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<PerUserRunJob>().RunAsync(digestId, intruder.Id, TestContext.Current.CancellationToken);
+
+        (await ApiClient.JsonAsync(await owner.Api.GetAsync($"/api/v1/digests/{digestId}")))
+            .GetProperty("status").GetString().Should().Be("queued", "B's job must not see A's digest");
+        (await ApiClient.JsonAsync(await intruder.Api.GetAsync("/api/v1/digests"))).GetProperty("total").GetInt32().Should().Be(0);
+
+        await using (var scope = F.Services.CreateAsyncScope()) // A's own job still runs it
+            await scope.ServiceProvider.GetRequiredService<PerUserRunJob>().RunAsync(digestId, owner.Id, TestContext.Current.CancellationToken);
+        (await ApiClient.JsonAsync(await owner.Api.GetAsync($"/api/v1/digests/{digestId}")))
+            .GetProperty("status").GetString().Should().Be("ready");
     }
 
     private async Task<Owner> CreateOwnerAsync()

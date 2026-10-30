@@ -33,6 +33,12 @@ public sealed partial class TenancyGuardTests
             "résumé version counter: WHERE user_id = the caller's own id; UPDATE … RETURNING has no EF equivalent",
     };
 
+    /// <summary>Hangfire entry points that take a user id but deliberately do not act as that user, with the reason.</summary>
+    private static readonly Dictionary<string, string> JobsWithoutActAs = new()
+    {
+        ["PurgeUserAsync"] = "deletes across the user's rows and files through SystemQueries, after checking pending_deletion",
+    };
+
     private static IModel Model()
     {
         using var db = new DesignTimeDbContextFactory().CreateDbContext([]);
@@ -106,6 +112,29 @@ public sealed partial class TenancyGuardTests
     }
 
     [Fact]
+    public void Every_background_job_that_takes_a_user_id_acts_as_that_user()
+    {
+        var jobs = new List<(string File, string Method, bool ActsAs)>();
+        foreach (var file in SourceFiles())
+        {
+            var code = StripComments(File.ReadAllText(file));
+            foreach (Match m in UserJob().Matches(code))
+            {
+                if (!m.Groups["args"].Value.Contains("Guid userId", StringComparison.Ordinal)) continue;
+                var end = code.IndexOf("\n    }", m.Index + m.Length, StringComparison.Ordinal); // the method's closing brace
+                var body = code[(m.Index + m.Length)..(end < 0 ? code.Length : end)];
+                jobs.Add((Path.GetFileName(file), m.Groups["name"].Value, body.Contains("CurrentUser.ActAs(", StringComparison.Ordinal)));
+            }
+        }
+
+        jobs.Select(j => j.Method).Should().Contain(["RunAsync", "SendAsync", "PurgeUserAsync"], "the scan must see the job classes");
+        jobs.Count(j => j.Method == "RunAsync").Should().BeGreaterThanOrEqualTo(2, "ParseResumeJob and PerUserRunJob");
+        string.Join(", ", jobs.Where(j => !j.ActsAs && !JobsWithoutActAs.ContainsKey(j.Method)).Select(j => $"{j.File}: {j.Method}"))
+            .Should().BeEmpty("a job that works for one user must call CurrentUser.ActAs(userId) first so the query filters apply");
+        JobsWithoutActAs.Keys.Should().OnlyContain(k => jobs.Any(j => j.Method == k && !j.ActsAs), "the list must not name jobs that act as the user");
+    }
+
+    [Fact]
     public void Guards_see_the_source_tree()
     {
         var files = SourceFiles().Select(Path.GetFileName).ToList();
@@ -151,8 +180,13 @@ public sealed partial class TenancyGuardTests
     [GeneratedRegex(@"\.IgnoreQueryFilters\s*\(")]
     private static partial Regex IgnoreFilters();
 
-    [GeneratedRegex(@"\b(ExecuteSql\w*|SqlQuery\w*|FromSql\w*)\s*(<[^>(]*>)?\s*\(")]
+    /// <summary>EF raw SQL, or an ADO command built by hand (its SQL is the next string literal, or the one assigned to CommandText).</summary>
+    [GeneratedRegex(@"\b(ExecuteSql\w*|SqlQuery\w*|FromSql\w*)\s*(<[^>(]*>)?\s*\(|\bnew\s+NpgsqlCommand\s*\(|\bCommandText\s*=")]
     private static partial Regex RawSqlCall();
+
+    /// <summary>An <c>[AutomaticRetry]</c> job method: its name and parameter list (the body follows).</summary>
+    [GeneratedRegex(@"\[AutomaticRetry[^\n]*\]\s*(?:\[[^\n]*\]\s*)*public\s+async\s+Task\w*(?:<[^>]*>)?\s+(?<name>\w+)\((?<args>[^)]*)\)")]
+    private static partial Regex UserJob();
 
     [GeneratedRegex(@"^\s*//.*$", RegexOptions.Multiline)]
     private static partial Regex LineComment();

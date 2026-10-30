@@ -229,6 +229,28 @@ public sealed partial class DigestScheduleTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task The_email_job_given_another_users_id_sends_nothing_and_leaves_the_digest_unsent()
+    {
+        var (u, _, digestId) = await DueNowAsync();
+        await F.Jobs.RunAllAsync();
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "email-b", "Email Intruder B");
+        await Db.ExecAsync(Cs, "UPDATE digests SET emailed_at = NULL WHERE id = @d", ("d", digestId));
+        var before = DigestMails(u).Count;
+        before.Should().Be(1);
+
+        await using (var scope = F.Services.CreateAsyncScope()) // A's digest id with B's user id
+            await scope.ServiceProvider.GetRequiredService<DigestEmailJob>().SendAsync(digestId, intruder.Id, Ct);
+
+        DigestMails(u).Should().HaveCount(before);
+        F.Emails.To(intruder.Email).Should().NotContain(m => m.ListUnsubscribeUrl != null);
+        (await DigestAsync(u, digestId)).GetProperty("emailedAt").ValueKind.Should().Be(System.Text.Json.JsonValueKind.Null);
+
+        await using (var scope = F.Services.CreateAsyncScope()) // the owner's own job still delivers it
+            await scope.ServiceProvider.GetRequiredService<DigestEmailJob>().SendAsync(digestId, u.Id, Ct);
+        DigestMails(u).Should().HaveCount(before + 1);
+    }
+
+    [Fact]
     public async Task One_click_unsubscribe_turns_the_digest_off_without_signing_in()
     {
         var (u, _, _) = await DueNowAsync();
