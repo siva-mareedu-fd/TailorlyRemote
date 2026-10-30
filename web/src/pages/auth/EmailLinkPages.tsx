@@ -2,7 +2,14 @@ import { CircleCheck, TriangleAlert } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { isApiError } from '@/api/client';
-import { useConfirmDeletion, useMe, useResetPassword, useVerifyEmail } from '@/api/queries';
+import {
+  useConfirmDeletion,
+  useMe,
+  useResetPassword,
+  useUnsubscribe,
+  useVerifyEmail,
+  useVerifyNotificationEmail,
+} from '@/api/queries';
 import { Alert, Skeleton } from '@/components/Feedback';
 import { PasswordField, PasswordMeter } from '@/components/Field';
 import { Button } from '@/components/ui/button';
@@ -185,5 +192,106 @@ export function ConfirmDeletionPage() {
         </Button>
       </div>
     </>
+  );
+}
+
+/**
+ * `/unsubscribe?token` from the digest email's "Turn off the daily digest" link (ApiDesign §4.10). Opening the link
+ * changes nothing; the explicit click does (mail scanners open links). Mail clients use the one-click POST directly.
+ */
+export function UnsubscribePage() {
+  const [params] = useSearchParams();
+  const token = params.get('token');
+  const unsubscribe = useUnsubscribe();
+  const me = useMe();
+
+  if (!token)
+    return (
+      <Outcome ok={false} title="This link did not work">
+        <p className="mb-[18px] text-sm text-muted">
+          The link is incomplete. You can turn the digest off in Preferences.
+        </p>
+        <Button asChild variant="primary" className="w-full py-[11px]">
+          <Link to="/preferences">Open Preferences</Link>
+        </Button>
+      </Outcome>
+    );
+  if (unsubscribe.isSuccess)
+    return (
+      <Outcome ok title="Daily digest turned off">
+        <p className="mb-[18px] text-sm text-muted">
+          We will not email your shortlist any more. Your shortlist is still in the app, and you can turn the digest
+          back on in Preferences.
+        </p>
+        <Button asChild variant="primary" className="w-full py-[11px]">
+          <Link to={me.data ? '/preferences' : '/signin?next=%2Fpreferences'}>Open Preferences</Link>
+        </Button>
+      </Outcome>
+    );
+
+  return (
+    <>
+      <h2 className="mb-1 text-[22px] tracking-[-0.02em]">Turn off your daily digest?</h2>
+      <p className="mb-[18px] text-sm text-muted">
+        You will stop getting the daily shortlist email. Nothing else changes; you can turn it back on any time.
+      </p>
+      {unsubscribe.isError && (
+        <Alert tone="bad" className="mb-[14px]">
+          {isApiError(unsubscribe.error) ? unsubscribe.error.userMessage : 'Could not turn it off. Try again.'}
+        </Alert>
+      )}
+      <div className="row" style={{ justifyContent: 'flex-end' }}>
+        <Button asChild>
+          <Link to="/">Keep the digest</Link>
+        </Button>
+        <Button variant="primary" onClick={() => unsubscribe.mutate(token)} disabled={unsubscribe.isPending}>
+          {unsubscribe.isPending ? 'Turning off…' : 'Turn off the digest'}
+        </Button>
+      </div>
+    </>
+  );
+}
+
+/** `/verify-notification-email?token` sent to a new notification email (proposal 18). Confirms on open, like sign-up. */
+export function VerifyNotificationEmailPage() {
+  const [params] = useSearchParams();
+  const token = params.get('token');
+  const verify = useVerifyNotificationEmail();
+  const me = useMe();
+  const sent = useRef(false);
+
+  useEffect(() => {
+    if (token && !sent.current) {
+      sent.current = true;
+      verify.mutate(token);
+    }
+  }, [token, verify]);
+
+  const target = me.data ? '/account' : '/signin?next=%2Faccount';
+  if (!token || verify.isError)
+    return (
+      <Outcome ok={false} title="This link did not work">
+        <p className="mb-[18px] text-sm text-muted">
+          {verify.error && isApiError(verify.error) ? verify.error.userMessage : 'The link is incomplete.'}
+        </p>
+        <Button asChild variant="primary" className="w-full py-[11px]">
+          <Link to={target}>Open Account</Link>
+        </Button>
+      </Outcome>
+    );
+  if (!verify.isSuccess)
+    return (
+      <div aria-busy="true">
+        <h2 className="mb-3 text-[22px] tracking-[-0.02em]">Confirming this address…</h2>
+        <Skeleton lines={2} />
+      </div>
+    );
+  return (
+    <Outcome ok title="Address confirmed">
+      <p className="mb-[18px] text-sm text-muted">Your daily digest will be sent to this address from now on.</p>
+      <Button asChild variant="primary" className="w-full py-[11px]">
+        <Link to={target}>Open Account</Link>
+      </Button>
+    </Outcome>
   );
 }

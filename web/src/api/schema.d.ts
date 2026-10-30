@@ -52,6 +52,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StartRun"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/me/notification-email/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["VerifyNotificationEmail"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/register": {
         parameters: {
             query?: never;
@@ -404,6 +436,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListJobs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/digests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListDigests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/digests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetDigest"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/email/unsubscribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["OpenUnsubscribeLink"];
+        put?: never;
+        post: operations["Unsubscribe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/sources": {
         parameters: {
             query?: never;
@@ -636,6 +748,12 @@ export interface components {
             /** Format: int64 */
             platformEnrichmentCeiling: null | number;
             disk: null | components["schemas"]["StatusDiskDto"];
+            digests: components["schemas"]["StatusDigestsDto"];
+        };
+        AlsoOnDto: {
+            sourceKey: string;
+            sourceName: string;
+            sourceUrl: string;
         };
         ApiProblem: {
             type: string;
@@ -650,6 +768,12 @@ export interface components {
                 [key: string]: string[];
             };
             extra?: Record<string, never>;
+        };
+        ApproxInrDto: {
+            /** Format: int64 */
+            min: null | number;
+            /** Format: int64 */
+            max: null | number;
         };
         ChangePasswordRequest: {
             currentPassword: null | string;
@@ -724,6 +848,67 @@ export interface components {
         DeletionStatusResponse: {
             status: string;
         };
+        DigestDetailDto: {
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            /** Format: date */
+            localDate: string;
+            status: string;
+            errorCode: null | string;
+            degraded: boolean;
+            /** Format: int32 */
+            jobsConsidered: null | number;
+            /** Format: int32 */
+            jobsScored: null | number;
+            /** Format: date-time */
+            startedAt: null | string;
+            /** Format: date-time */
+            finishedAt: null | string;
+            /** Format: date-time */
+            emailedAt: null | string;
+            /** Format: date-time */
+            createdAt: string;
+            items: components["schemas"]["DigestItemDto"][];
+        };
+        DigestItemDto: {
+            /** Format: int32 */
+            rank: number;
+            job: components["schemas"]["JobSummaryDto"];
+        };
+        DigestPage: {
+            items: components["schemas"]["DigestSummaryDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            total: number;
+        };
+        DigestSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            /** Format: date */
+            localDate: string;
+            status: string;
+            errorCode: null | string;
+            degraded: boolean;
+            /** Format: int32 */
+            jobsConsidered: null | number;
+            /** Format: int32 */
+            jobsScored: null | number;
+            /** Format: int32 */
+            itemCount: number;
+            /** Format: date-time */
+            startedAt: null | string;
+            /** Format: date-time */
+            finishedAt: null | string;
+            /** Format: date-time */
+            emailedAt: null | string;
+            /** Format: date-time */
+            createdAt: string;
+        };
         ForgotPasswordRequest: {
             email: null | string;
         };
@@ -751,6 +936,71 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        JobDetailDto: {
+            description?: null | string;
+            summary?: null | string;
+            skillsRequired: string[];
+            skillsPreferred: string[];
+            seniority?: null | string;
+            timezoneRequirement?: null | string;
+            /** Format: uuid */
+            id: string;
+            title: string;
+            companyName: string;
+            locationText?: null | string;
+            workMode?: null | string;
+            employmentType?: null | string;
+            eligibility: string;
+            eligibilityEvidence?: null | string;
+            salary: components["schemas"]["SalaryDto"];
+            salaryLabel: string;
+            descriptionCompleteness: string;
+            /** Format: date-time */
+            postedAt?: null | string;
+            applyUrl: string;
+            source: components["schemas"]["SourceInfoDto"];
+            alsoOn: components["schemas"]["AlsoOnDto"][];
+            score?: null | components["schemas"]["JobScoreDto"];
+            tracked?: null | components["schemas"]["TrackedDto"];
+        };
+        JobPage: {
+            items: components["schemas"]["JobSummaryDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            total: number;
+        };
+        JobScoreDto: {
+            /** Format: int32 */
+            fitScore: number;
+            reasons: string[];
+            matchedSkills: string[];
+            missingSkills: string[];
+            confidence: string;
+        };
+        JobSummaryDto: {
+            /** Format: uuid */
+            id: string;
+            title: string;
+            companyName: string;
+            locationText?: null | string;
+            workMode?: null | string;
+            employmentType?: null | string;
+            eligibility: string;
+            eligibilityEvidence?: null | string;
+            salary: components["schemas"]["SalaryDto"];
+            salaryLabel: string;
+            descriptionCompleteness: string;
+            /** Format: date-time */
+            postedAt?: null | string;
+            applyUrl: string;
+            source: components["schemas"]["SourceInfoDto"];
+            alsoOn: components["schemas"]["AlsoOnDto"][];
+            score?: null | components["schemas"]["JobScoreDto"];
+            tracked?: null | components["schemas"]["TrackedDto"];
+        };
         JsonElement: unknown;
         LoginRequest: {
             email: null | string;
@@ -764,6 +1014,7 @@ export interface components {
             displayName: string;
             timeZone: string;
             notificationEmail: string;
+            notificationEmailVerified: boolean;
             consent: null | components["schemas"]["ConsentInfo"];
             accountStatus: string;
             roles: string[];
@@ -904,6 +1155,17 @@ export interface components {
         RunStartedDto: {
             runId: string;
         };
+        SalaryDto: {
+            /** Format: int64 */
+            min: null | number;
+            /** Format: int64 */
+            max: null | number;
+            currency: null | string;
+            period: string;
+            originalPeriod: null | string;
+            kind: string;
+            approxInr: null | components["schemas"]["ApproxInrDto"];
+        };
         SeedLoadResult: {
             /** Format: int32 */
             added: number;
@@ -924,6 +1186,13 @@ export interface components {
             callsThisMonth: number;
             lastRunStats: null | components["schemas"]["JsonElement"];
         };
+        SourceInfoDto: {
+            key: string;
+            name: string;
+            attributionText: null | string;
+            attributionUrl: null | string;
+            sourceUrl: string;
+        };
         StatusAiRowDto: {
             task: string;
             model: string;
@@ -941,6 +1210,20 @@ export interface components {
             notFound: number;
             /** Format: int32 */
             blocked: number;
+        };
+        StatusDigestsDto: {
+            /** Format: int32 */
+            ready: number;
+            /** Format: int32 */
+            failed: number;
+            /** Format: int32 */
+            inFlight: number;
+            /** Format: int32 */
+            degraded: number;
+            /** Format: int32 */
+            unsent: number;
+            /** Format: date-time */
+            lastFinishedAt: null | string;
         };
         StatusDiskDto: {
             /** Format: int64 */
@@ -977,6 +1260,14 @@ export interface components {
             displayName: string;
             enabled: boolean;
             health: components["schemas"]["SourceHealthDto"];
+        };
+        TrackedDto: {
+            /** Format: uuid */
+            userJobId: string;
+            status: string;
+        };
+        UnsubscribeResult: {
+            done: boolean;
         };
         UpdateCompanyRequest: {
             status: null | string;
@@ -1044,6 +1335,9 @@ export interface components {
         VerifyEmailRequest: {
             /** Format: uuid */
             userId: string;
+            token: null | string;
+        };
+        VerifyNotificationEmailRequest: {
             token: null | string;
         };
         WatchedCompanyDto: {
@@ -1139,6 +1433,75 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["UsageResponse"];
                 };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    StartRun: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestDetailDto"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestDetailDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    VerifyNotificationEmail: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyNotificationEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Error (RFC 7807) */
             default: {
@@ -2057,6 +2420,201 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    ListJobs: {
+        parameters: {
+            query?: {
+                digestId?: string;
+                minScore?: number;
+                eligibility?: string[];
+                workMode?: string[];
+                salary?: string;
+                q?: string;
+                savedOnly?: boolean;
+                sort?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobPage"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["JobDetailDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    ListDigests: {
+        parameters: {
+            query?: {
+                kind?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestPage"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetDigest: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DigestDetailDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    OpenUnsubscribeLink: {
+        parameters: {
+            query?: {
+                token?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    Unsubscribe: {
+        parameters: {
+            query?: {
+                token?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnsubscribeResult"];
+                };
             };
             /** @description Error (RFC 7807) */
             default: {

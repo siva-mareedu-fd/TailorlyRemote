@@ -1,9 +1,17 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
+import { ShortlistPage } from '@/features/shortlist/ShortlistPage';
 import { AccountPage } from '@/pages/AccountPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { AuthPage } from '@/pages/auth/AuthPage';
-import { ConfirmDeletionPage, ResetPasswordPage, VerifyEmailPage } from '@/pages/auth/EmailLinkPages';
+import {
+  ConfirmDeletionPage,
+  ResetPasswordPage,
+  UnsubscribePage,
+  VerifyEmailPage,
+  VerifyNotificationEmailPage,
+} from '@/pages/auth/EmailLinkPages';
 import { PrivacyPage, TermsPage } from '@/pages/auth/LegalPages';
+import { DigestDetailPage, DigestsPage } from '@/pages/DigestsPage';
 import { ErrorPage } from '@/pages/ErrorPage';
 import { NotFoundPage } from '@/pages/NotFound';
 import { OnboardingPage } from '@/pages/OnboardingPage';
@@ -21,16 +29,9 @@ const routes: RouteObject[] = [
     element: <AppShell />,
     children: [
       { index: true, element: <HomeRedirect /> },
-      {
-        path: 'shortlist',
-        element: (
-          <PlaceholderPage
-            title="Today’s shortlist"
-            sub="Your daily digest of remote roles open to India."
-            milestone="M3"
-          />
-        ),
-      },
+      { path: 'shortlist', element: <ShortlistPage /> },
+      { path: 'digests', element: <DigestsPage /> },
+      { path: 'digests/:id', element: <DigestDetailPage /> },
       {
         path: 'jobs/:id',
         element: (
@@ -82,6 +83,8 @@ const routes: RouteObject[] = [
       { path: 'verify-email', element: <VerifyEmailPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
       { path: 'confirm-deletion', element: <ConfirmDeletionPage /> },
+      { path: 'unsubscribe', element: <UnsubscribePage /> },
+      { path: 'verify-notification-email', element: <VerifyNotificationEmailPage /> },
       { path: 'privacy', element: <PrivacyPage /> },
       { path: 'terms', element: <TermsPage /> },
     ],

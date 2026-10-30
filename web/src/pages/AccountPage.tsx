@@ -58,7 +58,14 @@ function ProfileForm() {
     e.preventDefault();
     update.mutate(
       { displayName: name, timeZone: tz, notificationEmail: notify },
-      { onSuccess: () => say('Profile saved') },
+      {
+        onSuccess: (saved) =>
+          say(
+            saved.notificationEmailVerified
+              ? 'Profile saved'
+              : 'Profile saved. Check the new address for a confirmation link',
+          ),
+      },
     );
   };
 
@@ -105,6 +112,12 @@ function ProfileForm() {
           error={err?.field('notificationEmail')}
         />
       </div>
+      {!me.notificationEmailVerified && (
+        <Alert tone="info" className="mb-[14px]">
+          We sent a confirmation link to <b>{me.notificationEmail}</b>. Until you open it, your digest goes to{' '}
+          {me.email}. Save the address again to get a new link.
+        </Alert>
+      )}
       {err && Object.keys(err.fieldErrors).length === 0 && (
         <Alert tone="bad" className="mb-[14px]">
           {err.userMessage}

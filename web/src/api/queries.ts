@@ -10,6 +10,18 @@ export type Usage = Schemas['UsageResponse'];
 export type ConfirmedSkill = Schemas['ConfirmedSkillDto'];
 export type Preferences = Schemas['PreferencesDto'];
 export type WatchedCompany = Schemas['WatchedCompanyDto'];
+export type JobSummary = Schemas['JobSummaryDto'];
+export type JobDetail = Schemas['JobDetailDto'];
+export type Digest = Schemas['DigestDetailDto'];
+export type DigestSummary = Schemas['DigestSummaryDto'];
+
+/** Filters of `GET /jobs` the Shortlist uses (ApiDesign §4.6). */
+export interface JobFilters {
+  minScore?: number;
+  eligibility?: string;
+  q?: string;
+  digestId?: string;
+}
 
 export const keys = {
   meta: ['meta'] as const,
@@ -21,6 +33,11 @@ export const keys = {
   skills: ['confirmed-skills'] as const,
   preferences: ['preferences'] as const,
   watched: ['watched-companies'] as const,
+  jobs: (f: JobFilters) => ['jobs', 'list', f] as const,
+  job: (id: string) => ['jobs', 'detail', id] as const,
+  digests: (page: number, kind?: string) => ['digests', 'list', page, kind ?? 'all'] as const,
+  latestDigest: ['digests', 'latest'] as const,
+  digest: (id: string) => ['digests', 'detail', id] as const,
 };
 
 /** `GET /api/v1/meta`: version, consent version, tones and limits for the SPA. */
@@ -67,6 +84,14 @@ export const isInFlight = (status: string | undefined) => status === 'queued' ||
  */
 export function pollInterval(query: { state: { data?: Resume } }, startedAt: number): number | false {
   if (!isInFlight(query.state.data?.parseStatus)) return false;
+  const elapsed = Date.now() - startedAt;
+  if (elapsed > 3 * 60_000) return false;
+  return elapsed < 10_000 ? 1_500 : 4_000;
+}
+
+/** The same cadence for any async resource with a `status` (digest runs; later analyses and documents). */
+export function pollStatus(status: string | undefined, startedAt: number): number | false {
+  if (!isInFlight(status)) return false;
   const elapsed = Date.now() - startedAt;
   if (elapsed > 3 * 60_000) return false;
   return elapsed < 10_000 ? 1_500 : 4_000;
@@ -290,6 +315,96 @@ export function useAddWatchedCompany() {
         api.POST('/api/v1/watched-companies', { body: { boardUrl, platform: null, boardToken: null, name: null } }),
       ),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.watched }),
+  });
+}
+
+// ---------- shortlist, digests and runs (ApiDesign §4.6) ----------
+
+/** Jobs scored for the caller, filtered; at most 50 (one page), best fit first. */
+export function useJobs(f: JobFilters, enabled = true) {
+  return useQuery({
+    queryKey: keys.jobs(f),
+    queryFn: () =>
+      call(() =>
+        api.GET('/api/v1/jobs', {
+          params: {
+            query: {
+              minScore: f.minScore,
+              eligibility: f.eligibility ? [f.eligibility] : undefined,
+              q: f.q || undefined,
+              digestId: f.digestId,
+              pageSize: 50,
+            },
+          },
+        }),
+      ),
+    enabled,
+    placeholderData: (previous) => previous,
+  });
+}
+
+export function useJob(id: string | null) {
+  return useQuery({
+    queryKey: keys.job(id ?? 'none'),
+    queryFn: () => call(() => api.GET('/api/v1/jobs/{id}', { params: { path: { id: id! } } })),
+    enabled: id !== null,
+    retry: false,
+  });
+}
+
+export function useDigests(page: number, kind?: string) {
+  return useQuery({
+    queryKey: keys.digests(page, kind),
+    queryFn: () => call(() => api.GET('/api/v1/digests', { params: { query: { page, pageSize: 20, kind } } })),
+    placeholderData: (previous) => previous,
+  });
+}
+
+/** The most recent run of either kind (the Shortlist header shows when it ran). */
+export function useLatestDigest(enabled = true) {
+  return useQuery({
+    queryKey: keys.latestDigest,
+    queryFn: async () =>
+      (await call(() => api.GET('/api/v1/digests', { params: { query: { pageSize: 1 } } }))).items[0] ?? null,
+    enabled,
+  });
+}
+
+/** One digest; polls while a run is queued or running. `startedAt` anchors the back-off. */
+export function useDigest(id: string | null, startedAt = 0) {
+  return useQuery({
+    queryKey: keys.digest(id ?? 'none'),
+    queryFn: () => call(() => api.GET('/api/v1/digests/{id}', { params: { path: { id: id! } } })),
+    enabled: id !== null,
+    retry: false,
+    refetchInterval: (q) => pollStatus(q.state.data?.status, startedAt),
+  });
+}
+
+/** "Run now": 202 with the new run, or 200 with the run already in flight. */
+export function useStartRun() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: () => call(() => api.POST('/api/v1/runs')),
+    onSuccess: (digest) => {
+      qc.setQueryData(keys.digest(digest.id), digest);
+      void qc.invalidateQueries({ queryKey: ['digests', 'list'] });
+    },
+  });
+}
+
+/** One-click unsubscribe from the digest email's link (no sign-in needed). */
+export function useUnsubscribe() {
+  return useMutation({
+    mutationFn: (token: string) => call(() => api.POST('/api/v1/email/unsubscribe', { params: { query: { token } } })),
+  });
+}
+
+export function useVerifyNotificationEmail() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (token: string) => call(() => api.POST('/api/v1/me/notification-email/verify', { body: { token } })),
+    onSuccess: () => qc.invalidateQueries({ queryKey: keys.me }),
   });
 }
 
