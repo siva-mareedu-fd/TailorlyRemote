@@ -39,6 +39,13 @@ public sealed class UserProfile : IUserOwned
     public string? ConsentVersion { get; set; }
     public DateTimeOffset? ConsentedAt { get; set; }
     public string? ConsentIpHash { get; set; }
+
+    /// <summary>
+    /// When a notification email that differs from the sign-in email was confirmed; null = not confirmed, so digests go to
+    /// the (verified) sign-in email until it is (proposal 18).
+    /// </summary>
+    public DateTimeOffset? NotificationEmailVerifiedAt { get; set; }
+
     /// <summary>Highest résumé version ever issued; versions are never reused after a delete (proposal 15).</summary>
     public int ResumeVersionsIssued { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
@@ -376,4 +383,92 @@ public sealed class Job
     public DateTimeOffset? ExpiresAt { get; set; }
     public DateTimeOffset? ClosedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>
+/// Shared, per-job AI enrichment (DatabaseDesign §3.4, PRD §7.4), created on demand by the first run that needs it and
+/// reused by every user. Holds only job-derived data, never user data. <see cref="Eligibility"/> is the final value after
+/// the hard rules (SDD §8.6); <see cref="Data"/> is the validated <c>job_enrichment</c> JSON.
+/// </summary>
+public sealed class JobEnrichment
+{
+    public Guid JobId { get; set; }
+
+    /// <summary>jsonb: skills, seniority, years, eligibility + evidence + source, time-zone requirement, salary, summary.</summary>
+    public required string Data { get; set; }
+
+    public required string Eligibility { get; set; }
+    public required string Model { get; set; }
+    public string? PromptVersion { get; set; }
+    public int SchemaVersion { get; set; } = 1;
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+// DatabaseDesign §3.5
+
+/// <summary>One job scored for one user and résumé version (never re-scored). Model <c>rules</c> = rule-based fallback.</summary>
+public sealed class UserJobScore : IUserOwned
+{
+    /// <summary>The <see cref="Model"/> of a rule-ranked row (no AI score; the API shows no fit score for it).</summary>
+    public const string RulesModel = "rules";
+
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserId { get; set; }
+    public Guid JobId { get; set; }
+    public int ResumeVersion { get; set; }
+    public short FitScore { get; set; }
+
+    /// <summary>jsonb array of strings (≤ 3, ≤ 20 words each).</summary>
+    public required string Reasons { get; set; }
+
+    public string MatchedSkills { get; set; } = "[]";
+    public string MissingSkills { get; set; } = "[]";
+    public required string Confidence { get; set; }
+    public required string Model { get; set; }
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+
+    public bool IsRuleBased => Model == RulesModel;
+}
+
+public static class DigestKinds
+{
+    public const string Scheduled = "scheduled";
+    public const string Manual = "manual";
+}
+
+/// <summary>A run of the per-user pipeline: the daily scheduled digest or a manual "Run now" (DatabaseDesign DB2).</summary>
+public sealed class Digest : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserId { get; set; }
+    public required string Kind { get; set; }
+
+    /// <summary>The user's local date the run belongs to (one scheduled digest per user per local date).</summary>
+    public DateOnly LocalDate { get; set; }
+
+    public string Status { get; set; } = WorkStatus.Queued;
+    public int Attempt { get; set; } = 1;
+    public string? ErrorCode { get; set; }
+    public int? JobsConsidered { get; set; }
+    public int? JobsScored { get; set; }
+
+    /// <summary>True when the rule-based fallback ranked some or all jobs (budget used up, AI unavailable, ceiling hit).</summary>
+    public bool Degraded { get; set; }
+
+    /// <summary>Start of the current attempt.</summary>
+    public DateTimeOffset? StartedAt { get; set; }
+
+    public DateTimeOffset? FinishedAt { get; set; }
+    public DateTimeOffset? EmailedAt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>A ranked job in a digest; references the score (DatabaseDesign DB8).</summary>
+public sealed class DigestItem : IUserOwned
+{
+    public Guid DigestId { get; set; }
+    public Guid ScoreId { get; set; }
+    public Guid UserId { get; set; }
+    public short Rank { get; set; }
 }

@@ -326,3 +326,82 @@ internal sealed class JobConfig : IEntityTypeConfiguration<Job>
     }
 }
 
+
+internal sealed class JobEnrichmentConfig : IEntityTypeConfiguration<JobEnrichment>
+{
+    public void Configure(EntityTypeBuilder<JobEnrichment> e)
+    {
+        e.ToTable("job_enrichment", t => t.HasCheckConstraint("ck_job_enrichment_eligibility",
+            "eligibility IN ('worldwide','india_eligible','restricted','unclear')"));
+        e.HasKey(x => x.JobId);
+        e.Property(x => x.JobId).ValueGeneratedNever();
+        e.Property(x => x.Data).HasColumnType("jsonb");
+        e.Property(x => x.SchemaVersion).HasDefaultValue(1);
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasOne<Job>().WithOne().HasForeignKey<JobEnrichment>(x => x.JobId).OnDelete(DeleteBehavior.Cascade);
+        e.HasIndex(x => x.Eligibility).HasDatabaseName("ix_job_enrichment_eligibility");
+    }
+}
+
+// DatabaseDesign §3.5
+
+internal sealed class UserJobScoreConfig : IEntityTypeConfiguration<UserJobScore>
+{
+    public void Configure(EntityTypeBuilder<UserJobScore> e)
+    {
+        e.ToTable("user_job_scores", t =>
+        {
+            t.HasCheckConstraint("ck_user_job_scores_fit_score", "fit_score BETWEEN 1 AND 10");
+            t.HasCheckConstraint("ck_user_job_scores_confidence", "confidence IN ('high','medium','low')");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.Reasons).HasColumnType("jsonb");
+        e.Property(x => x.MatchedSkills).HasColumnType("jsonb").HasDefaultValueSql("'[]'");
+        e.Property(x => x.MissingSkills).HasColumnType("jsonb").HasDefaultValueSql("'[]'");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<Job>().WithMany().HasForeignKey(x => x.JobId).OnDelete(DeleteBehavior.Cascade);
+        e.HasIndex(x => new { x.UserId, x.JobId, x.ResumeVersion }).IsUnique().HasDatabaseName("ux_user_job_scores_user_job_version");
+        e.HasIndex(x => new { x.UserId, x.CreatedAt }).IsDescending(false, true).HasDatabaseName("ix_scores_user_created");
+        e.Ignore(x => x.IsRuleBased);
+    }
+}
+
+internal sealed class DigestConfig : IEntityTypeConfiguration<Digest>
+{
+    public void Configure(EntityTypeBuilder<Digest> e)
+    {
+        e.ToTable("digests", t =>
+        {
+            t.HasCheckConstraint("ck_digests_kind", "kind IN ('scheduled','manual')");
+            t.HasCheckConstraint("ck_digests_status", "status IN ('queued','running','ready','failed')");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.Status).HasDefaultValue(WorkStatus.Queued);
+        e.Property(x => x.Attempt).HasDefaultValue(1);
+        e.Property(x => x.Degraded).HasDefaultValue(false);
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        // Two partial unique indexes: name them, or EF merges indexes on the same columns.
+        e.HasIndex(x => new { x.UserId, x.LocalDate }, "ux_digest_scheduled_per_day").IsUnique().HasFilter("kind = 'scheduled'")
+            .HasDatabaseName("ux_digest_scheduled_per_day");
+        e.HasIndex(x => x.UserId, "ux_digest_manual_inflight").IsUnique()
+            .HasFilter("kind = 'manual' AND status IN ('queued','running')").HasDatabaseName("ux_digest_manual_inflight");
+        e.HasIndex(x => new { x.UserId, x.CreatedAt }, "ix_digests_user_created").IsDescending(false, true)
+            .HasDatabaseName("ix_digests_user_created");
+    }
+}
+
+internal sealed class DigestItemConfig : IEntityTypeConfiguration<DigestItem>
+{
+    public void Configure(EntityTypeBuilder<DigestItem> e)
+    {
+        e.ToTable("digest_items");
+        e.HasKey(x => new { x.DigestId, x.ScoreId });
+        e.HasOne<Digest>().WithMany().HasForeignKey(x => x.DigestId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<UserJobScore>().WithMany().HasForeignKey(x => x.ScoreId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+    }
+}

@@ -34,6 +34,10 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ICurren
     public DbSet<Company> Companies => Set<Company>();
     public DbSet<CompanyAtsLink> CompanyAtsLinks => Set<CompanyAtsLink>();
     public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<JobEnrichment> JobEnrichment => Set<JobEnrichment>();
+    public DbSet<UserJobScore> UserJobScores => Set<UserJobScore>();
+    public DbSet<Digest> Digests => Set<Digest>();
+    public DbSet<DigestItem> DigestItems => Set<DigestItem>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
