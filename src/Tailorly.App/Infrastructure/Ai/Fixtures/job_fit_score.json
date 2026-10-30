@@ -1,0 +1,7 @@
+{
+  "fit_score": 9,
+  "reasons": ["Your .NET and PostgreSQL experience matches the core stack", "Seniority fits your 6 years", "Kubernetes is only preferred"],
+  "matched_skills": ["C#", ".NET", "PostgreSQL"],
+  "missing_skills": [],
+  "confidence": "high"
+}

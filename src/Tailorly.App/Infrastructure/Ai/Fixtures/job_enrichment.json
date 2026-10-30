@@ -1,0 +1,17 @@
+{
+  "skills_required": ["C#", ".NET", "PostgreSQL", "REST APIs"],
+  "skills_preferred": ["Kubernetes"],
+  "skill_aliases": [{ "skill": "PostgreSQL", "aliases": ["Postgres"] }],
+  "seniority": "senior",
+  "years_experience_min": 5,
+  "years_experience_max": null,
+  "employment_type": "full_time",
+  "work_mode": "remote",
+  "eligibility": "worldwide",
+  "eligibility_evidence": "We hire from anywhere in the world.",
+  "restricted_regions": [],
+  "timezone_requirement": null,
+  "hiring_model_hint": "employee",
+  "salary_extracted": null,
+  "summary": "Backend engineer building .NET services on PostgreSQL for a remote product team."
+}

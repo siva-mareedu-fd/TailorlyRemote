@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "job_enrichment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "skills_required", "skills_preferred", "skill_aliases", "seniority", "years_experience_min", "years_experience_max",
+    "employment_type", "work_mode", "eligibility", "eligibility_evidence", "restricted_regions", "timezone_requirement",
+    "hiring_model_hint", "salary_extracted", "summary"
+  ],
+  "properties": {
+    "skills_required": { "type": "array", "maxItems": 40, "items": { "type": "string", "minLength": 1, "maxLength": 60 } },
+    "skills_preferred": { "type": "array", "maxItems": 40, "items": { "type": "string", "minLength": 1, "maxLength": 60 } },
+    "skill_aliases": {
+      "type": "array",
+      "maxItems": 40,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["skill", "aliases"],
+        "properties": {
+          "skill": { "type": "string", "minLength": 1, "maxLength": 60 },
+          "aliases": { "type": "array", "maxItems": 8, "items": { "type": "string", "minLength": 1, "maxLength": 60 } }
+        }
+      }
+    },
+    "seniority": {
+      "anyOf": [
+        { "type": "string", "enum": ["intern", "junior", "mid", "senior", "staff", "principal", "lead", "manager"] },
+        { "type": "null" }
+      ]
+    },
+    "years_experience_min": { "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 40 }, { "type": "null" }] },
+    "years_experience_max": { "anyOf": [{ "type": "integer", "minimum": 0, "maximum": 40 }, { "type": "null" }] },
+    "employment_type": {
+      "anyOf": [{ "type": "string", "enum": ["full_time", "contract", "part_time", "internship"] }, { "type": "null" }]
+    },
+    "work_mode": { "anyOf": [{ "type": "string", "enum": ["remote", "hybrid", "onsite"] }, { "type": "null" }] },
+    "eligibility": { "type": "string", "enum": ["worldwide", "india_eligible", "restricted", "unclear"] },
+    "eligibility_evidence": { "anyOf": [{ "type": "string", "maxLength": 300 }, { "type": "null" }] },
+    "restricted_regions": { "type": "array", "maxItems": 30, "items": { "type": "string", "minLength": 1, "maxLength": 60 } },
+    "timezone_requirement": { "anyOf": [{ "type": "string", "maxLength": 200 }, { "type": "null" }] },
+    "hiring_model_hint": { "type": "string", "enum": ["employee", "contractor", "unknown"] },
+    "salary_extracted": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["min", "max", "currency", "period"],
+          "properties": {
+            "min": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] },
+            "max": { "anyOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }] },
+            "currency": { "anyOf": [{ "type": "string", "maxLength": 3 }, { "type": "null" }] },
+            "period": { "anyOf": [{ "type": "string", "enum": ["hour", "day", "week", "month", "year"] }, { "type": "null" }] }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 600 }
+  }
+}

@@ -23,6 +23,12 @@ public sealed class AiOptions
     /// <summary>Optional per-task overrides, e.g. <c>Ai:Tasks:resume_tailor:Effort=high</c>.</summary>
     public Dictionary<string, AiTaskOptions> Tasks { get; set; } = new(StringComparer.Ordinal);
 
+    /// <summary>
+    /// Platform-wide daily token ceiling for <c>job_enrichment</c> (PRD §6.3, Asia/Kolkata day); null = no ceiling. When
+    /// it is reached, runs rank un-enriched jobs by rules instead (SDD §8.5).
+    /// </summary>
+    public long? PlatformDailyEnrichmentTokenCeiling { get; set; }
+
     public string? EffortFor(string task) => Tasks.TryGetValue(task, out var t) && t.Effort is not null ? t.Effort : Effort;
 }
 

@@ -6,6 +6,8 @@ namespace Tailorly.App.Ai;
 public static class AiTaskNames
 {
     public const string ResumeParse = "resume_parse";
+    public const string JobEnrichment = "job_enrichment";
+    public const string JobFitScore = "job_fit_score";
 }
 
 /// <summary>
