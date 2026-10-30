@@ -20,6 +20,8 @@ parse these files, so a provider's format change shows up as a failing test when
 | `ashby/ashby_job_board.json`, `board_not_found.txt` | `GET https://api.ashbyhq.com/posting-api/job-board/Ashby?includeCompensation=true`; 404 body |
 | `jobicy/jobs.json` | `GET https://jobicy.com/api/jobs?count=5` (adapter not built; kept for M7) |
 | `wwr/remote-jobs.rss` | `GET https://weworkremotely.com/remote-jobs.rss` (adapter not built; kept for M7) |
+| `fx/frankfurter_v2_rates_usd.json` | `GET https://api.frankfurter.dev/v2/rates?base=USD` (captured **2026-10-30**; FX provider, not a job source) |
+| `fx/frankfurter_v2_rates_bad_base.json` | the 422 body for `base=XXX` |
 
 **Privacy:** Remote OK appends an anti-spam note to every description whose tag is the requester's IP address in
 base64. The capture's tag was replaced with `192.0.2.1` (RFC 5737 documentation address); the adapter strips the note.
