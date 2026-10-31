@@ -5,8 +5,25 @@
 Tailorly Remote helps developers in India find remote jobs that are actually open to them, and tailors their
 résumé (.docx) to each job without breaking formatting or inventing facts.
 
-**Status:** M3 (enrichment, fit scoring, the scheduled daily digest by email, the Shortlist). See
+**Status:** M4 (ATS Match Score, format-preserving résumé tailoring, cover letters). See
 `docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+
+### What works (M4)
+- **ATS Match Score** (0–100, "estimated"): keyword coverage, requirements met/partial/missing with the résumé
+  paragraphs as evidence, title and seniority, experience relevance and format health (with fix suggestions), weights
+  from `Ats:Weights`. Shown before and after tailoring.
+- **Tailoring workspace** (`/tailor/:id`, from **Tailor résumé** or `t` on the Shortlist): analysis → confirm skills →
+  review the proposed edits (word diff, flags *not in your résumé*, *too long*, *formatting simplified*, accept / reject
+  / reset, accept all safe, projected score) → finalise → download `.docx`. Every step shows queued, running, ready,
+  failed; a job whose description is limited asks you to paste it.
+- **Format preservation**: edits go into a copy of your file and only the edited paragraphs' text changes. Styles,
+  numbering, theme, headers, footers and section properties are copied byte for byte, and the result must pass the
+  OpenXML validator.
+- **No invented facts**: the model may only edit editable paragraphs; invented numbers, links and markdown are sent
+  back once and then refused; a new skill, name, title or credential is flagged and can be accepted only after you
+  confirm it as your skill.
+- **Cover letter** tab: Concise (≤ 180 words) or Confident (≤ 250), optional notes, editable, `.docx` download.
+- **PDF** downloads only with the `pdf_export.enabled` flag and the Compose `pdf` profile (Gotenberg).
 
 ### What works (M3)
 - **Daily digest**: a dispatcher (every 5 min) claims one scheduled digest per user per local day at the user's
@@ -92,7 +109,9 @@ Opt-in test runs (skipped by default):
 TAILORLY_LIVE_ANTHROPIC_KEY=sk-ant-... dotnet test --project tests/Tailorly.Tests --filter-class "*LiveAnthropicTests"
 # ...and re-record the fake provider's fixture from that real reply
 TAILORLY_RECORD_FIXTURES=1 TAILORLY_LIVE_ANTHROPIC_KEY=sk-ant-... dotnet test --project tests/Tailorly.Tests --filter-class "*LiveAnthropicTests"
-# Extractor check on your own résumés (never committed; asserts and reports counts only)
+#   (the second live test runs analysis, tailoring, finalising and both letter tones: about 30–40K tokens)
+# Extractor, format-preservation and LibreOffice checks on your own résumés (never committed; counts only):
+# use --filter-method "*local*" instead of the filter below to run all three
 TAILORLY_LOCAL_RESUMES=/path/to/docx-folder TAILORLY_LOCAL_RESUMES_REPORT=/tmp/report.txt \
   dotnet test --project tests/Tailorly.Tests --filter-method "*Real_resumes_in_a_local_folder*"
 ```
@@ -170,8 +189,12 @@ With `Ai__Provider=Fake` every job gets the recorded enrichment and fit score, s
 ```bash
 dotnet run --project tests/Tailorly.Eval                                   # validate datasets, rules baseline only
 Anthropic__ApiKey=sk-ant-... dotnet run --project tests/Tailorly.Eval -- --models claude-haiku-5-5,claude-sonnet-5-5
-#   --tasks eligibility,fit · --limit N · --effort low|medium|high · --no-write
+#   --tasks eligibility,fit,tailor · --limit N · --effort low|medium|high · --no-write
 ```
+**Tailoring hallucination check** (`datasets/tailoring.json`): without a key, the deterministic guard runs on 40
+adversarial and 12 benign hand-written edits and the run exits 1 if an adversarial edit passes as safe (CI runs this).
+With `--models`, `resume_tailor` runs on 8 cases through the production prompt and validators, and an independent
+checker counts new facts that got through unflagged (target 0).
 Datasets: `tests/Tailorly.Eval/datasets/eligibility.json` and `fit_scores.json`, each with a JSON schema next to it.
 Items carry `labelSource`; the starter items are `starter (unreviewed)` until the owner labels them. The runner uses
 the production prompts, input builders and validators (one repair turn) and the same hard-rule resolver as the app;
@@ -211,6 +234,10 @@ following PRD Appendix A). No secrets live in the repository. `Ai__Provider=Fake
 | `Enrichment__MaxPerRun`, `Scoring__MaxPerRun` | Jobs enriched (60) and scored (20) per run |
 | `Ai__PlatformDailyEnrichmentTokenCeiling` | Platform `job_enrichment` tokens per Asia/Kolkata day (2,000,000); empty = no ceiling |
 | `Digest__WindowHours`, `Digest__RetryDelayMinutes__0..2`, `Digest__MaxManualRunsPerDay`, `Digest__LookbackHours`, `Digest__EmailMaxItems` | Catch-up window (4 h), retry delays (10/30/60 min), Run now per day (3), how far back new jobs are read (72 h), jobs listed per email (20) |
+| `Tailor__MaxLengthRatio`, `Tailor__MaxEdits`, `Tailor__AllowFirstPerson` | Edits longer than 1.15× are flagged; at most 25 edits per tailoring; first person only where the paragraph already uses it |
+| `Ats__Weights__KeywordCoverage` … `Ats__Weights__FormatHealth` | ATS score weights (0.35 / 0.25 / 0.10 / 0.15 / 0.15) |
+| `CoverLetter__Tones__concise`, `CoverLetter__Tones__confident`, `CoverLetter__Cliches__0..n` | Word limit per tone (180 / 250); phrases letters must avoid (defaults in code) |
+| `Pdf__GotenbergUrl`, `Pdf__TimeoutSeconds` | Gotenberg for PDF export (used only with the `pdf_export.enabled` flag) |
 | `Fx__Provider`, `Fx__StaticRates__USD_INR` | `Frankfurter` (daily public rates, no key) or `Static`; the static rate is also the fallback |
 
 Poll intervals are not configuration: they are `job_sources.poll_interval_minutes`, edited in Admin → Sources.
@@ -247,4 +274,6 @@ otherwise come back (SDD §13.4). The full runbook arrives with M6.
 - Confirm the default assumptions in PRD §17 (INR default, unclear-eligibility handling, tones, 600K/1.4M split).
 - Legal review of the privacy notice (résumé text is processed by an AI provider).
 - Formal colour-contrast check of the final palette.
-- Collect about 10 anonymised résumé files for the format-preservation suite (M4).
+- The format-preservation suite uses 12 synthetic résumés (plus the opt-in run on local files). Add anonymised real
+  résumés as fixtures if you have them.
+- Label the tailoring eval set (items are `starter (unreviewed)`) and grow it before launch.
