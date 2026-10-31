@@ -56,6 +56,27 @@ public static partial class TechText
         return word;
     }
 
+    /// <summary>
+    /// A rough root shared by a word's inflections (<c>tune</c>, <c>tuned</c>, <c>tuning</c> → <c>tun</c>), for matching a
+    /// claim against a job skill phrased differently. Takes a <see cref="Words"/> word.
+    /// </summary>
+    public static string Root(string word)
+    {
+        var w = word;
+        if (w.Length > 5 && w.EndsWith("ing", StringComparison.Ordinal)) w = w[..^3];
+        else if (w.Length > 4 && w.EndsWith("ed", StringComparison.Ordinal)) w = w[..^2];
+        if (w.Length > 3 && w.EndsWith('e')) w = w[..^1];
+        return w;
+    }
+
+    /// <summary>Words a job skill name may contain that do not say what the skill is.</summary>
+    public static readonly IReadOnlySet<string> SkillStopwords = new HashSet<string>(StringComparer.Ordinal)
+    {
+        "and", "or", "the", "with", "of", "for", "in", "on", "to", "a", "an", "experience", "knowledge", "skill", "strong", "using",
+        "use", "plus", "nice", "have", "year", "ability", "understanding", "familiarity", "good", "solid", "deep", "proven",
+        "hand", "hands", "working", "work", "development", "developer", "engineering", "engineer", "system", "tool", "practice",
+    };
+
     /// <summary>Plurals of acronyms ending in "i" (stemmed to the acronym).</summary>
     private static readonly HashSet<string> AcronymPlurals = new(StringComparer.Ordinal) { "apis", "uis", "kpis", "clis", "guis", "rois" };
 

@@ -122,6 +122,19 @@ public sealed class HallucinationGuardTests
     }
 
     [Fact]
+    public void A_missing_job_skill_claimed_in_other_words_is_flagged()
+    {
+        var ctx = new TailorContext(Model, Context().Facts,
+            [new SkillGroup("LLM fine-tuning", []), new SkillGroup("Performance testing", [])], new TailorRules());
+        EditValidator.Check([new ProposedEdit(Id("Built REST"), "Built REST APIs and fine-tuned large language models for payments.", null, false)], ctx)
+            .Single().NewTerms.Should().Equal("LLM fine-tuning");
+        EditValidator.Check([new ProposedEdit(Id("Maintained billing"), "Maintained billing services and ran performance tests for every release.", null, false)], ctx)
+            .Single().NewTerms.Should().Equal("Performance testing");
+        EditValidator.Check([new ProposedEdit(Id("Maintained billing"), "Maintained billing services and wrote tests for every release.", null, false)], ctx)
+            .Single().Flags.Should().NotContain(EditFlags.NewFact, "the résumé already says it writes tests");
+    }
+
+    [Fact]
     public void New_numbers_are_violations_the_model_must_fix_and_terms_are_flags_the_user_decides()
     {
         Run("Reduced settlement", "Reduced settlement latency by 45% by redesigning the nightly batch pipeline.").Violations

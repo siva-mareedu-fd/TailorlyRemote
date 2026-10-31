@@ -21,13 +21,19 @@ public sealed class FactSource
     private readonly HashSet<string> _pictographs = new(StringComparer.Ordinal);
     private readonly IReadOnlyList<string> _texts;
 
+    private readonly HashSet<string> _roots = new(StringComparer.Ordinal);
+
     private FactSource(IReadOnlyList<string> texts)
     {
         _texts = texts.Where(t => !string.IsNullOrWhiteSpace(t)).ToList();
         foreach (var t in texts.Where(t => !string.IsNullOrWhiteSpace(t)))
         {
             _padded.Add(TechText.Padded(t));
-            foreach (var w in TechText.Words(t)) _words.Add(w);
+            foreach (var w in TechText.Words(t))
+            {
+                _words.Add(w);
+                _roots.Add(TechText.Root(w));
+            }
             foreach (var n in FactGuard.Numbers(t))
             {
                 _numbers.Add((n.Value, n.Kind));
@@ -42,6 +48,9 @@ public sealed class FactSource
     public static FactSource Build(IEnumerable<string> texts) => new(texts.ToList());
 
     public bool HasWord(string stemmedWord) => _words.Contains(stemmedWord);
+
+    /// <summary>The word in any inflection (<c>tuned</c>, <c>tuning</c> and <c>tune</c> share a root).</summary>
+    public bool HasRoot(string root) => _roots.Contains(root);
 
     public bool HasPhrase(string phrase) => _padded.Any(p => TechText.ContainsPhrase(p, phrase));
 
@@ -245,9 +254,20 @@ public static partial class FactGuard
                 continue;
             }
             var used = spellings.Where(s => TechText.ContainsPhrase(padded, s)).ToList();
-            if (used.Count == 0) continue;
+            if (used.Count > 0)
+            {
+                found.Add(group.Skill.Trim());
+                foreach (var w in used.SelectMany(TechText.Words)) reported.Add(w);
+                continue;
+            }
+            // Claimed in other words: a word the user never used that names part of the missing skill
+            // ("fine-tuned large language models" for "LLM fine-tuning", "load tests" for "Performance testing").
+            var skillRoots = spellings.SelectMany(TechText.Words).Where(w => !TechText.SkillStopwords.Contains(w) && w.Length > 2)
+                .Select(TechText.Root).ToHashSet(StringComparer.Ordinal);
+            var claimed = TechText.Words(text).Where(w => skillRoots.Contains(TechText.Root(w)) && !source.HasRoot(TechText.Root(w))).ToList();
+            if (claimed.Count == 0) continue;
             found.Add(group.Skill.Trim());
-            foreach (var w in used.SelectMany(TechText.Words)) reported.Add(w);
+            foreach (var w in claimed) reported.Add(w);
         }
 
         var tokens = Tokens(text);
