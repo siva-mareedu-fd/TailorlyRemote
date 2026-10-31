@@ -75,6 +75,69 @@ public sealed class LogScanTests(PostgresAppFixture fx)
     }
 
     /// <summary>
+    /// The M4 flows (analysis, pasted description and its enrichment, tailoring with a repair turn, decisions, finalising,
+    /// download, cover letter with notes, content edit) with verbose logging: no résumé or job text, model reply, edit,
+    /// rationale, letter or note is logged.
+    /// </summary>
+    [Fact]
+    public async Task No_resume_job_edit_letter_or_note_text_reaches_the_logs_in_the_tailoring_flow()
+    {
+        await using var f = new TailorlyAppFactory(fx.ConnectionString, new Dictionary<string, string?>
+        {
+            ["Serilog:MinimumLevel:Default"] = "Verbose",
+            ["Serilog:MinimumLevel:Override:Microsoft.AspNetCore"] = "Debug",
+            ["Serilog:MinimumLevel:Override:Microsoft.EntityFrameworkCore"] = "Debug",
+            ["Serilog:MinimumLevel:Override:Hangfire"] = "Debug",
+        });
+        const string pasteSentinel = "SENTINEL-PASTED-JOB-6621";
+        const string editSentinel = "sentineleditquartz"; // lower-case words: a number or a name would be refused or flagged
+        const string rationaleSentinel = "SENTINEL-RATIONALE-9114";
+        const string letterSentinel = "sentinelletterquartz";
+        const string noteSentinel = "SENTINEL-NOTE-7745";
+        const string justification = "SENTINEL-JUSTIFY-1402";
+
+        var (u, _, uj) = await TailoringTestData.TrackedJobAsync(f, "sentinel-tailor");
+        (await u.Api.PutAsync($"/api/v1/user-jobs/{uj}/description",
+            new { description = MatchingTestData.Description + " " + pasteSentinel })).StatusCode.Should().Be(HttpStatusCode.OK);
+        MatchingTestData.Reply(f, AiTaskNames.ByoJobEnrichment, MatchingTestData.Enrichment());
+        var analysis = System.Text.Json.JsonSerializer.Serialize(TailoringTestData.Analysis()).Replace(
+            "Payments backend work matches the role.", justification, StringComparison.Ordinal);
+        f.Ai.Enqueue(AiTaskNames.AtsAnalysis, analysis);
+        (await u.Api.PostAsync($"/api/v1/user-jobs/{uj}/analysis", new { })).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        await f.Jobs.RunAllAsync();
+
+        // An invented number forces a repair turn (whose prompt must not be logged either), then a valid edit.
+        MatchingTestData.Reply(f, AiTaskNames.ResumeTailor, TailoringTestData.Tailor(
+            TailoringTestData.Edit("Built REST", $"Built REST APIs for 9 teams {editSentinel}.", rationaleSentinel)));
+        MatchingTestData.Reply(f, AiTaskNames.ResumeTailor, TailoringTestData.Tailor(
+            TailoringTestData.Edit("Built REST", $"Built REST APIs in C# and PostgreSQL {editSentinel}.", rationaleSentinel)));
+        var start = await u.Api.PostAsync($"/api/v1/user-jobs/{uj}/tailored-resumes", new { });
+        var docId = (await ApiClient.JsonAsync(start)).GetProperty("id").GetGuid();
+        await f.Jobs.RunAllAsync();
+        var doc = await ApiClient.JsonAsync(await u.Api.GetAsync($"/api/v1/tailored-documents/{docId}"));
+        await TailoringTestData.DecideAsync(u, docId, (TailoringTestData.Edits(doc).Single().GetProperty("id").GetString()!, "accepted"));
+        f.Ai.Enqueue(AiTaskNames.AtsAnalysis, analysis);
+        (await u.Api.PostAsync($"/api/v1/tailored-documents/{docId}/finalize")).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        await f.Jobs.RunAllAsync();
+        (await u.Api.GetAsync($"/api/v1/tailored-documents/{docId}/download")).StatusCode.Should().Be(HttpStatusCode.OK);
+
+        MatchingTestData.Reply(f, AiTaskNames.CoverLetter, TailoringTestData.Letter("concise", "Hello Acme Cloud team,",
+            $"I build .NET services {letterSentinel}.", "Best regards,", "Asha Verma"));
+        var letter = await u.Api.PostAsync($"/api/v1/user-jobs/{uj}/cover-letters", new { notes = noteSentinel });
+        var letterId = (await ApiClient.JsonAsync(letter)).GetProperty("id").GetGuid();
+        await f.Jobs.RunAllAsync();
+        (await ApiClient.TextAsync(await u.Api.GetAsync($"/api/v1/tailored-documents/{letterId}"))).Should().Contain(letterSentinel);
+        (await u.Api.PutAsync($"/api/v1/tailored-documents/{letterId}/content", new { paragraphs = new[] { letterSentinel + " edited" } }))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var logs = f.Logs.Lines.ToList();
+        logs.Should().Contain(l => l.Contains("finalised", StringComparison.Ordinal), "the work itself is logged (ids and counts)");
+        foreach (var secret in new[] { pasteSentinel, editSentinel, rationaleSentinel, letterSentinel, noteSentinel, justification, u.Email,
+                     "Built REST APIs", "payment infrastructure", "Asha Verma" })
+            logs.Where(l => l.Contains(secret, StringComparison.OrdinalIgnoreCase)).Should().BeEmpty($"'{secret[..Math.Min(12, secret.Length)]}…' must never be logged");
+    }
+
+    /// <summary>
     /// The M3 flows (enrichment, scoring, scheduled digest, email, unsubscribe, notification-email confirmation) with
     /// verbose logging: no job text, model reply, email address, role or link token is logged.
     /// </summary>

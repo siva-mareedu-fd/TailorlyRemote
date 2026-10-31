@@ -50,13 +50,14 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ["PUT /api/v1/preferences"] = "replaces the caller's preferences",
         ["POST /api/v1/watched-companies"] = "adds a board to the caller's watch list",
         ["POST /api/v1/runs"] = "starts a search for the caller",
+        ["POST /api/v1/user-jobs"] = "tracks a job scored for the caller (another user's job id is 404)",
     };
 
     /// <summary>Admin routes: a signed-in user without the Admin role gets 403 on every one, whatever the id.</summary>
     private const string AdminPrefix = "/api/v1/admin/";
 
     private sealed record Owner(TestUser User, Guid ResumeId, Guid SkillId, string FileName, string Skill, Guid WatchedLinkId,
-        string Role, string BoardToken, Guid JobId, Guid DigestId);
+        string Role, string BoardToken, Guid JobId, Guid DigestId, Guid UserJobId, Guid DocumentId);
 
     /// <summary>How to find user A's resource for a route with an id, by route prefix (longest prefix wins).</summary>
     private static readonly (string Prefix, Func<Owner, Guid> Id)[] Resolvers =
@@ -66,6 +67,8 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ("/api/v1/watched-companies/{", o => o.WatchedLinkId),
         ("/api/v1/jobs/{", o => o.JobId),
         ("/api/v1/digests/{", o => o.DigestId),
+        ("/api/v1/user-jobs/{", o => o.UserJobId),
+        ("/api/v1/tailored-documents/{", o => o.DocumentId),
     ];
 
     /// <param name="Multipart">The endpoint only accepts multipart/form-data (otherwise routing answers 415 first).</param>
@@ -128,7 +131,7 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         {
             owner.User.Id.ToString(), owner.User.Email, owner.ResumeId.ToString(), owner.SkillId.ToString(), owner.FileName,
             owner.Skill, "Isolation Owner A", owner.Role, owner.BoardToken, owner.WatchedLinkId.ToString(), owner.JobId.ToString(),
-            owner.DigestId.ToString(),
+            owner.DigestId.ToString(), owner.UserJobId.ToString(), owner.DocumentId.ToString(),
         };
 
         var failures = new List<string>();
@@ -336,7 +339,39 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         var jobId = await MatchingTestData.InsertJobAsync(F, $"{role} Engineer");
         var digest = await MatchingTestData.RunNowAsync(F, a);
         MatchingTestData.Items(digest).Should().Contain(i => i.GetProperty("job").GetProperty("id").GetGuid() == jobId);
-        return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token, jobId, digest.GetProperty("id").GetGuid());
+
+        // A tracked job with an analysis and a proposed tailoring (the offline provider answers from the request).
+        var tracked = await a.Api.PostAsync("/api/v1/user-jobs", new { jobId });
+        tracked.StatusCode.Should().Be(HttpStatusCode.Created, await ApiClient.TextAsync(tracked));
+        var userJobId = (await ApiClient.JsonAsync(tracked)).GetProperty("id").GetGuid();
+        (await a.Api.PostAsync($"/api/v1/user-jobs/{userJobId}/analysis", new { })).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        await F.Jobs.RunAllAsync();
+        var tailoring = await a.Api.PostAsync($"/api/v1/user-jobs/{userJobId}/tailored-resumes", new { });
+        tailoring.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(tailoring));
+        var documentId = (await ApiClient.JsonAsync(tailoring)).GetProperty("id").GetGuid();
+        await F.Jobs.RunAllAsync();
+        (await ApiClient.JsonAsync(await a.Api.GetAsync($"/api/v1/tailored-documents/{documentId}")))
+            .GetProperty("status").GetString().Should().Be("proposed");
+        return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token, jobId, digest.GetProperty("id").GetGuid(),
+            userJobId, documentId);
+    }
+
+    [Fact]
+    public async Task Another_users_job_cannot_be_tracked_and_tailoring_jobs_given_their_id_change_nothing()
+    {
+        var owner = await CreateOwnerAsync();
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+
+        // The shared listing exists, but it was scored for A only.
+        (await intruder.Api.PostAsync("/api/v1/user-jobs", new { jobId = owner.JobId })).StatusCode.Should().Be(HttpStatusCode.NotFound);
+
+        // A's document id with B's user id: what a tampered job argument would look like.
+        await Db.ExecAsync(fx.ConnectionString, "UPDATE tailored_documents SET status = 'queued' WHERE id = @id", ("id", owner.DocumentId));
+        await using (var scope = F.Services.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<Tailorly.App.Features.Tailoring.TailorResumeJob>()
+                .RunAsync(owner.DocumentId, intruder.Id, null, TestContext.Current.CancellationToken);
+        (await Db.ScalarAsync<string>(fx.ConnectionString, "SELECT status FROM tailored_documents WHERE id = @id", ("id", owner.DocumentId)))
+            .Should().Be("queued", "B's job must not see A's document");
     }
 
     [GeneratedRegex(@":[a-z]+(?=\})")]
