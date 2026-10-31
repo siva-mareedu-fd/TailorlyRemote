@@ -432,6 +432,96 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                     b.ToTable("asp_net_users", (string)null);
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AtsAnalysis", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<short?>("AtsScore")
+                        .HasColumnType("smallint")
+                        .HasColumnName("ats_score");
+
+                    b.Property<string>("Components")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("components");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("error_code");
+
+                    b.Property<string>("Findings")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("findings");
+
+                    b.Property<string>("Gaps")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("gaps");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text")
+                        .HasColumnName("model");
+
+                    b.Property<string>("PromptVersion")
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_version");
+
+                    b.Property<string>("Requirements")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("requirements");
+
+                    b.Property<Guid>("ResumeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resume_id");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("queued")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("UserJobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_job_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_ats_analyses");
+
+                    b.HasIndex("ResumeId")
+                        .HasDatabaseName("ix_ats_analyses_resume_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_ats_analyses_user_id");
+
+                    b.HasIndex("UserJobId", "ResumeId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_ats_analyses_user_job_resume");
+
+                    b.ToTable("ats_analyses", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_ats_analyses_ats_score", "ats_score BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_ats_analyses_status", "status IN ('queued','running','ready','failed')");
+                        });
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -1274,6 +1364,130 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                     b.ToTable("source_health", (string)null);
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.TailoredDocument", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<short?>("AtsAfter")
+                        .HasColumnType("smallint")
+                        .HasColumnName("ats_after");
+
+                    b.Property<string>("AtsBreakdown")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("ats_breakdown");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("content");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Edits")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("edits");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("error_code");
+
+                    b.Property<DateTimeOffset?>("FinalizedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("finalized_at");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text")
+                        .HasColumnName("model");
+
+                    b.Property<string>("PromptVersion")
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_version");
+
+                    b.Property<Guid>("ResumeId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resume_id");
+
+                    b.Property<int>("SourceResumeVersion")
+                        .HasColumnType("integer")
+                        .HasColumnName("source_resume_version");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("queued")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StorageKey")
+                        .HasColumnType("text")
+                        .HasColumnName("storage_key");
+
+                    b.Property<string>("Tone")
+                        .HasColumnType("text")
+                        .HasColumnName("tone");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("UserJobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_job_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_tailored_documents");
+
+                    b.HasIndex("ResumeId")
+                        .HasDatabaseName("ix_tailored_documents_resume_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_tailored_documents_user_id");
+
+                    b.HasIndex(new[] { "UserJobId", "CreatedAt" }, "ix_tailored_user_job")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_tailored_user_job");
+
+                    b.HasIndex(new[] { "UserJobId", "Kind" }, "ux_tailored_inflight")
+                        .IsUnique()
+                        .HasDatabaseName("ux_tailored_inflight")
+                        .HasFilter("status IN ('queued','running','finalizing')");
+
+                    b.ToTable("tailored_documents", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_tailored_documents_ats_after", "ats_after BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_tailored_documents_kind", "kind IN ('resume','cover_letter')");
+
+                            t.HasCheckConstraint("ck_tailored_documents_kind_tone", "(kind = 'resume' AND tone IS NULL) OR (kind = 'cover_letter')");
+
+                            t.HasCheckConstraint("ck_tailored_documents_status", "status IN ('queued','running','proposed','finalizing','ready','failed')");
+
+                            t.HasCheckConstraint("ck_tailored_documents_tone", "tone IS NULL OR tone IN ('concise','confident')");
+                        });
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserBudgetCounter", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -1345,6 +1559,135 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasDatabaseName("ux_user_confirmed_skills_key");
 
                     b.ToTable("user_confirmed_skills", (string)null);
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserJob", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ApplyUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("apply_url");
+
+                    b.Property<short?>("AtsAfter")
+                        .HasColumnType("smallint")
+                        .HasColumnName("ats_after");
+
+                    b.Property<short?>("AtsBefore")
+                        .HasColumnType("smallint")
+                        .HasColumnName("ats_before");
+
+                    b.Property<string>("AttributionUrl")
+                        .HasColumnType("text")
+                        .HasColumnName("attribution_url");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("company_name");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<short?>("FitScore")
+                        .HasColumnType("smallint")
+                        .HasColumnName("fit_score");
+
+                    b.Property<bool>("IsByo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_byo");
+
+                    b.Property<Guid?>("JobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("job_id");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("text")
+                        .HasColumnName("notes");
+
+                    b.Property<string>("SourceKey")
+                        .HasColumnType("text")
+                        .HasColumnName("source_key");
+
+                    b.Property<string>("SourceName")
+                        .HasColumnType("text")
+                        .HasColumnName("source_name");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("saved")
+                        .HasColumnName("status");
+
+                    b.Property<string>("StatusHistory")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("status_history")
+                        .HasDefaultValueSql("'[]'");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("title");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("UserDescription")
+                        .HasColumnType("text")
+                        .HasColumnName("user_description");
+
+                    b.Property<string>("UserEnrichment")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("user_enrichment");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<uint>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id")
+                        .HasName("pk_user_jobs");
+
+                    b.HasIndex("JobId")
+                        .HasDatabaseName("ix_user_jobs_job_id");
+
+                    b.HasIndex(new[] { "UserId", "Status", "UpdatedAt" }, "ix_user_jobs_status")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_user_jobs_status");
+
+                    b.HasIndex(new[] { "UserId", "JobId" }, "ux_user_jobs_job")
+                        .IsUnique()
+                        .HasDatabaseName("ux_user_jobs_job")
+                        .HasFilter("job_id IS NOT NULL");
+
+                    b.ToTable("user_jobs", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_user_jobs_ats_after", "ats_after BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_user_jobs_ats_before", "ats_before BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_user_jobs_fit_score", "fit_score BETWEEN 1 AND 10");
+
+                            t.HasCheckConstraint("ck_user_jobs_status", "status IN ('saved','tailored','applied','interviewing','offer','rejected','withdrawn')");
+                        });
                 });
 
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserJobScore", b =>
@@ -1755,6 +2098,30 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasConstraintName("fk_ai_usage_asp_net_users_user_id");
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AtsAnalysis", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.Resume", null)
+                        .WithMany()
+                        .HasForeignKey("ResumeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ats_analyses_resumes_resume_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ats_analyses_asp_net_users_user_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.UserJob", null)
+                        .WithMany()
+                        .HasForeignKey("UserJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_ats_analyses_user_jobs_user_job_id");
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.AuditLog", b =>
                 {
                     b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
@@ -1877,6 +2244,30 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasConstraintName("fk_source_health_job_sources_source_key");
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.TailoredDocument", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.Resume", null)
+                        .WithMany()
+                        .HasForeignKey("ResumeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tailored_documents_resumes_resume_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tailored_documents_asp_net_users_user_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.UserJob", null)
+                        .WithMany()
+                        .HasForeignKey("UserJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_tailored_documents_user_jobs_user_job_id");
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserBudgetCounter", b =>
                 {
                     b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
@@ -1895,6 +2286,22 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_user_confirmed_skills_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserJob", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.Job", null)
+                        .WithMany()
+                        .HasForeignKey("JobId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_user_jobs_jobs_job_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_jobs_asp_net_users_user_id");
                 });
 
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.UserJobScore", b =>

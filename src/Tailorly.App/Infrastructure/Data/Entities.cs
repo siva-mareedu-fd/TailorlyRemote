@@ -472,3 +472,147 @@ public sealed class DigestItem : IUserOwned
     public Guid UserId { get; set; }
     public short Rank { get; set; }
 }
+
+// DatabaseDesign §3.6
+
+public static class UserJobStatus
+{
+    public const string Saved = "saved";
+    public const string Tailored = "tailored";
+    public const string Applied = "applied";
+    public const string Interviewing = "interviewing";
+    public const string Offer = "offer";
+    public const string Rejected = "rejected";
+    public const string Withdrawn = "withdrawn";
+    public static readonly string[] All = [Saved, Tailored, Applied, Interviewing, Offer, Rejected, Withdrawn];
+}
+
+/// <summary>
+/// A tracker entry (DatabaseDesign §3.6, DB7): a job the user works on, with a snapshot of the listing so it survives the
+/// job's expiry. Tailoring, cover letters and (M5) interview prep hang off it; BYO jobs (M5) live only here.
+/// </summary>
+public sealed class UserJob : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserId { get; set; }
+
+    /// <summary>The listing; null for BYO jobs or after the listing was deleted.</summary>
+    public Guid? JobId { get; set; }
+
+    public bool IsByo { get; set; }
+    public required string Title { get; set; }
+    public required string CompanyName { get; set; }
+    public string? ApplyUrl { get; set; }
+    public string? SourceKey { get; set; }
+    public string? SourceName { get; set; }
+    public string? AttributionUrl { get; set; }
+
+    /// <summary>A pasted description (BYO job, or a listing whose text is limited or gone). Never logged.</summary>
+    public string? UserDescription { get; set; }
+
+    /// <summary>jsonb: the enrichment of <see cref="UserDescription"/> (same shape as <c>job_enrichment.data</c>).</summary>
+    public string? UserEnrichment { get; set; }
+
+    public string Status { get; set; } = UserJobStatus.Saved;
+    public string? Notes { get; set; }
+    public short? FitScore { get; set; }
+    public short? AtsBefore { get; set; }
+    public short? AtsAfter { get; set; }
+
+    /// <summary>jsonb: <c>[{status, at}]</c>.</summary>
+    public string StatusHistory { get; set; } = "[]";
+
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+
+    /// <summary>PostgreSQL <c>xmin</c>: the optimistic concurrency token.</summary>
+    public uint Version { get; set; }
+}
+
+/// <summary>ATS analysis of the original résumé against a tracked job (DatabaseDesign DB5). One per (tracked job, résumé).</summary>
+public sealed class AtsAnalysis : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserJobId { get; set; }
+    public Guid UserId { get; set; }
+    public Guid ResumeId { get; set; }
+    public string Status { get; set; } = WorkStatus.Queued;
+    public string? ErrorCode { get; set; }
+    public short? AtsScore { get; set; }
+
+    /// <summary>jsonb: the five components (0–1) and the matched/missing keywords.</summary>
+    public string? Components { get; set; }
+
+    /// <summary>jsonb: <c>[{text, type, status, evidencePids}]</c>.</summary>
+    public string? Requirements { get; set; }
+
+    /// <summary>jsonb: <c>[{skill, likelyHas}]</c>.</summary>
+    public string? Gaps { get; set; }
+
+    /// <summary>jsonb: format findings with fix suggestions.</summary>
+    public string? Findings { get; set; }
+
+    public string? Model { get; set; }
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+public static class DocumentKinds
+{
+    public const string Resume = "resume";
+    public const string CoverLetter = "cover_letter";
+}
+
+/// <summary>Status of a tailored document: the simple async statuses plus <c>proposed</c> and <c>finalizing</c> for résumés.</summary>
+public static class TailoredStatus
+{
+    public const string Queued = "queued";
+    public const string Running = "running";
+    public const string Proposed = "proposed";
+    public const string Finalizing = "finalizing";
+    public const string Ready = "ready";
+    public const string Failed = "failed";
+
+    public static bool InFlight(string status) => status is Queued or Running or Finalizing;
+}
+
+/// <summary>A tailored résumé or a cover letter for a tracked job (DatabaseDesign DB6, ApiDesign API1).</summary>
+public sealed class TailoredDocument : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserJobId { get; set; }
+    public Guid UserId { get; set; }
+    public Guid ResumeId { get; set; }
+    public required string Kind { get; set; }
+    public string Status { get; set; } = TailoredStatus.Queued;
+    public string? ErrorCode { get; set; }
+    public int SourceResumeVersion { get; set; }
+
+    /// <summary>jsonb (résumé): <c>{schemaVersion, items:[{id, paragraphId, fingerprint, …, decision}], unaddressedGaps}</c>.</summary>
+    public string? Edits { get; set; }
+
+    /// <summary>jsonb (cover letter): <c>{paragraphs, wordCount, notes}</c>.</summary>
+    public string? Content { get; set; }
+
+    public string? Tone { get; set; }
+    public short? AtsAfter { get; set; }
+
+    /// <summary>jsonb: <c>{basis, components, keywords}</c>; projected while proposed, re-scored once ready.</summary>
+    public string? AtsBreakdown { get; set; }
+
+    /// <summary>The final .docx, under the résumé's storage prefix (so deleting the résumé deletes it).</summary>
+    public string? StorageKey { get; set; }
+
+    public string? Model { get; set; }
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? FinalizedAt { get; set; }
+
+    /// <summary>PostgreSQL <c>xmin</c>: the optimistic concurrency token.</summary>
+    public uint Version { get; set; }
+
+    public static string KeyFor(Guid userId, Guid resumeId, Guid documentId, string kind) =>
+        $"{userId:D}/resumes/{resumeId:D}/tailored/{documentId:D}/{(kind == DocumentKinds.CoverLetter ? "cover-letter" : "resume")}.docx";
+}

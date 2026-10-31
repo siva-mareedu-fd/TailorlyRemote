@@ -405,3 +405,93 @@ internal sealed class DigestItemConfig : IEntityTypeConfiguration<DigestItem>
         e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
     }
 }
+
+// DatabaseDesign §3.6
+
+internal sealed class UserJobConfig : IEntityTypeConfiguration<UserJob>
+{
+    public void Configure(EntityTypeBuilder<UserJob> e)
+    {
+        e.ToTable("user_jobs", t =>
+        {
+            t.HasCheckConstraint("ck_user_jobs_status",
+                "status IN ('saved','tailored','applied','interviewing','offer','rejected','withdrawn')");
+            t.HasCheckConstraint("ck_user_jobs_fit_score", "fit_score BETWEEN 1 AND 10");
+            t.HasCheckConstraint("ck_user_jobs_ats_before", "ats_before BETWEEN 0 AND 100");
+            t.HasCheckConstraint("ck_user_jobs_ats_after", "ats_after BETWEEN 0 AND 100");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.IsByo).HasDefaultValue(false);
+        e.Property(x => x.UserEnrichment).HasColumnType("jsonb");
+        e.Property(x => x.Status).HasDefaultValue(UserJobStatus.Saved);
+        e.Property(x => x.StatusHistory).HasColumnType("jsonb").HasDefaultValueSql("'[]'");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.Version).IsRowVersion();
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<Job>().WithMany().HasForeignKey(x => x.JobId).OnDelete(DeleteBehavior.SetNull);
+        e.HasIndex(x => new { x.UserId, x.JobId }, "ux_user_jobs_job").IsUnique().HasFilter("job_id IS NOT NULL")
+            .HasDatabaseName("ux_user_jobs_job");
+        e.HasIndex(x => new { x.UserId, x.Status, x.UpdatedAt }, "ix_user_jobs_status").IsDescending(false, false, true)
+            .HasDatabaseName("ix_user_jobs_status");
+    }
+}
+
+internal sealed class AtsAnalysisConfig : IEntityTypeConfiguration<AtsAnalysis>
+{
+    public void Configure(EntityTypeBuilder<AtsAnalysis> e)
+    {
+        e.ToTable("ats_analyses", t =>
+        {
+            t.HasCheckConstraint("ck_ats_analyses_status", "status IN ('queued','running','ready','failed')");
+            t.HasCheckConstraint("ck_ats_analyses_ats_score", "ats_score BETWEEN 0 AND 100");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.Status).HasDefaultValue(WorkStatus.Queued);
+        e.Property(x => x.Components).HasColumnType("jsonb");
+        e.Property(x => x.Requirements).HasColumnType("jsonb");
+        e.Property(x => x.Gaps).HasColumnType("jsonb");
+        e.Property(x => x.Findings).HasColumnType("jsonb");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+        e.HasOne<UserJob>().WithMany().HasForeignKey(x => x.UserJobId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<Resume>().WithMany().HasForeignKey(x => x.ResumeId).OnDelete(DeleteBehavior.Cascade);
+        e.HasIndex(x => new { x.UserJobId, x.ResumeId }).IsUnique().HasDatabaseName("ux_ats_analyses_user_job_resume");
+    }
+}
+
+internal sealed class TailoredDocumentConfig : IEntityTypeConfiguration<TailoredDocument>
+{
+    public void Configure(EntityTypeBuilder<TailoredDocument> e)
+    {
+        e.ToTable("tailored_documents", t =>
+        {
+            t.HasCheckConstraint("ck_tailored_documents_kind", "kind IN ('resume','cover_letter')");
+            t.HasCheckConstraint("ck_tailored_documents_status",
+                "status IN ('queued','running','proposed','finalizing','ready','failed')");
+            t.HasCheckConstraint("ck_tailored_documents_tone", "tone IS NULL OR tone IN ('concise','confident')");
+            t.HasCheckConstraint("ck_tailored_documents_ats_after", "ats_after BETWEEN 0 AND 100");
+            t.HasCheckConstraint("ck_tailored_documents_kind_tone", "(kind = 'resume' AND tone IS NULL) OR (kind = 'cover_letter')");
+        });
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.Status).HasDefaultValue(TailoredStatus.Queued);
+        e.Property(x => x.Edits).HasColumnType("jsonb");
+        e.Property(x => x.Content).HasColumnType("jsonb");
+        e.Property(x => x.AtsBreakdown).HasColumnType("jsonb");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.Version).IsRowVersion();
+        e.HasOne<UserJob>().WithMany().HasForeignKey(x => x.UserJobId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<Resume>().WithMany().HasForeignKey(x => x.ResumeId).OnDelete(DeleteBehavior.Cascade);
+        // Two indexes on (user_job_id, …): name them, or EF merges indexes on the same columns.
+        e.HasIndex(x => new { x.UserJobId, x.Kind }, "ux_tailored_inflight").IsUnique()
+            .HasFilter("status IN ('queued','running','finalizing')").HasDatabaseName("ux_tailored_inflight");
+        e.HasIndex(x => new { x.UserJobId, x.CreatedAt }, "ix_tailored_user_job").IsDescending(false, true)
+            .HasDatabaseName("ix_tailored_user_job");
+    }
+}

@@ -38,6 +38,9 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ICurren
     public DbSet<UserJobScore> UserJobScores => Set<UserJobScore>();
     public DbSet<Digest> Digests => Set<Digest>();
     public DbSet<DigestItem> DigestItems => Set<DigestItem>();
+    public DbSet<UserJob> UserJobs => Set<UserJob>();
+    public DbSet<AtsAnalysis> AtsAnalyses => Set<AtsAnalysis>();
+    public DbSet<TailoredDocument> TailoredDocuments => Set<TailoredDocument>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
