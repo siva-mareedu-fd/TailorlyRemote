@@ -378,7 +378,7 @@ public sealed partial class CoverLetterJob(AppDbContext db, TailoringData data, 
 
             var result = await ai.RunAsync(CoverLetterTask.For(rules),
                 CoverLetterTask.BuildInput(job, profile, confirmed, highlights, notes, rules), userId, ct);
-            var paragraphs = result.Value.Paragraphs.Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
+            var paragraphs = CoverLetterTask.Paragraphs(result.Value);
             var bytes = CoverLetterWriter.Write(paragraphs);
             d.StorageKey = TailoredDocument.KeyFor(d.UserId, d.ResumeId, d.Id, d.Kind);
             using (var s = new MemoryStream(bytes, writable: false)) await files.SaveAsync(d.StorageKey, s, ct);

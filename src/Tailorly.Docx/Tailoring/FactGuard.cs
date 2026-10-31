@@ -41,8 +41,25 @@ public sealed class FactSource
             }
             foreach (var p in FactGuard.Pictographs(t)) _pictographs.Add(p);
         }
+        // "Jan 2021" and "January 2021" state the same date.
+        foreach (var (abbreviation, month) in Months)
+            if (_words.Contains(abbreviation) || _words.Contains(month))
+                foreach (var w in new[] { abbreviation, month, TechText.Stem(month), char.ToUpperInvariant(month[0]) + month[1..] })
+                {
+                    _words.Add(w);
+                    _roots.Add(TechText.Root(w));
+                }
+        _monthNames = Months.Where(m => _words.Contains(m.Month)).Select(m => char.ToUpperInvariant(m.Month[0]) + m.Month[1..]).ToList();
         _lower = string.Join("\n", texts).ToLowerInvariant();
     }
+
+    private static readonly (string Abbreviation, string Month)[] Months =
+    [
+        ("jan", "january"), ("feb", "february"), ("mar", "march"), ("apr", "april"), ("jun", "june"), ("jul", "july"),
+        ("aug", "august"), ("sep", "september"), ("sept", "september"), ("oct", "october"), ("nov", "november"), ("dec", "december"),
+    ];
+
+    private readonly List<string> _monthNames;
 
     /// <param name="texts">Résumé paragraphs and header/footer lines, profile strings, confirmed skills.</param>
     public static FactSource Build(IEnumerable<string> texts) => new(texts.ToList());
@@ -70,6 +87,7 @@ public sealed class FactSource
     public bool HasName(string name)
     {
         if (name.Length == 0) return false;
+        if (_monthNames.Contains(name, StringComparer.OrdinalIgnoreCase)) return true;
         var pattern = new Regex(@"(?<![\p{L}\p{Nd}])" + Regex.Escape(name) + @"(?![\p{L}\p{Nd}])",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
         return _texts.Any(t => pattern.Matches(t).Any(m => m.Value.Any(c => char.IsUpper(c) || !char.IsLetter(c))));

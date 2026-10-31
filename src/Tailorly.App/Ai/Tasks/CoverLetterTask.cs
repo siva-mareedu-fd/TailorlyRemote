@@ -70,6 +70,13 @@ public static class CoverLetterTask
 
     public static int WordCount(IEnumerable<string> paragraphs) => paragraphs.Sum(JobEnrichmentTask.WordCount);
 
+    /// <summary>
+    /// The letter as stored: an entry with line breaks (a sign-off and the name, "Best regards,\nAsha") becomes one
+    /// paragraph per line; blank lines are dropped.
+    /// </summary>
+    public static IReadOnlyList<string> Paragraphs(CoverLetterOutput o) =>
+        o.Paragraphs.SelectMany(p => p.Split('\n')).Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
+
     /// <summary>Deterministic checks. Messages name paragraphs by position and configured phrases only, never letter text.</summary>
     internal static IReadOnlyList<string> Validate(CoverLetterOutput o, CoverLetterRules r)
     {
@@ -90,7 +97,6 @@ public static class CoverLetterTask
         {
             var p = o.Paragraphs[i];
             var at = $"paragraphs[{i}]";
-            if (p.Contains('\n') || p.Contains('\r')) errors.Add($"{at} contains a line break; give each paragraph as its own entry.");
             if (FactGuard.HasMarkdown(p)) errors.Add($"{at} uses markdown or a bullet character; write plain paragraphs.");
             if (FactGuard.Pictographs(p).Count > 0) errors.Add($"{at} contains an emoji or pictograph.");
             if (FactGuard.Links(p).Any(l => !r.Facts.HasText(l))) errors.Add($"{at} contains a link or email address that is not in the résumé.");

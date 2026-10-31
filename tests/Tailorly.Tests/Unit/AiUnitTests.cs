@@ -150,3 +150,54 @@ public sealed class AnthropicModelProviderTests
         (await act.Should().ThrowAsync<ModelProviderException>()).Which.Transient.Should().Be(transient);
     }
 }
+
+/// <summary>The M4 task validators the integration tests do not reach in detail.</summary>
+public sealed class TailoringTaskTests
+{
+    private static readonly Tailorly.Docx.DocModel Resume =
+        Tailorly.Docx.ResumeExtractor.Extract(new MemoryStream(Tailorly.Tests.Infrastructure.DocxBuilder.SampleResume()));
+
+    private static CoverLetterRules Rules(string tone = "concise", int max = 180) => new(tone, max,
+        Tailorly.App.Features.Tailoring.CoverLetterOptions.DefaultCliches, "Acme Cloud", "Senior Backend Engineer",
+        Tailorly.App.Features.Tailoring.TailoringData.Facts(Resume, null, [], "Acme Cloud", "Senior Backend Engineer",
+            "Build payment services in C# on AWS.", CoverLetterTask.LetterVocabulary));
+
+    private static CoverLetterOutput Letter(params string[] paragraphs) => new(paragraphs, 0, "concise");
+
+    [Fact]
+    public void A_letter_with_a_sign_off_and_name_in_one_entry_is_split_into_paragraphs_not_refused()
+    {
+        var letter = Letter("Hello Acme Cloud team,", "I build payment services in C#.", "Best regards,\nAsha Verma");
+        CoverLetterTask.Validate(letter, Rules()).Should().BeEmpty();
+        CoverLetterTask.Paragraphs(letter).Should().Equal("Hello Acme Cloud team,", "I build payment services in C#.", "Best regards,", "Asha Verma");
+    }
+
+    [Fact]
+    public void A_letter_is_refused_for_the_wrong_tone_too_many_words_a_cliche_a_generic_opening_or_an_invented_fact()
+    {
+        CoverLetterTask.Validate(Letter("Hello Acme Cloud team,", "I build C# services."), Rules("confident", 250))
+            .Should().Contain(e => e.Contains("tone", StringComparison.Ordinal));
+        CoverLetterTask.Validate(Letter("Hello Acme Cloud team,", string.Join(" ", Enumerable.Repeat("word", 200))), Rules())
+            .Should().Contain(e => e.Contains("limit for a concise letter is 180", StringComparison.Ordinal));
+        CoverLetterTask.Validate(Letter("Hello Acme Cloud team,", "I am a team player."), Rules())
+            .Should().Contain("Avoid the phrase \"team player\".");
+        CoverLetterTask.Validate(Letter("Hello,", "I build C# services.", "Best regards,"), Rules())
+            .Should().Contain(e => e.Contains("opening", StringComparison.Ordinal));
+        CoverLetterTask.Validate(Letter("Hello Acme Cloud team,", "I cut costs by 45% at Google."), Rules())
+            .Should().Contain(e => e.Contains("number", StringComparison.Ordinal)).And.Contain(e => e.Contains("names", StringComparison.Ordinal));
+        CoverLetterTask.Validate(Letter("Dear Hiring Manager at Acme Cloud,", "Since January 2021 I have built REST APIs in C# and PostgreSQL."), Rules())
+            .Should().BeEmpty("greetings, the job's own words and a month spelled out ('Jan 2021' in the résumé) are not invented facts");
+    }
+
+    [Fact]
+    public void An_analysis_must_cite_existing_paragraphs_for_met_and_partial_requirements()
+    {
+        var ids = new HashSet<string>(["p4", "p8"]);
+        AtsAnalysisOutput A(string status, params string[] evidence) => new([new AtsRequirementOutput("C#", "required", status, evidence)], 0.5,
+            new ExperienceRelevanceOutput(0.5, "Fine."), []);
+        AtsAnalysisTask.Validate(A("met", "p8"), ids).Should().BeEmpty();
+        AtsAnalysisTask.Validate(A("missing"), ids).Should().BeEmpty();
+        AtsAnalysisTask.Validate(A("met"), ids).Should().ContainSingle(e => e.Contains("cites no résumé paragraph", StringComparison.Ordinal));
+        AtsAnalysisTask.Validate(A("partial", "p99"), ids).Should().HaveCount(2);
+    }
+}
