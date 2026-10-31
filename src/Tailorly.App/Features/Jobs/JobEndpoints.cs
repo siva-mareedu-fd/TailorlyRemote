@@ -84,7 +84,7 @@ public static class JobEndpoints
     }
 
     /// <summary>
-    /// Visible only if scored for the caller (or, from M5, tracked by them); 404 otherwise, or once the job was purged
+    /// Visible only if scored for the caller (a tracker entry always comes from a scored job, see DECISIONS proposal 59); 404 otherwise, or once the job was purged
     /// or is past its source's expiry (ApiDesign §4.6, §7).
     /// </summary>
     private static async Task<Ok<JobDetailDto>> Get(Guid id, AppDbContext db, ScoredJobs scored, ICurrentUser current, TimeProvider clock,
