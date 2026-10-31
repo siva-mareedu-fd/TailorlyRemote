@@ -1,6 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk"><!-- All OpenXML work. Depends on the OpenXML SDK only. -->
+<Project Sdk="Microsoft.NET.Sdk"><!-- All OpenXML work, plus the word diff of tailoring edits. Depends on the OpenXML SDK and DiffPlex only. -->
 
   <ItemGroup>
+    <PackageReference Include="DiffPlex" />
     <PackageReference Include="DocumentFormat.OpenXml" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Styles of the cover letter template (SDD §10.6). -->
+    <EmbeddedResource Include="Templates/*.xml" LogicalName="templates/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Tailorly.Tests" />
   </ItemGroup>
 </Project>

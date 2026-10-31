@@ -32,7 +32,12 @@ public sealed record DocParagraph(
     string? Style,
     int? ListLevel);
 
-public sealed record DocRun(int Index, string Text, bool Bold, bool Italic, string? Font, double? SizePt);
+/// <param name="Index">Position among the paragraph's text runs.</param>
+public sealed record DocRun(int Index, string Text, bool Bold, bool Italic, string? Font, double? SizePt)
+{
+    /// <summary>The run's own formatting as a comparable key (see <c>ResumeExtractor.FormatKey</c>); equal keys look the same.</summary>
+    public string FormatKey { get; init; } = "";
+}
 
 /// <param name="LockedPrefixLength">Characters at the start (e.g. a bold "Languages:" label) an edit must keep.</param>
 /// <param name="Complex">Contains hyperlinks, fields, tabs/breaks, bookmarks, content controls, images or tracked changes.</param>

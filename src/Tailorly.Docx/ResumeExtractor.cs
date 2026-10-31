@@ -30,9 +30,8 @@ public static partial class ResumeExtractor
         var section = ResumeSections.Contact;
         var ordinal = 0;
 
-        foreach (var p in body.Descendants<Paragraph>())
+        foreach (var p in BodyParagraphs(body))
         {
-            if (InFallback(p)) continue; // the VML copy of a text box duplicates the DrawingML one
             ordinal++;
             var runs = ReadRuns(p, styles);
             var text = string.Concat(runs.Select(r => r.Text));
@@ -82,38 +81,84 @@ public static partial class ResumeExtractor
     /// <summary>Collapses whitespace and trims; used for fingerprints and matching.</summary>
     public static string Normalize(string text) => Whitespace().Replace(text, " ").Trim();
 
-    // ---------- runs ----------
+    // ---------- paragraphs and runs (shared with EditApplier, so paragraph ids always mean the same element) ----------
+
+    /// <summary>Body paragraphs in document order: the <c>p{ordinal}</c> ids count these. VML fallback copies are skipped.</summary>
+    internal static IEnumerable<Paragraph> BodyParagraphs(Body body) =>
+        body.Descendants<Paragraph>().Where(p => !InFallback(p)); // the VML copy of a text box duplicates the DrawingML one
+
+    /// <summary>
+    /// The runs of <paramref name="p"/> that carry text, in order, with their text. Runs of a nested paragraph (a text box
+    /// inside a drawing) and of a VML fallback copy are skipped, as are runs with no text (a lone bookmark or symbol).
+    /// </summary>
+    internal static IEnumerable<(Run Run, string Text)> TextRuns(Paragraph p)
+    {
+        foreach (var r in p.Descendants<Run>())
+        {
+            if (!ReferenceEquals(r.Ancestors<Paragraph>().FirstOrDefault(), p) || InFallback(r)) continue;
+            var text = RunText(r);
+            if (text.Length > 0) yield return (r, text);
+        }
+    }
+
+    /// <summary>A run's text as extraction sees it: tabs and breaks become spaces, a non-breaking hyphen a hyphen.</summary>
+    internal static string RunText(Run r)
+    {
+        var sb = new StringBuilder();
+        foreach (var c in r.ChildElements) sb.Append(ChildText(c));
+        return sb.ToString();
+    }
+
+    internal static string ChildText(OpenXmlElement c) => c switch
+    {
+        Text t => t.Text,
+        TabChar or PositionalTab or Break or CarriageReturn => " ",
+        NoBreakHyphen => "-",
+        _ => "",
+    };
 
     private static List<DocRun> ReadRuns(Paragraph p, StyleMap styles)
     {
         var pStyle = p.ParagraphProperties?.ParagraphStyleId?.Val?.Value ?? styles.DefaultParagraphStyle;
         var list = new List<DocRun>();
         var index = 0;
-        foreach (var r in p.Descendants<Run>())
+        foreach (var (r, text) in TextRuns(p))
         {
-            // Skip runs that belong to a nested paragraph (text box inside a drawing) or to a VML fallback copy.
-            if (!ReferenceEquals(r.Ancestors<Paragraph>().FirstOrDefault(), p) || InFallback(r)) continue;
-            var sb = new StringBuilder();
-            foreach (var c in r.ChildElements)
-            {
-                switch (c)
-                {
-                    case Text t: sb.Append(t.Text); break;
-                    case TabChar or PositionalTab: sb.Append(' '); break;
-                    case Break or CarriageReturn: sb.Append(' '); break;
-                    case NoBreakHyphen: sb.Append('-'); break;
-                }
-            }
-            if (sb.Length == 0) continue;
             var rpr = r.RunProperties;
             var rStyle = rpr?.RunStyle?.Val?.Value;
             var bold = OnOff(rpr?.Bold) ?? styles.Bold(rStyle) ?? styles.Bold(pStyle) ?? false;
             var italic = OnOff(rpr?.Italic) ?? styles.Italic(rStyle) ?? styles.Italic(pStyle) ?? false;
             var font = rpr?.RunFonts?.Ascii?.Value ?? rpr?.RunFonts?.HighAnsi?.Value ?? styles.Font(rStyle) ?? styles.Font(pStyle);
             var size = StyleMap.ParseHalfPoints(rpr?.FontSize?.Val?.Value) ?? styles.SizePt(rStyle) ?? styles.SizePt(pStyle);
-            list.Add(new DocRun(index++, sb.ToString(), bold, italic, font, size));
+            list.Add(new DocRun(index++, text, bold, italic, font, size) { FormatKey = FormatKey(rpr) });
         }
         return list;
+    }
+
+    /// <summary>Run property children that do not change how text looks (language, spell-check, layout hints).</summary>
+    private static readonly HashSet<string> InvisibleRunProperties = ["lang", "noProof", "webHidden", "specVanish", "snapToGrid"];
+
+    /// <summary>
+    /// The run's own formatting as a comparable string: its run properties without the ones that do not change how text
+    /// looks. Two runs with different keys look different (bold word inside a sentence, another font, a colour).
+    /// </summary>
+    internal static string FormatKey(RunProperties? rpr)
+    {
+        if (rpr is null) return "";
+        var sb = new StringBuilder();
+        foreach (var c in rpr.ChildElements)
+        {
+            if (InvisibleRunProperties.Contains(c.LocalName) || c is RunPropertiesChange) continue;
+            if (c is RunFonts f)
+            {
+                var copy = (RunFonts)f.CloneNode(true);
+                copy.Hint = null; // a script hint, not a font choice
+                sb.Append(copy.OuterXml);
+                continue;
+            }
+            sb.Append(c.OuterXml);
+        }
+        return sb.ToString();
     }
 
     private static bool? OnOff(OnOffType? v) => v is null ? null : v.Val is null || v.Val.Value;
@@ -123,8 +168,8 @@ public static partial class ResumeExtractor
     // ---------- classification ----------
 
     /// <summary>
-    /// Hyperlinks, fields, tabs/breaks, bookmarks, content controls, images, tracked changes, notes and comments make a
-    /// paragraph complex; complex paragraphs are locked in the MVP (SDD §10.1).
+    /// Hyperlinks, fields, tabs/breaks, bookmarks, content controls, images, symbols (<c>w:sym</c>), tracked changes, notes
+    /// and comments make a paragraph complex; complex paragraphs are locked in the MVP (SDD §10.1).
     /// </summary>
     private static bool IsComplex(Paragraph p)
     {
@@ -134,7 +179,7 @@ public static partial class ResumeExtractor
             switch (e)
             {
                 case Hyperlink or SimpleField or FieldChar or FieldCode or TabChar or PositionalTab or Break or CarriageReturn:
-                case SdtRun or Drawing or Picture or EmbeddedObject:
+                case SdtRun or Drawing or Picture or EmbeddedObject or SymbolChar:
                 case InsertedRun or DeletedRun or MoveFromRun or MoveToRun or Inserted or Deleted:
                 case ParagraphPropertiesChange or RunPropertiesChange:
                 case FootnoteReference or EndnoteReference or CommentReference or CommentRangeStart:
@@ -207,15 +252,21 @@ public static partial class ResumeExtractor
         while (glyph < full.Length && (BulletGlyphs.Contains(full[glyph]) || (glyph > 0 && full[glyph] == ' '))) glyph++;
         if (glyph > 0 && (glyph == full.Length || full[..glyph].Trim().Length == 0)) glyph = 0;
 
-        var bold = 0;
+        // A bold label right after the glyph (or at the start): "• Pipelines: built…" keeps "• Pipelines: ".
+        var boldEnd = -1;
+        var pos = 0;
         foreach (var r in runs)
         {
-            if (r.Bold) bold += r.Text.Length;
-            else if (r.Text.Trim().Length == 0 && bold > 0) bold += r.Text.Length;
+            var start = pos;
+            pos += r.Text.Length;
+            if (pos <= glyph) continue;
+            var part = r.Text[Math.Max(0, glyph - start)..];
+            if (r.Bold) boldEnd = pos;
+            else if (part.Trim().Length == 0 && boldEnd > 0) boldEnd = pos;
             else break;
         }
-        if (bold > 0 && bold < total && full[..bold].Trim().Length > 0 && bold <= 60)
-            return Math.Max(bold, glyph);
+        if (boldEnd > glyph && boldEnd < total && full[glyph..boldEnd].Trim().Length > 0 && boldEnd - glyph <= 60)
+            return boldEnd;
 
         if (section == ResumeSections.Skills)
         {
