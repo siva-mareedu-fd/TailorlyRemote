@@ -4,6 +4,7 @@ using Hangfire.Server;
 using Microsoft.EntityFrameworkCore;
 using Tailorly.App.Ai;
 using Tailorly.App.Ai.Tasks;
+using Tailorly.App.Features.Tailoring;
 using Tailorly.App.Infrastructure.Data;
 using Tailorly.Core;
 using Tailorly.Core.Ports;
@@ -25,7 +26,6 @@ public sealed partial class ParseResumeJob(
     ILogger<ParseResumeJob> logger)
 {
     private const int Attempts = 2;
-    private static readonly SemaphoreSlim DocxGate = new(2, 2);
 
     [AutomaticRetry(Attempts = Attempts, DelaysInSeconds = [60, 300])]
     public async Task RunAsync(Guid resumeId, Guid userId, PerformContext? context, CancellationToken ct)
@@ -89,16 +89,7 @@ public sealed partial class ParseResumeJob(
         using var copy = new MemoryStream();
         await stream.CopyToAsync(copy, ct);
         copy.Position = 0;
-
-        await DocxGate.WaitAsync(ct);
-        try
-        {
-            return await Task.Run(() => ResumeExtractor.Extract(copy), ct).WaitAsync(DocxLimits.ParseTimeout, ct);
-        }
-        finally
-        {
-            DocxGate.Release();
-        }
+        return await DocxWork.RunAsync(() => ResumeExtractor.Extract(copy), ct);
     }
 
     private async Task SaveProfileAsync(Resume resume, AiTaskResult<ParsedProfile> result, CancellationToken ct)
@@ -166,10 +157,13 @@ public sealed partial class SweepStuckWorkJob(SystemQueries system, TimeProvider
         var cutoff = clock.GetUtcNow() - StuckAfter;
         var resumes = await system.FailStuckResumesAsync(cutoff, ErrorCodes.Timeout, ct);
         var digests = await system.FailStuckDigestsAsync(cutoff, ErrorCodes.Timeout, ct);
-        // Analyses, tailored documents and interview preps join this sweep with their tables (M4–M5).
-        if (resumes + digests > 0) LogSwept(logger, resumes, digests);
+        var analyses = await system.FailStuckAnalysesAsync(cutoff, ErrorCodes.Timeout, ct);
+        var documents = await system.FailStuckTailoredDocumentsAsync(cutoff, ErrorCodes.Timeout, ct);
+        // Interview preps join this sweep with their table (M5).
+        if (resumes + digests + analyses + documents > 0) LogSwept(logger, resumes, digests, analyses, documents);
     }
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Stuck-work sweep marked {ResumeCount} résumé(s) and {DigestCount} digest run(s) as TIMEOUT")]
-    private static partial void LogSwept(ILogger logger, int resumeCount, int digestCount);
+    [LoggerMessage(Level = LogLevel.Warning,
+        Message = "Stuck-work sweep marked {ResumeCount} résumé(s), {DigestCount} digest run(s), {AnalysisCount} analyses and {DocumentCount} tailored document(s) as TIMEOUT")]
+    private static partial void LogSwept(ILogger logger, int resumeCount, int digestCount, int analysisCount, int documentCount);
 }

@@ -149,7 +149,29 @@ public sealed class SystemQueries(AppDbContext db)
         await db.Resumes.IgnoreQueryFilters().AsNoTracking()
             .CountAsync(r => (r.ParseStatus == WorkStatus.Queued || r.ParseStatus == WorkStatus.Running) && r.CreatedAt < cutoff, ct)
         + await db.Digests.IgnoreQueryFilters().AsNoTracking()
-            .CountAsync(d => (d.Status == WorkStatus.Queued || d.Status == WorkStatus.Running) && (d.StartedAt ?? d.CreatedAt) < cutoff, ct);
+            .CountAsync(d => (d.Status == WorkStatus.Queued || d.Status == WorkStatus.Running) && (d.StartedAt ?? d.CreatedAt) < cutoff, ct)
+        + await db.AtsAnalyses.IgnoreQueryFilters().AsNoTracking()
+            .CountAsync(a => (a.Status == WorkStatus.Queued || a.Status == WorkStatus.Running) && a.UpdatedAt < cutoff, ct)
+        + await db.TailoredDocuments.IgnoreQueryFilters().AsNoTracking()
+            .CountAsync(d => (d.Status == TailoredStatus.Queued || d.Status == TailoredStatus.Running || d.Status == TailoredStatus.Finalizing)
+                             && d.UpdatedAt < cutoff, ct);
+
+    /// <summary>Stuck-work sweep: ATS analyses queued/running since before the cutoff become <c>failed</c>/<c>TIMEOUT</c>.</summary>
+    public Task<int> FailStuckAnalysesAsync(DateTimeOffset cutoff, string timeoutCode, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE ats_analyses SET status = 'failed', error_code = {timeoutCode}, updated_at = now()
+            WHERE status IN ('queued','running') AND updated_at < {cutoff}
+            """, ct);
+
+    /// <summary>
+    /// Stuck-work sweep (DatabaseDesign §7): tailored documents queued/running/finalizing since before the cutoff become
+    /// <c>failed</c>/<c>TIMEOUT</c>. A failed finalisation keeps its edits, so the user can finalise again.
+    /// </summary>
+    public Task<int> FailStuckTailoredDocumentsAsync(DateTimeOffset cutoff, string timeoutCode, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE tailored_documents SET status = 'failed', error_code = {timeoutCode}, updated_at = now()
+            WHERE status IN ('queued','running','finalizing') AND updated_at < {cutoff}
+            """, ct);
 
     /// <summary>Retention sweep (daily): digests older than the cutoff; their items cascade (DatabaseDesign §7).</summary>
     public Task<int> DeleteDigestsCreatedBeforeAsync(DateTimeOffset cutoff, CancellationToken ct) =>
@@ -169,12 +191,18 @@ public sealed class SystemQueries(AppDbContext db)
             .Select(p => p.AccountStatus)
             .FirstOrDefaultAsync(ct);
 
-    /// <summary>Purge job: every stored file of a user (DatabaseDesign §8 step 1). Tailored documents join in M4.</summary>
-    public Task<List<string>> StorageKeysOfUserAsync(Guid userId, CancellationToken ct) =>
-        db.Resumes.IgnoreQueryFilters().AsNoTracking()
+    /// <summary>Purge job: every stored file of a user (DatabaseDesign §8 step 1): résumés and tailored documents.</summary>
+    public async Task<List<string>> StorageKeysOfUserAsync(Guid userId, CancellationToken ct) =>
+    [
+        .. await db.Resumes.IgnoreQueryFilters().AsNoTracking()
             .Where(r => r.UserId == userId)
             .Select(r => r.StorageKey)
-            .ToListAsync(ct);
+            .ToListAsync(ct),
+        .. await db.TailoredDocuments.IgnoreQueryFilters().AsNoTracking()
+            .Where(d => d.UserId == userId && d.StorageKey != null)
+            .Select(d => d.StorageKey!)
+            .ToListAsync(ct),
+    ];
 
     /// <summary>
     /// Purge job: deletes the Identity user; <c>ON DELETE CASCADE</c> removes every user-owned row and

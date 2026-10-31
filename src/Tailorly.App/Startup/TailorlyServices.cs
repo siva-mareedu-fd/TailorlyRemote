@@ -17,6 +17,7 @@ using Tailorly.App.Features.Health;
 using Tailorly.App.Features.Resumes;
 using Tailorly.App.Features.Sources;
 using Tailorly.App.Features.Sources.Adapters;
+using Tailorly.App.Features.Tailoring;
 using Tailorly.App.Infrastructure;
 using Tailorly.App.Infrastructure.Ai;
 using Tailorly.App.Infrastructure.Data;
@@ -162,8 +163,32 @@ public static class TailorlyServices
         services.AddScoped<SweepStuckWorkJob>();
         AddSources(services, config);
         AddDigests(services, config);
+        AddTailoring(services, config);
 
         return builder;
+    }
+
+    /// <summary>ATS analysis, tailoring and cover letters (PRD F8, F9): scoring, the jobs, documents and PDF export.</summary>
+    private static void AddTailoring(IServiceCollection services, IConfiguration config)
+    {
+        services.Configure<TailorOptions>(config.GetSection("Tailor"));
+        services.Configure<CoverLetterOptions>(config.GetSection("CoverLetter"));
+        services.Configure<PdfOptions>(config.GetSection("Pdf"));
+        services.Configure<Tailorly.Core.Ats.AtsWeights>(config.GetSection("Ats:Weights"));
+        services.AddSingleton<AtsScoring>();
+        services.AddScoped<TailoringData>();
+        services.AddScoped<TailoredDocuments>();
+        services.AddScoped<AtsAnalysisJob>();
+        services.AddScoped<TailorResumeJob>();
+        services.AddScoped<FinalizeResumeJob>();
+        services.AddScoped<CoverLetterJob>();
+        // Gotenberg on the internal network (Compose profile "pdf"); used only when pdf_export.enabled is on.
+        services.AddHttpClient<PdfExport>((sp, c) =>
+        {
+            var o = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PdfOptions>>().Value;
+            c.BaseAddress = new Uri(o.GotenbergUrl.TrimEnd('/') + "/");
+            c.Timeout = TimeSpan.FromSeconds(Math.Max(5, o.TimeoutSeconds));
+        });
     }
 
     /// <summary>Job sourcing (SDD §8): one HTTP client per source, the adapters (the IJobSource seam), runners and jobs.</summary>

@@ -58,7 +58,7 @@ public record JobSummaryDto
     /// <summary>Null when the job was ranked by the rule-based fallback (no AI score).</summary>
     public JobScoreDto? Score { get; init; }
 
-    /// <summary>The caller's tracker entry for this job (tracker arrives in M5; null until then).</summary>
+    /// <summary>The caller's tracker entry for this job, or null when it is not tracked.</summary>
     public TrackedDto? Tracked { get; init; }
 }
 

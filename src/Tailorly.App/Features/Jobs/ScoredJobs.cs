@@ -163,12 +163,14 @@ public sealed class ScoredJobs(AppDbContext db, IFxRateProvider fx, TimeProvider
     public async Task<List<JobSummaryDto>> ToSummariesAsync(IReadOnlyList<ScoredView> views, CancellationToken ct)
     {
         var (sources, alsoOn) = await LookupsAsync(views, ct);
-        return views.Select(v => Summary(v, sources, alsoOn)).ToList();
+        var tracked = await TrackedAsync(views.Select(v => v.Row.JobId).ToList(), ct);
+        return views.Select(v => Summary(v, sources, alsoOn) with { Tracked = tracked.GetValueOrDefault(v.Row.JobId) }).ToList();
     }
 
     public async Task<JobDetailDto> ToDetailAsync(ScoredView v, CancellationToken ct)
     {
         var (sources, alsoOn) = await LookupsAsync([v], ct);
+        var tracked = await TrackedAsync([v.Row.JobId], ct);
         var e = v.Enrichment;
         return new JobDetailDto
         {
@@ -177,10 +179,18 @@ public sealed class ScoredJobs(AppDbContext db, IFxRateProvider fx, TimeProvider
             EligibilityEvidence = v.EligibilityEvidence, Salary = SalaryDto(v), SalaryLabel = v.SalaryDecision.Label,
             DescriptionCompleteness = v.Row.DescriptionCompleteness, PostedAt = v.Row.PostedAt, ApplyUrl = ApplyUrl(v.Row),
             Source = Source(v.Row, sources), AlsoOn = alsoOn.GetValueOrDefault(v.Row.JobId, []), Score = Score(v),
+            Tracked = tracked.GetValueOrDefault(v.Row.JobId),
             Description = v.Row.Description, Summary = e?.Summary, SkillsRequired = e?.SkillsRequired ?? [],
             SkillsPreferred = e?.SkillsPreferred ?? [], Seniority = e?.Seniority, TimezoneRequirement = e?.TimezoneRequirement,
         };
     }
+
+    /// <summary>The caller's tracker entries for these jobs (through the user filter).</summary>
+    public async Task<Dictionary<Guid, TrackedDto>> TrackedAsync(IReadOnlyCollection<Guid> jobIds, CancellationToken ct) =>
+        jobIds.Count == 0
+            ? []
+            : await db.UserJobs.AsNoTracking().Where(u => u.JobId != null && jobIds.Contains(u.JobId.Value))
+                .ToDictionaryAsync(u => u.JobId!.Value, u => new TrackedDto(u.Id, u.Status), ct);
 
     private static JobSummaryDto Summary(ScoredView v, IReadOnlyDictionary<string, JobSource> sources,
         IReadOnlyDictionary<Guid, List<AlsoOnDto>> alsoOn) => new()

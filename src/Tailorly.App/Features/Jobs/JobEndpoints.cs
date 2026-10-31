@@ -37,7 +37,7 @@ public static class JobEndpoints
     /// <param name="workMode">Repeatable: remote | hybrid | onsite.</param>
     /// <param name="salary">stated | estimated | not_listed.</param>
     /// <param name="q">Text in the title or company name.</param>
-    /// <param name="savedOnly">Only jobs on the tracker (the tracker arrives in M5, so this returns no jobs yet).</param>
+    /// <param name="savedOnly">Only jobs on the caller's tracker.</param>
     /// <param name="sort"><c>-score</c> (default) or <c>-posted</c>.</param>
     private static async Task<Ok<JobPage>> List(AppDbContext db, ScoredJobs scored, ICurrentUser current, Guid? digestId, int? minScore,
         [FromQuery] string[]? eligibility, [FromQuery] string[]? workMode, string? salary, string? q, bool? savedOnly, string? sort,
@@ -57,7 +57,6 @@ public static class JobEndpoints
 
         var p = Math.Max(1, page ?? 1);
         var size = Math.Clamp(pageSize ?? 20, 1, MaxPageSize);
-        if (savedOnly == true) return TypedResults.Ok(new JobPage([], p, size, 0)); // tracker (user_jobs) is M5
 
         var prefs = await MatchContext.PreferencesAsync(db, current.UserId, ct);
         var match = MatchContext.ToMatch(prefs);
@@ -67,6 +66,7 @@ public static class JobEndpoints
             if (!await db.Digests.AnyAsync(d => d.Id == did, ct)) throw NotFound();
             scores = scores.Where(s => db.DigestItems.Any(i => i.DigestId == did && i.ScoreId == s.Id));
         }
+        if (savedOnly == true) scores = scores.Where(s => db.UserJobs.Any(u => u.JobId == s.JobId));
         var rows = await scored.Query(scores).ToListAsync(ct);
         var min = minScore ?? match.MinMatchScore;
         var text = q?.Trim();
