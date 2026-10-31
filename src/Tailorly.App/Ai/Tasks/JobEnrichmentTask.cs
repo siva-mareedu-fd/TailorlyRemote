@@ -67,6 +67,12 @@ public static class JobEnrichmentTask
 
     public static readonly AiTask<EnrichmentOutput> Definition = new(AiTaskNames.JobEnrichment, Validate);
 
+    /// <summary>
+    /// The same extraction on a description the user pasted (PRD F12, ApiDesign §4.7): charged to the user's Documents
+    /// budget because the user started it, and stored on the tracker entry, never in the shared table.
+    /// </summary>
+    public static readonly AiTask<EnrichmentOutput> ByoDefinition = new(AiTaskNames.ByoJobEnrichment, Validate, AiTaskNames.JobEnrichment);
+
     /// <summary>The posting in <c>&lt;job_data&gt;</c> and the deterministic hints in <c>&lt;rule_hints&gt;</c>.</summary>
     public static AiTaskInput BuildInput(EnrichmentJobInput job, EligibilityHint hint)
     {

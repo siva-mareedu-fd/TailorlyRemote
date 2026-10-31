@@ -5,7 +5,8 @@ using Tailorly.Core.Ports;
 namespace Tailorly.App.Infrastructure.Ai;
 
 /// <summary>
-/// Offline model provider for tests and local dev (no API key). Returns the embedded recorded fixture
+/// Offline model provider for tests and local dev (no API key). Returns a reply built from the request for the tailoring
+/// tasks (<see cref="FakeReplies"/>), otherwise the embedded recorded fixture
 /// <c>Fixtures/{task}.json</c>, or <c>{}</c>, with deterministic token usage (about 4 characters per token).
 /// Tests can queue scripted replies or failures per task with <see cref="Enqueue"/> and inspect <see cref="Requests"/>.
 /// </summary>
@@ -32,7 +33,7 @@ public sealed class FakeModelProvider : IModelProvider
         Requests.Enqueue(request);
         if (_script.TryGetValue(request.Task, out var q) && q.TryDequeue(out var scripted))
             return Task.FromResult(scripted(request));
-        return Task.FromResult(Reply(request, LoadFixture(request.Task) ?? "{}", "end_turn"));
+        return Task.FromResult(Reply(request, FakeReplies.For(request) ?? LoadFixture(request.Task) ?? "{}", "end_turn"));
     }
 
     public static ModelResponse Reply(ModelRequest request, string text, string stopReason = "end_turn")

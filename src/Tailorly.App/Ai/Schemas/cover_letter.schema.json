@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "cover_letter v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["paragraphs", "word_count", "tone"],
+  "properties": {
+    "paragraphs": { "type": "array", "minItems": 3, "maxItems": 12, "items": { "type": "string", "minLength": 1, "maxLength": 1500 } },
+    "word_count": { "type": "integer", "minimum": 0, "maximum": 2000 },
+    "tone": { "type": "string", "enum": ["concise", "confident"] }
+  }
+}

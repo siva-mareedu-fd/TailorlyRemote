@@ -71,7 +71,7 @@ public sealed partial class AiTaskRunner(
         if (!cfg.Enabled)
             throw AiTaskFailedException.Unavailable($"Task '{task.Name}' is disabled.", transient: false);
 
-        var prompt = prompts.Get(task.Name);
+        var prompt = prompts.Get(task.PromptName);
         var charged = userId is not null && BudgetBuckets.IsPerUser(cfg.Bucket);
         var period = budgets.CurrentPeriod;
         var messages = new List<ModelMessage> { new(ModelRole.User, BuildUserContent(input.Data)) };

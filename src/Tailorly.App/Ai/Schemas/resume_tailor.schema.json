@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "resume_tailor v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["edits", "unaddressed_gaps"],
+  "properties": {
+    "edits": {
+      "type": "array",
+      "maxItems": 60,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["paragraph_id", "new_text", "rationale", "uses_confirmed_fact"],
+        "properties": {
+          "paragraph_id": { "type": "string", "minLength": 1, "maxLength": 12 },
+          "new_text": { "type": "string", "maxLength": 1500 },
+          "rationale": { "type": "string", "minLength": 1, "maxLength": 300 },
+          "uses_confirmed_fact": { "type": "boolean" }
+        }
+      }
+    },
+    "unaddressed_gaps": { "type": "array", "maxItems": 30, "items": { "type": "string", "minLength": 1, "maxLength": 120 } }
+  }
+}

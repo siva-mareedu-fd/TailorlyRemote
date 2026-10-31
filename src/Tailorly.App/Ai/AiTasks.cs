@@ -8,14 +8,23 @@ public static class AiTaskNames
     public const string ResumeParse = "resume_parse";
     public const string JobEnrichment = "job_enrichment";
     public const string JobFitScore = "job_fit_score";
+    public const string ByoJobEnrichment = "byo_job_enrichment";
+    public const string AtsAnalysis = "ats_analysis";
+    public const string ResumeTailor = "resume_tailor";
+    public const string CoverLetter = "cover_letter";
 }
 
 /// <summary>
 /// A task the runner can execute: its name and the deterministic domain validator applied after schema validation.
 /// The validator returns problems as short, content-free messages (they are sent back in the repair prompt and counted
-/// in logs, never logged verbatim).
+/// in logs, never logged verbatim). <paramref name="Prompt"/> names another task's prompt and schema to reuse (the
+/// user-charged <c>byo_job_enrichment</c> is <c>job_enrichment</c> on pasted text); routing and the budget bucket still
+/// come from <paramref name="Name"/>'s <c>ai_task_config</c> row.
 /// </summary>
-public sealed record AiTask<T>(string Name, Func<T, IReadOnlyList<string>> Validate);
+public sealed record AiTask<T>(string Name, Func<T, IReadOnlyList<string>> Validate, string? Prompt = null)
+{
+    public string PromptName => Prompt ?? Name;
+}
 
 /// <summary>Untrusted text (résumé, job description) sent inside <c>&lt;Tag&gt;…&lt;/Tag&gt;</c> delimiters.</summary>
 public sealed record UntrustedBlock(string Tag, string Content);

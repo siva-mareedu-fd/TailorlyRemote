@@ -17,7 +17,7 @@ public sealed class ModelRunner(IModelProvider provider, PromptRegistry prompts,
 {
     public async Task<TaskOutcome<T>> RunAsync<T>(AiTask<T> task, AiTaskInput input, string model, int maxTokens, CancellationToken ct)
     {
-        var prompt = prompts.Get(task.Name);
+        var prompt = prompts.Get(task.PromptName);
         var messages = new List<ModelMessage> { new(ModelRole.User, AiTaskRunner.BuildUserContent(input.Data)) };
         long tokens = 0;
         var sw = Stopwatch.StartNew();
