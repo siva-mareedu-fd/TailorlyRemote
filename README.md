@@ -121,8 +121,11 @@ saved in `tests/Tailorly.Tests/Fixtures/Sources` (see its README) and records ev
 exact requests made (incremental fetches, SSRF cases with zero calls).
 
 Trust tests worth knowing: `IsolationTests` discovers every `/api/v1` route and fails on one that is not classified
-(new routes are covered automatically; jobs and digests included); `LogScanTests` runs the M1 and M3 flows with verbose
-logging and fails if résumé or job text, prompts, replies, emails, passwords or tokens appear in any log event;
+(new routes are covered automatically; jobs and digests included); `LogScanTests` runs the account, résumé, digest,
+tailoring, cover-letter and admin flows with verbose logging, plus library exceptions driven into the parse job, the
+request pipeline and the AI runner, and fails if résumé or job text, prompts, replies, emails, passwords or tokens appear
+in any log event or in `audit_log` / `ai_usage`; `HangfirePrivacyTests` runs a real Hangfire server with the app's job
+filters and checks that a failed job's exception message reaches neither the logs nor `hangfire.state`;
 `DigestScheduleTests` (own database) covers claim idempotency across ticks and instances, IST/DST/midnight windows,
 retries, the fallback digest, the email and one-click unsubscribe; `UploadSafetyTests` and
 `DocxSafetyInspectorTests` cover macros, OLE, external links, zip bombs, nested archives, DOCTYPE, password protection

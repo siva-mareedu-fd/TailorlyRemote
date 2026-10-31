@@ -8,11 +8,8 @@ using Tailorly.Core.Time;
 //   Tailorly.App --migrate  apply EF migrations + Hangfire schema + idempotent seed, then exit
 //   Tailorly.App --seed     run the idempotent seed only, then exit
 
-// Minimal logger for startup failures; replaced by the configured logger once the host is built.
-Log.Logger = new LoggerConfiguration()
-    .Enrich.With<Tailorly.App.Infrastructure.Logging.PiiScrubbingEnricher>()
-    .WriteTo.Console(new Serilog.Formatting.Compact.CompactJsonFormatter())
-    .CreateLogger();
+// Logger for startup failures (same pipeline, no configuration yet); replaced by the configured one once the host is built.
+Log.Logger = Tailorly.App.Infrastructure.Logging.TailorlyLogging.Configure(new LoggerConfiguration(), []).CreateLogger();
 
 try
 {

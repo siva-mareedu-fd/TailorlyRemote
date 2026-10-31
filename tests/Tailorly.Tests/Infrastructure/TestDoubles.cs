@@ -90,3 +90,52 @@ public sealed class CapturingLogSink : ILogEventSink
         Lines.Enqueue($"{e.Level} {e.MessageTemplate.Text} | {e.RenderMessage()} | {props} | {e.Exception}");
     }
 }
+
+/// <summary>
+/// Wraps the real file store; while <see cref="ReadFault"/> is set, every read throws what it returns. Lets the log-scan
+/// tests drive library exceptions into the parse job and the request pipeline.
+/// </summary>
+public sealed class FaultyFileStore : IFileStore
+{
+    private IFileStore _inner = null!;
+
+    public Func<Exception>? ReadFault { get; set; }
+
+    /// <summary>Registers this instance as the app's <see cref="IFileStore"/>, decorating the configured one.</summary>
+    public void Install(IServiceCollection services)
+    {
+        var original = services.Last(d => d.ServiceType == typeof(IFileStore));
+        services.Add(ServiceDescriptor.Describe(original.ImplementationType!, original.ImplementationType!, original.Lifetime));
+        services.AddSingleton<IFileStore>(sp =>
+        {
+            _inner = (IFileStore)sp.GetRequiredService(original.ImplementationType!);
+            return this;
+        });
+    }
+
+    public Task SaveAsync(string key, Stream content, CancellationToken ct) => _inner.SaveAsync(key, content, ct);
+
+    public Task<Stream?> OpenReadAsync(string key, CancellationToken ct) =>
+        ReadFault is { } fault ? throw fault() : _inner.OpenReadAsync(key, ct);
+
+    public Task DeleteAsync(string key, CancellationToken ct) => _inner.DeleteAsync(key, ct);
+
+    public Task DeletePrefixAsync(string prefix, CancellationToken ct) => _inner.DeletePrefixAsync(prefix, ct);
+
+    /// <summary>
+    /// A real library exception that echoes its input, as XML, JSON and provider SDK errors do: System.Xml's message for an
+    /// undeclared entity quotes the entity name. Wrapped the way calling code wraps it, with the text in both messages.
+    /// </summary>
+    public static Exception EchoingLibraryFailure(string text)
+    {
+        try
+        {
+            System.Xml.Linq.XDocument.Parse($"<t>&{text};</t>");
+            throw new InvalidOperationException("unreachable");
+        }
+        catch (System.Xml.XmlException xml)
+        {
+            return new InvalidDataException($"Could not read part near '{text}'", xml);
+        }
+    }
+}

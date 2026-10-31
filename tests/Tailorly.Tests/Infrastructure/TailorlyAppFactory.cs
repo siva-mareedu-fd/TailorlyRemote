@@ -17,7 +17,7 @@ namespace Tailorly.Tests.Infrastructure;
 /// the AI provider is the fake (<see cref="Ai"/>).
 /// </summary>
 public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDictionary<string, string?>? settings = null,
-    bool relaxedRateLimits = true)
+    bool relaxedRateLimits = true, Action<IServiceCollection>? services = null)
     : WebApplicationFactory<Program>
 {
     public string StorageRoot { get; } = Path.Combine(Path.GetTempPath(), "tailorly-tests", Guid.NewGuid().ToString("N"));
@@ -59,13 +59,14 @@ public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDiction
             foreach (var (k, v) in settings)
                 builder.UseSetting(k, v);
 
-        builder.ConfigureTestServices(services =>
+        builder.ConfigureTestServices(s =>
         {
-            services.AddSingleton<IBackgroundJobClient>(sp => new InlineJobClient(sp));
-            services.AddSingleton<IEmailSender>(Emails);
-            services.AddSingleton<ILogEventSink>(Logs);
-            services.ConfigureAll<HttpClientFactoryOptions>(o =>
+            s.AddSingleton<IBackgroundJobClient>(sp => new InlineJobClient(sp));
+            s.AddSingleton<IEmailSender>(Emails);
+            s.AddSingleton<ILogEventSink>(Logs);
+            s.ConfigureAll<HttpClientFactoryOptions>(o =>
                 o.HttpMessageHandlerBuilderActions.Add(b => b.PrimaryHandler = Http));
+            services?.Invoke(s);
         });
     }
 

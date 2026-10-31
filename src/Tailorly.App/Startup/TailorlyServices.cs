@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Anthropic;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Serilog;
-using Serilog.Formatting.Compact;
 using Tailorly.App.Ai;
 using Tailorly.App.Api;
 using Tailorly.App.Features.Accounts;
@@ -47,13 +46,9 @@ public static class TailorlyServices
             k.Limits.MaxRequestBodySize = MaxJsonBodyBytes; // POST /resumes raises it to 5 MB for that request
         });
 
-        services.AddSerilog((sp, lc) => lc
-            .ReadFrom.Configuration(config)
-            .ReadFrom.Services(sp) // extra sinks registered in DI (the log-scan test captures events this way)
-            .Enrich.FromLogContext()
-            .Destructure.With<PiiDestructuringPolicy>()
-            .Enrich.With<PiiScrubbingEnricher>()
-            .WriteTo.Console(new CompactJsonFormatter()));
+        // Extra sinks registered in DI join the pipeline (the log-scan tests capture events this way).
+        services.AddSerilog((sp, lc) =>
+            TailorlyLogging.Configure(lc.ReadFrom.Configuration(config), sp.GetServices<Serilog.Core.ILogEventSink>()));
 
         services.Configure<ForwardedHeadersOptions>(o =>
         {
