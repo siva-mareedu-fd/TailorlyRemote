@@ -1,0 +1,90 @@
+{
+  "runAt": "2026-10-31T03:41:40.4909274+00:00",
+  "promptVersions": {
+    "job_enrichment": "job_enrichment/2026-10-30.1",
+    "job_fit_score": "job_fit_score/2026-10-30.2",
+    "resume_tailor": "resume_tailor/2026-10-31.1"
+  },
+  "eligibilityItems": 16,
+  "fitItems": 8,
+  "tailoringItems": 8,
+  "guard": {
+    "adversarial": 40,
+    "refused": 10,
+    "flagged": 30,
+    "slipped": [],
+    "benign": 12,
+    "falsePositives": []
+  },
+  "runs": [
+    {
+      "model": "rules (no model)",
+      "eligibility": {
+        "items": 16,
+        "answered": 16,
+        "accuracy": 1,
+        "unclearTolerantAccuracy": 1,
+        "criticalErrors": 0,
+        "confusion": {
+          "worldwide": {
+            "worldwide": 3,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "india_eligible": {
+            "worldwide": 0,
+            "india_eligible": 5,
+            "restricted": 0,
+            "unclear": 0
+          },
+          "restricted": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 6,
+            "unclear": 0
+          },
+          "unclear": {
+            "worldwide": 0,
+            "india_eligible": 0,
+            "restricted": 0,
+            "unclear": 2
+          }
+        },
+        "misses": []
+      },
+      "eligibilityModelOnly": null,
+      "enrichmentCalls": null,
+      "fit": null,
+      "fitCalls": null,
+      "tailor": null,
+      "tailorCalls": null
+    },
+    {
+      "model": "claude-sonnet-5-5",
+      "eligibility": null,
+      "eligibilityModelOnly": null,
+      "enrichmentCalls": null,
+      "fit": null,
+      "fitCalls": null,
+      "tailor": {
+        "items": 8,
+        "completed": 8,
+        "failed": 0,
+        "edits": 14,
+        "flaggedNewFacts": 1,
+        "unflaggedNewFacts": 0,
+        "slips": [],
+        "newFactRate": 0
+      },
+      "tailorCalls": {
+        "calls": 8,
+        "jsonValidFirstTry": 1,
+        "jsonValidAfterRepair": 1,
+        "countedTokens": 21142,
+        "medianLatencyMs": 3229,
+        "errors": []
+      }
+    }
+  ]
+}

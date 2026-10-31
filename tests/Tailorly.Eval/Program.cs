@@ -3,9 +3,11 @@
 //   dotnet run --project tests/Tailorly.Eval                                   validate datasets, rules baseline only
 //   dotnet run --project tests/Tailorly.Eval -- --models <id>[,<id>...]         also run each model (needs Anthropic__ApiKey)
 //
-// Options: --tasks eligibility,fit (default both) · --limit N (first N items per dataset) · --effort low|medium|high
+// Options: --tasks eligibility,fit,tailor (default all) · --limit N (first N items per dataset) · --effort low|medium|high
 //          --datasets <dir> · --out <dir> (default tests/Tailorly.Eval/reports) · --no-write (print only)
 // Model ids are passed on the command line, never hard-coded: production routing lives only in ai_task_config.
+// The tailoring guard check (hand-written adversarial and benign edits) always runs; the exit code is 1 if an
+// adversarial edit slips through, so CI fails on a guard regression.
 
 using System.Globalization;
 using System.Text;
@@ -27,10 +29,17 @@ if (options.Error is { } error)
 
 var (eligibility, eligibilityErrors) = await Datasets.LoadAsync<EligibilityDataset>(options.DatasetsDir, "eligibility");
 var (fit, fitErrors) = await Datasets.LoadAsync<FitDataset>(options.DatasetsDir, "fit_scores");
-var datasetErrors = eligibilityErrors.Concat(fitErrors).ToList();
+var (tailoring, tailoringErrors) = await Datasets.LoadAsync<TailoringDataset>(options.DatasetsDir, "tailoring");
+var datasetErrors = eligibilityErrors.Concat(fitErrors).Concat(tailoringErrors).ToList();
 if (fit is not null)
     datasetErrors.AddRange(fit.Items.Where(i => !fit.Candidates.ContainsKey(i.CandidateId))
         .Select(i => $"fit_scores: item {i.Id} names unknown candidate {i.CandidateId}"));
+if (tailoring is not null)
+{
+    var editable = tailoring.Items.SelectMany(i => i.Paragraphs.Where(p => p.Editable).Select(p => (i.Id, p.Id))).ToHashSet();
+    datasetErrors.AddRange(tailoring.Adversarial.Select(a => (a.Item, a.Paragraph)).Concat(tailoring.Benign.Select(b => (b.Item, b.Paragraph)))
+        .Where(r => !editable.Contains(r)).Select(r => $"tailoring: {r.Item}/{r.Paragraph} is not an editable paragraph"));
+}
 if (datasetErrors.Count > 0)
 {
     foreach (var e in datasetErrors) Console.Error.WriteLine(e);
@@ -39,8 +48,10 @@ if (datasetErrors.Count > 0)
 
 var eligibilityItems = eligibility!.Items.Take(options.Limit).ToList();
 var fitItems = fit!.Items.Take(options.Limit).ToList();
-Console.WriteLine($"Datasets OK: {eligibility.Items.Count} eligibility items, {fit.Items.Count} fit pairs " +
-                  $"({eligibility.Items.Count(i => i.LabelSource.Contains("unreviewed", StringComparison.OrdinalIgnoreCase)) + fit.Items.Count(i => i.LabelSource.Contains("unreviewed", StringComparison.OrdinalIgnoreCase))} labels unreviewed).");
+var tailoringItems = tailoring!.Items.Take(options.Limit).ToList();
+Console.WriteLine($"Datasets OK: {eligibility.Items.Count} eligibility items, {fit.Items.Count} fit pairs, " +
+                  $"{tailoring.Items.Count} tailoring cases with {tailoring.Adversarial.Count} adversarial and {tailoring.Benign.Count} benign edits " +
+                  $"({eligibility.Items.Count(i => i.LabelSource.Contains("unreviewed", StringComparison.OrdinalIgnoreCase)) + fit.Items.Count(i => i.LabelSource.Contains("unreviewed", StringComparison.OrdinalIgnoreCase)) + tailoring.Items.Count(i => i.LabelSource.Contains("unreviewed", StringComparison.OrdinalIgnoreCase))} labels unreviewed).");
 
 var prompts = new PromptRegistry();
 var report = new EvalReport
@@ -50,9 +61,13 @@ var report = new EvalReport
     {
         [AiTaskNames.JobEnrichment] = prompts.Get(AiTaskNames.JobEnrichment).Version,
         [AiTaskNames.JobFitScore] = prompts.Get(AiTaskNames.JobFitScore).Version,
+        [AiTaskNames.ResumeTailor] = prompts.Get(AiTaskNames.ResumeTailor).Version,
     },
     EligibilityItems = eligibilityItems.Count,
     FitItems = fitItems.Count,
+    TailoringItems = tailoringItems.Count,
+    // The deterministic guard on hand-written edits: no model, so it runs everywhere (CI included).
+    Guard = TailoringEval.Guard(tailoring),
 };
 
 // Deterministic baseline: the pre-rules alone (what the app falls back to without enrichment).
@@ -80,6 +95,7 @@ else
         var run = new EvalRun { Model = model };
         if (options.Tasks.Contains("eligibility")) await RunEligibilityAsync(runner, model, eligibilityItems, run);
         if (options.Tasks.Contains("fit")) await RunFitAsync(runner, model, fit, fitItems, run);
+        if (options.Tasks.Contains("tailor")) await RunTailorAsync(runner, model, tailoringItems, run);
         report.Runs.Add(run);
     }
 }
@@ -95,7 +111,41 @@ if (options.Write)
     await File.WriteAllTextAsync(Path.Combine(options.OutDir, $"eval-{stamp}.md"), markdown);
     Console.WriteLine($"Report written to {options.OutDir}");
 }
+if (report.Guard.Slipped.Count > 0)
+{
+    Console.Error.WriteLine($"Tailoring guard: {report.Guard.Slipped.Count} adversarial edit(s) passed as safe: {string.Join(", ", report.Guard.Slipped)}");
+    return 1;
+}
 return 0;
+
+static async Task RunTailorAsync(ModelRunner runner, string model, IReadOnlyList<TailoringItem> items, EvalRun run)
+{
+    var stats = new CallStats();
+    var perItem = new (int Edits, int Flagged, List<string> Slips, bool Failed)[items.Count];
+    await Parallel.ForEachAsync(Enumerable.Range(0, items.Count), new ParallelOptions { MaxDegreeOfParallelism = 4 }, async (i, ct) =>
+    {
+        var item = items[i];
+        var ctx = TailoringEval.Context(item);
+        var (job, targets) = TailoringEval.Inputs(item, TailoringEval.Missing(item));
+        var input = ResumeTailorTask.BuildInput(job, ctx.Model, targets, item.ConfirmedSkills, ctx.Rules);
+        var outcome = await runner.RunAsync(ResumeTailorTask.For(ctx), input, model, 4000, ct);
+        stats.Add(outcome.Valid, outcome.ValidFirstTry, outcome.CountedTokens, outcome.LatencyMs, outcome.Error);
+        if (outcome.Value is null)
+        {
+            perItem[i] = (0, 0, [], true);
+            return;
+        }
+        var edits = Tailorly.Docx.Tailoring.EditValidator.Check(ResumeTailorTask.Proposed(outcome.Value), ctx);
+        var slips = edits.SelectMany(e => TailoringEval.UnflaggedFacts(e, item).Select(f => $"{item.Id}/{e.ParagraphId}: {f}")).ToList();
+        perItem[i] = (edits.Count, edits.Count(e => e.Flags.Contains(Tailorly.Docx.Tailoring.EditFlags.NewFact)), slips, false);
+    });
+    var editsTotal = perItem.Sum(p => p.Edits);
+    var unflagged = perItem.Sum(p => p.Slips.Count);
+    run.Tailor = new TailorMetrics(items.Count, perItem.Count(p => !p.Failed), perItem.Count(p => p.Failed), editsTotal,
+        perItem.Sum(p => p.Flagged), unflagged, perItem.SelectMany(p => p.Slips).ToList(),
+        editsTotal == 0 ? null : Math.Round(unflagged / (double)editsTotal, 3));
+    run.TailorCalls = stats.ToSummary();
+}
 
 static async Task RunEligibilityAsync(ModelRunner runner, string model, IReadOnlyList<EligibilityItem> items, EvalRun run)
 {
@@ -148,7 +198,7 @@ namespace Tailorly.Eval
     internal sealed class EvalOptions
     {
         public List<string> Models { get; } = [];
-        public HashSet<string> Tasks { get; } = ["eligibility", "fit"];
+        public HashSet<string> Tasks { get; } = ["eligibility", "fit", "tailor"];
         public int Limit { get; private set; } = int.MaxValue;
         public string? Effort { get; private set; } = "low";
         public string DatasetsDir { get; private set; } = Path.Combine(RepoRoot(), "tests", "Tailorly.Eval", "datasets");
@@ -184,7 +234,7 @@ namespace Tailorly.Eval
                     o.Error = ex.Message;
                 }
             }
-            if (o.Tasks.Except(["eligibility", "fit"]).Any()) o.Error = "--tasks accepts eligibility and fit";
+            if (o.Tasks.Except(["eligibility", "fit", "tailor"]).Any()) o.Error = "--tasks accepts eligibility, fit and tailor";
             return o;
         }
 
@@ -227,6 +277,8 @@ namespace Tailorly.Eval
         public CallSummary? EnrichmentCalls { get; set; }
         public FitMetrics? Fit { get; set; }
         public CallSummary? FitCalls { get; set; }
+        public TailorMetrics? Tailor { get; set; }
+        public CallSummary? TailorCalls { get; set; }
     }
 
     public sealed class EvalReport
@@ -235,7 +287,40 @@ namespace Tailorly.Eval
         public required Dictionary<string, string> PromptVersions { get; init; }
         public int EligibilityItems { get; init; }
         public int FitItems { get; init; }
+        public int TailoringItems { get; init; }
+        public required GuardMetrics Guard { get; init; }
         public List<EvalRun> Runs { get; } = [];
+
+        /// <summary>The tailoring sections: the guard on hand-written edits, then each model's hallucination check.</summary>
+        private void TailoringMarkdown(StringBuilder sb)
+        {
+            sb.AppendLine().AppendLine("## Tailoring hallucination check (target: 0 unflagged new facts)").AppendLine()
+              .AppendLine(CultureInfo.InvariantCulture,
+                  $"Guard on hand-written edits: {Guard.Adversarial} adversarial → {Guard.Refused} refused, {Guard.Flagged} flagged new_fact, " +
+                  $"**{Guard.Slipped.Count} slipped**; {Guard.Benign} benign → {Guard.Benign - Guard.FalsePositives.Count} passed, " +
+                  $"{Guard.FalsePositives.Count} false positives.");
+            foreach (var s in Guard.Slipped) sb.AppendLine(CultureInfo.InvariantCulture, $"- slipped: {s}");
+            foreach (var s in Guard.FalsePositives) sb.AppendLine(CultureInfo.InvariantCulture, $"- false positive: {s}");
+            var runs = Runs.Where(r => r.Tailor is not null).ToList();
+            if (runs.Count == 0) return;
+            sb.AppendLine().AppendLine(CultureInfo.InvariantCulture, $"Model runs on {TailoringItems} cases:").AppendLine()
+              .AppendLine("| Model | Completed / failed | Edits | Flagged new_fact | Unflagged new facts (target 0) | Rate | JSON valid 1st / after repair | Tokens |")
+              .AppendLine("|---|---|---|---|---|---|---|---|");
+            foreach (var r in runs)
+            {
+                var t = r.Tailor!;
+                var c = r.TailorCalls;
+                sb.AppendLine(CultureInfo.InvariantCulture,
+                    $"| {r.Model} | {t.Completed} / {t.Failed} | {t.Edits} | {t.FlaggedNewFacts} | **{t.UnflaggedNewFacts}** | {F(t.NewFactRate)} | " +
+                    $"{(c is null ? "–" : $"{c.JsonValidFirstTry:0.###} / {c.JsonValidAfterRepair:0.###}")} | {c?.CountedTokens ?? 0} |");
+            }
+            foreach (var r in runs.Where(r => r.Tailor!.Slips.Count > 0 || r.TailorCalls is { Errors.Count: > 0 }))
+            {
+                sb.AppendLine().AppendLine(CultureInfo.InvariantCulture, $"### {r.Model}: tailoring details");
+                foreach (var s in r.Tailor!.Slips) sb.AppendLine(CultureInfo.InvariantCulture, $"- unflagged: {s}");
+                foreach (var e in r.TailorCalls?.Errors ?? []) sb.AppendLine(CultureInfo.InvariantCulture, $"- resume_tailor: {e}");
+            }
+        }
 
         /// <summary>Targets from PRD §14.3: eligibility ≥ 90 % (unclear allowed), JSON validity ≥ 99 %, Spearman for fit.</summary>
         public string ToMarkdown()
@@ -265,6 +350,7 @@ namespace Tailorly.Eval
                 foreach (var e in (r.EnrichmentCalls?.Errors ?? []).Take(20)) sb.AppendLine(CultureInfo.InvariantCulture, $"- job_enrichment: {e}");
                 foreach (var e in (r.FitCalls?.Errors ?? []).Take(20)) sb.AppendLine(CultureInfo.InvariantCulture, $"- job_fit_score: {e}");
             }
+            TailoringMarkdown(sb);
             return sb.ToString();
         }
 
