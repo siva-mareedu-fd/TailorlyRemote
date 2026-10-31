@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { ShortlistPage } from '@/features/shortlist/ShortlistPage';
+import { TailorPage } from '@/features/tailoring/TailorPage';
 import { AccountPage } from '@/pages/AccountPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { AuthPage } from '@/pages/auth/AuthPage';
@@ -13,6 +14,7 @@ import {
 import { PrivacyPage, TermsPage } from '@/pages/auth/LegalPages';
 import { DigestDetailPage, DigestsPage } from '@/pages/DigestsPage';
 import { ErrorPage } from '@/pages/ErrorPage';
+import { JobRedirect } from '@/pages/JobRedirect';
 import { NotFoundPage } from '@/pages/NotFound';
 import { OnboardingPage } from '@/pages/OnboardingPage';
 import { PlaceholderPage } from '@/pages/Placeholder';
@@ -32,16 +34,8 @@ const routes: RouteObject[] = [
       { path: 'shortlist', element: <ShortlistPage /> },
       { path: 'digests', element: <DigestsPage /> },
       { path: 'digests/:id', element: <DigestDetailPage /> },
-      {
-        path: 'jobs/:id',
-        element: (
-          <PlaceholderPage
-            title="Job detail and tailoring"
-            sub="Fit score, ATS analysis, tailored résumé and cover letter."
-            milestone="M4"
-          />
-        ),
-      },
+      { path: 'jobs/:id', element: <JobRedirect /> },
+      { path: 'tailor/:userJobId', element: <TailorPage /> },
       {
         path: 'tracker',
         element: (

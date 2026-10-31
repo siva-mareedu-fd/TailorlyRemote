@@ -500,6 +500,198 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/user-jobs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["TrackJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetUserJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}/description": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PutUserJobDescription"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}/tailored-documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["ListTailoredDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}/analysis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetAnalysis"];
+        put?: never;
+        post: operations["StartAnalysis"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}/tailored-resumes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StartTailoredResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}/cover-letters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["StartCoverLetter"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tailored-documents/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetTailoredDocument"];
+        put?: never;
+        post?: never;
+        delete: operations["DeleteTailoredDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tailored-documents/{id}/decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["DecideEdits"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tailored-documents/{id}/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["FinalizeTailoredResume"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tailored-documents/{id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["DownloadTailoredDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/tailored-documents/{id}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["PutCoverLetterContent"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/email/unsubscribe": {
         parameters: {
             query?: never;
@@ -755,6 +947,30 @@ export interface components {
             sourceName: string;
             sourceUrl: string;
         };
+        AnalysisDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userJobId: string;
+            /** Format: uuid */
+            resumeId: string;
+            status: string;
+            errorCode: null | string;
+            /** Format: int32 */
+            atsScore: null | number;
+            components: null | components["schemas"]["AtsComponentsDto"];
+            requirements: components["schemas"]["RequirementDto"][];
+            gaps: components["schemas"]["GapDto"][];
+            findings: components["schemas"]["FindingDto"][];
+            keywords: null | components["schemas"]["KeywordsDto"];
+            disclaimer: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        AnalysisRequest: {
+            /** Format: uuid */
+            resumeId: null | string;
+        };
         ApiProblem: {
             type: string;
             title: string;
@@ -774,6 +990,18 @@ export interface components {
             min: null | number;
             /** Format: int64 */
             max: null | number;
+        };
+        AtsComponentsDto: {
+            /** Format: double */
+            keywordCoverage: null | number;
+            /** Format: double */
+            requirementsMatch: null | number;
+            /** Format: double */
+            titleSeniority: null | number;
+            /** Format: double */
+            experienceRelevance: null | number;
+            /** Format: double */
+            formatHealth: null | number;
         };
         ChangePasswordRequest: {
             currentPassword: null | string;
@@ -845,8 +1073,38 @@ export interface components {
             /** Format: int32 */
             openToIndia?: number;
         };
+        CoverLetterContentDto: {
+            paragraphs: string[];
+            /** Format: int32 */
+            wordCount: number;
+            notes: null | string;
+        };
+        CoverLetterContentRequest: {
+            paragraphs: null | string[];
+        };
+        CoverLetterRequest: {
+            tone: null | string;
+            notes: null | string;
+            /** Format: uuid */
+            resumeId: null | string;
+        };
+        CreateUserJobRequest: {
+            /** Format: uuid */
+            jobId: null | string;
+        };
+        DecisionItem: {
+            editId: null | string;
+            decision: null | string;
+        };
+        DecisionsRequest: {
+            decisions: null | components["schemas"]["DecisionItem"][];
+        };
         DeletionStatusResponse: {
             status: string;
+        };
+        DiffSegmentDto: {
+            type: string;
+            text: string;
         };
         DigestDetailDto: {
             /** Format: uuid */
@@ -909,6 +1167,12 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        FindingDto: {
+            code: string;
+            severity: string;
+            message: string;
+            suggestion: null | string;
+        };
         ForgotPasswordRequest: {
             email: null | string;
         };
@@ -933,6 +1197,11 @@ export interface components {
             complexParagraphs: number;
             /** Format: int32 */
             schemaVersion?: number;
+        };
+        GapDto: {
+            skill: string;
+            likelyHas: boolean;
+            confirmed: boolean;
         };
         /** Format: binary */
         IFormFile: string;
@@ -1002,6 +1271,10 @@ export interface components {
             tracked?: null | components["schemas"]["TrackedDto"];
         };
         JsonElement: unknown;
+        KeywordsDto: {
+            matched: string[];
+            missing: string[];
+        };
         LoginRequest: {
             email: null | string;
             password: null | string;
@@ -1031,6 +1304,10 @@ export interface components {
             requireInviteCode: boolean;
             tones: string[];
             limits: components["schemas"]["MetaLimits"];
+            toneWordLimits: {
+                [key: string]: number;
+            };
+            pdfExport: boolean;
         };
         ParsedCertification: {
             name: string;
@@ -1120,6 +1397,12 @@ export interface components {
         RegisterResponse: {
             /** Format: uuid */
             userId: string;
+        };
+        RequirementDto: {
+            text: string;
+            type: string;
+            status: string;
+            evidenceParagraphIds: string[];
         };
         ResetPasswordRequest: {
             /** Format: uuid */
@@ -1211,6 +1494,11 @@ export interface components {
             /** Format: int32 */
             blocked: number;
         };
+        StatusChangeDto: {
+            status: string;
+            /** Format: date-time */
+            at: string;
+        };
         StatusDigestsDto: {
             /** Format: int32 */
             ready: number;
@@ -1260,6 +1548,51 @@ export interface components {
             displayName: string;
             enabled: boolean;
             health: components["schemas"]["SourceHealthDto"];
+        };
+        TailoredDocumentDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userJobId: string;
+            kind: string;
+            status: string;
+            errorCode: null | string;
+            /** Format: int32 */
+            sourceResumeVersion: number;
+            /** Format: int32 */
+            atsBefore: null | number;
+            /** Format: int32 */
+            atsAfter: null | number;
+            atsBreakdown: null | components["schemas"]["AtsComponentsDto"];
+            atsAfterBasis: null | string;
+            edits: components["schemas"]["TailoredEditDto"][];
+            unaddressedGaps: string[];
+            tone: null | string;
+            content: null | components["schemas"]["CoverLetterContentDto"];
+            downloadable: boolean;
+            formats: string[];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            finalizedAt: null | string;
+        };
+        TailoredEditDto: {
+            id: string;
+            paragraphId: string;
+            section: string;
+            original: string;
+            proposed: string;
+            rationale: string;
+            diff: components["schemas"]["DiffSegmentDto"][];
+            flags: string[];
+            newTerms: string[];
+            decision: string;
+        };
+        TailorRequest: {
+            /** Format: uuid */
+            resumeId: null | string;
         };
         TrackedDto: {
             /** Format: uuid */
@@ -1331,6 +1664,49 @@ export interface components {
             resetsOn: string;
             buckets: components["schemas"]["UsageBucketDto"][];
             warnings: string[];
+        };
+        UserJobDescriptionRequest: {
+            description: null | string;
+        };
+        UserJobDocumentsDto: {
+            analysisStatus: null | string;
+            resumeStatus: null | string;
+            coverLetterStatus: null | string;
+            interviewPrepStatus: null | string;
+        };
+        UserJobDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            jobId: null | string;
+            isByo: boolean;
+            title: string;
+            companyName: string;
+            applyUrl: null | string;
+            source: null | components["schemas"]["UserJobSourceDto"];
+            status: string;
+            notes: null | string;
+            /** Format: int32 */
+            fitScore: null | number;
+            /** Format: int32 */
+            atsBefore: null | number;
+            /** Format: int32 */
+            atsAfter: null | number;
+            hasUserDescription: boolean;
+            descriptionAvailable: boolean;
+            enrichmentStatus: null | string;
+            statusHistory: components["schemas"]["StatusChangeDto"][];
+            documents: components["schemas"]["UserJobDocumentsDto"];
+            concurrencyToken: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        UserJobSourceDto: {
+            key: string;
+            name: string;
+            attributionUrl: null | string;
         };
         VerifyEmailRequest: {
             /** Format: uuid */
@@ -2554,6 +2930,509 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DigestDetailDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    TrackJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateUserJobRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobDto"];
+                };
+            };
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetUserJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    PutUserJobDescription: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserJobDescriptionRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    ListTailoredDocuments: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"][];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    StartAnalysis: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["AnalysisRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisDto"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AnalysisDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    StartTailoredResume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["TailorRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    StartCoverLetter: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": null | components["schemas"]["CoverLetterRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetTailoredDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    DeleteTailoredDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    DecideEdits: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DecisionsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    FinalizeTailoredResume: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    DownloadTailoredDocument: {
+        parameters: {
+            query?: {
+                format?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    PutCoverLetterContent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoverLetterContentRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TailoredDocumentDto"];
                 };
             };
             /** @description Error (RFC 7807) */

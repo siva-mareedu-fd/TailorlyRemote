@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/Feedback';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ago, approxInr, host, salaryShort } from '@/lib/format';
 import { cn } from '@/lib/utils';
+import { useOpenTailoring } from '@/features/tailoring/useOpenTailoring';
 import { EligibilityChip } from './EligibilityChip';
 
 const confidenceTone: Record<string, string> = { high: 'ok', medium: '', low: 'warn' };
@@ -28,6 +29,7 @@ export function JobDetailPane({
   onBack: () => void;
 }) {
   const detail = useJob(id);
+  const tailoring = useOpenTailoring();
   const [allSkillsFor, setAllSkillsFor] = useState<string | null>(null);
   const job: (JobSummary & Partial<JobDetail>) | null = detail.data ?? fallback;
 
@@ -85,7 +87,7 @@ export function JobDetailPane({
         </div>
 
         <div className="row" style={{ margin: '12px 0 20px' }}>
-          <Button variant="primary" disabled title="Coming soon">
+          <Button variant="primary" disabled={tailoring.pending} onClick={() => tailoring.open(job)}>
             Tailor résumé{' '}
             <span
               className="kbd"
@@ -94,7 +96,7 @@ export function JobDetailPane({
               t
             </span>
           </Button>
-          <Button disabled title="Coming soon">
+          <Button disabled={tailoring.pending} onClick={() => tailoring.open(job, 'cover')}>
             Cover letter
           </Button>
           <Button disabled title="Coming soon">
@@ -103,7 +105,7 @@ export function JobDetailPane({
           <a className={buttonVariants()} href={job.applyUrl} target="_blank" rel="noopener noreferrer">
             Apply on {applyLabel} <ExternalLink size={14} aria-hidden="true" />
           </a>
-          <span className="help">Tailoring, cover letters and the tracker are coming soon.</span>
+          <span className="help">The tracker board is coming soon.</span>
         </div>
 
         <div className="sec">
