@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { Link } from 'react-router';
 import { isApiError } from '@/api/client';
 import {
   useAddCompany,
@@ -19,6 +20,7 @@ import { Switch } from '@/components/Controls';
 import { Alert, LoadError, Skeleton } from '@/components/Feedback';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
+import { AiConfigTab, FlagsTab, UsageTab, UsersTab } from '@/features/admin/AdminSettingsTabs';
 
 const TABS = [
   { id: 'status', label: 'Status' },
@@ -27,6 +29,8 @@ const TABS = [
   { id: 'coverage', label: 'Coverage' },
   { id: 'ai', label: 'AI config' },
   { id: 'flags', label: 'Flags' },
+  { id: 'users', label: 'Users' },
+  { id: 'usage', label: 'Usage' },
 ] as const;
 type Tab = (typeof TABS)[number]['id'];
 
@@ -78,6 +82,11 @@ export function AdminPage() {
         </div>
         <span className="chip warn">admin only</span>
       </div>
+      {!me.twoFactorEnabled && (
+        <Alert tone="warn" className="mb-[14px]">
+          Turn on two-step sign-in in <Link to="/account">Account</Link>. In production the admin console needs it.
+        </Alert>
+      )}
       <div className="tabs" role="tablist">
         {TABS.map((t) => (
           <button key={t.id} role="tab" type="button" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>
@@ -90,11 +99,10 @@ export function AdminPage() {
         {tab === 'sources' && <SourcesTab />}
         {tab === 'companies' && <CompaniesTab />}
         {tab === 'coverage' && <CoverageTab />}
-        {(tab === 'ai' || tab === 'flags') && (
-          <div className="empty">
-            This tab is built in <span className="font-mono">M6</span>.
-          </div>
-        )}
+        {tab === 'ai' && <AiConfigTab />}
+        {tab === 'flags' && <FlagsTab />}
+        {tab === 'users' && <UsersTab selfId={me.id} />}
+        {tab === 'usage' && <UsageTab />}
       </div>
     </div>
   );

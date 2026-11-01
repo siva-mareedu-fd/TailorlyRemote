@@ -103,21 +103,32 @@ function SignInForm({ onSuccess }: { onSuccess: (s: Success) => void }) {
   const forgot = useForgotPassword();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<{ email?: string; password?: string; form?: string }>({});
+  // Second step for accounts with two-step sign-in: shown after the server answers MFA_REQUIRED.
+  const [needsCode, setNeedsCode] = useState(false);
+  const [code, setCode] = useState('');
+  const [errors, setErrors] = useState<{ email?: string; password?: string; code?: string; form?: string }>({});
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next = {
       email: EMAIL_RE.test(email.trim()) ? undefined : 'Enter a valid email address.',
       password: password ? undefined : 'Enter your password.',
+      code: needsCode && !code.trim() ? 'Enter the code from your authenticator app.' : undefined,
     };
     setErrors(next);
-    if (next.email || next.password) return;
+    if (next.email || next.password || next.code) return;
     try {
-      await login.mutateAsync({ email: email.trim(), password });
+      await login.mutateAsync({ email: email.trim(), password, twoFactorCode: needsCode ? code.trim() : null });
       navigate(safeNext(params.get('next')), { replace: true });
     } catch (err) {
-      if (isApiError(err, 'UNAUTHENTICATED')) setErrors({ password: 'Email or password is incorrect.' });
+      if (isApiError(err, 'MFA_REQUIRED')) {
+        setNeedsCode(true);
+        setErrors({});
+      } else if (isApiError(err, 'UNAUTHENTICATED')) {
+        setNeedsCode(false);
+        setErrors({ password: 'Email or password is incorrect.' });
+      } else if (isApiError(err, 'VALIDATION_FAILED') && err.field('twoFactorCode'))
+        setErrors({ code: err.field('twoFactorCode') ?? undefined });
       else setErrors({ form: isApiError(err) ? err.userMessage : 'Could not sign in. Check your connection.' });
     }
   };
@@ -173,8 +184,21 @@ function SignInForm({ onSuccess }: { onSuccess: (s: Success) => void }) {
             </button>
           }
         />
+        {needsCode && (
+          <TextField
+            label="Sign-in code"
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoFocus
+            placeholder="6-digit code, or a recovery code"
+            hint="Open your authenticator app. Lost your phone? Use one of your recovery codes."
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            error={errors.code}
+          />
+        )}
         <Button type="submit" variant="primary" className="w-full py-[11px]" disabled={login.isPending}>
-          {login.isPending ? 'Signing in…' : 'Sign in'}
+          {login.isPending ? 'Signing in…' : needsCode ? 'Verify and sign in' : 'Sign in'}
         </Button>
       </form>
     </>

@@ -137,7 +137,8 @@ export function useConfirmedSkills(enabled = true) {
 export function useLogin() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { email: string; password: string }) => call(() => api.POST('/api/v1/auth/login', { body })),
+    mutationFn: (body: { email: string; password: string; twoFactorCode?: string | null }) =>
+      call(() => api.POST('/api/v1/auth/login', { body })),
     onSuccess: (me) => {
       qc.clear();
       qc.setQueryData(keys.me, me);

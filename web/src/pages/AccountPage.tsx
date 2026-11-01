@@ -7,6 +7,7 @@ import { PasswordField, TextField } from '@/components/Field';
 import { useToast } from '@/components/Toast';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
+import { TwoFactorCard } from '@/features/account/TwoFactorCard';
 
 const dateFmt = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -23,6 +24,8 @@ function timeZones(current: string): string[] {
 /** Account page (design: #account): profile, password, privacy and account deletion. */
 export function AccountPage() {
   const logout = useLogout();
+  const me = useSignedInMe();
+  const isAdmin = me.roles.includes('Admin');
   return (
     <div className="page narrow">
       <div className="page-title">
@@ -37,6 +40,7 @@ export function AccountPage() {
       <div className="stack">
         <ProfileForm />
         <PasswordForm />
+        {(isAdmin || me.twoFactorEnabled) && <TwoFactorCard isAdmin={isAdmin} />}
         <PrivacyCard />
         <DeleteCard />
       </div>
