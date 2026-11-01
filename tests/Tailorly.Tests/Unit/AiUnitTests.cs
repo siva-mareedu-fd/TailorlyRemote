@@ -189,6 +189,20 @@ public sealed class TailoringTaskTests
             .Should().BeEmpty("greetings, the job's own words and a month spelled out ('Jan 2021' in the résumé) are not invented facts");
     }
 
+    [Theory]
+    [InlineData("DataKrew Pvt. Ltd.", "Backend Developer (.NET - C#)", "Hello DataKrew team,", "I would like to join as a backend developer.")]
+    [InlineData("Acme Cloud, Inc.", "Senior Engineer - Payments", "Dear Hiring Manager,", "The Senior Engineer role at Acme Cloud fits my work.")]
+    [InlineData("Brightwave GmbH", "Platform Engineer | Remote", "Hello Brightwave team,", "I build payment services in C#.")]
+    public void The_opening_may_name_the_company_without_its_legal_suffix_or_the_role_without_its_qualifiers(string company, string title,
+        string greeting, string first)
+    {
+        var rules = Rules() with { Company = company, Title = title,
+            Facts = Tailorly.App.Features.Tailoring.TailoringData.Facts(Resume, null, [], company, title, CoverLetterTask.LetterVocabulary) };
+        CoverLetterTask.Validate(Letter(greeting, first), rules).Should().NotContain(e => e.Contains("opening", StringComparison.Ordinal));
+        CoverLetterTask.Validate(Letter("Hello,", "I build payment services in C#."), rules)
+            .Should().Contain(e => e.Contains("opening", StringComparison.Ordinal), "a generic opening is still refused");
+    }
+
     private static InterviewPrepRules PrepRules()
     {
         var resume = Tailorly.App.Features.Tailoring.TailoringData.Facts(Resume, null, [], "Acme Cloud", "Senior Backend Engineer");
@@ -205,7 +219,7 @@ public sealed class TailoringTaskTests
             [gap], [question, "What does success look like here?"]);
 
     [Fact]
-    public void Interview_prep_talking_points_use_only_the_resume_while_topics_and_gaps_may_use_the_job()
+    public void Interview_prep_talking_points_use_only_the_resume_while_topics_and_gaps_only_avoid_invented_numbers()
     {
         InterviewPrepTask.Validate(Prep(), PrepRules()).Should().BeEmpty("Kubernetes is in the posting; the talking points quote the résumé");
         InterviewPrepTask.Validate(Prep(talkingPoint: "Reduced settlement latency by 30% at Example Corp."), PrepRules())
@@ -219,8 +233,10 @@ public sealed class TailoringTaskTests
 
         InterviewPrepTask.Validate(Prep(talkingPoint: "Ran Kubernetes clusters for the payments team."), PrepRules())
             .Should().ContainSingle(e => e.Contains("talking_points_from_resume", StringComparison.Ordinal), "a job skill is not the candidate's");
-        InterviewPrepTask.Validate(Prep(topic: "Terraform on GCP"), PrepRules())
-            .Should().ContainSingle(e => e.StartsWith("technical_topics[0]", StringComparison.Ordinal));
+        InterviewPrepTask.Validate(Prep(topic: "Terraform on GCP", gap: "Kafka"), PrepRules())
+            .Should().BeEmpty("topics and gaps predict the interview; they claim nothing about the candidate");
+        InterviewPrepTask.Validate(Prep(topic: "Scaling to 50,000 requests per second"), PrepRules())
+            .Should().ContainSingle(e => e.StartsWith("technical_topics[0] states a number", StringComparison.Ordinal));
         InterviewPrepTask.Validate(Prep(question: "**Ask** about the team 🚀 https://example.test"), PrepRules())
             .Should().HaveCount(3, "markdown, emoji and a link in a question");
     }

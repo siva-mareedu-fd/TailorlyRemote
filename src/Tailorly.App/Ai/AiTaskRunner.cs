@@ -119,6 +119,9 @@ public sealed partial class AiTaskRunner(
 
             if (errors.Count == 0)
                 return new AiTaskResult<T>(value!, json!, response.Model, prompt.Version, countedTotal);
+            // Validation messages are content-free by construction (JSON paths, field positions, rule names, configured
+            // limits), so they may be logged; Debug keeps them out of production logs.
+            LogValidationErrors(logger, task.Name, attempt, string.Join(" | ", errors.Take(MaxErrorsInRepair)));
 
             // A refusal will not change on repair; anything else gets one chance with the problems listed.
             if (attempt == 2 || response.StopReason == "refusal") break;
@@ -217,6 +220,9 @@ public sealed partial class AiTaskRunner(
                   "in {LatencyMs} ms, {ValidationErrors} validation error(s), stop {StopReason}")]
     private static partial void LogCall(ILogger logger, string task, int attempt, string model, int inputTokens, int outputTokens,
         int cacheReadTokens, int latencyMs, int validationErrors, string? stopReason);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "AI task {Task} attempt {Attempt} failed validation: {ValidationErrors}")]
+    private static partial void LogValidationErrors(ILogger logger, string task, int attempt, string validationErrors);
 
     [LoggerMessage(Level = LogLevel.Warning,
         Message = "AI task {Task} attempt {Attempt} provider failure (status {StatusCode}, transient {Transient}) after {LatencyMs} ms")]

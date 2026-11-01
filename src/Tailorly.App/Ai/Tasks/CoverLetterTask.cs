@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Text.Json.Serialization;
 using Tailorly.Docx.Tailoring;
 
@@ -77,6 +78,45 @@ public static class CoverLetterTask
     public static IReadOnlyList<string> Paragraphs(CoverLetterOutput o) =>
         o.Paragraphs.SelectMany(p => p.Split('\n')).Select(p => p.Trim()).Where(p => p.Length > 0).ToList();
 
+    private static readonly HashSet<string> LegalSuffixes = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "pvt", "private", "ltd", "limited", "inc", "incorporated", "llc", "llp", "plc", "gmbh", "ag", "bv", "sa", "sas", "srl",
+        "corp", "corporation", "co", "company", "pte", "pty", "oy", "ab", "as", "kk",
+    };
+
+    /// <summary>
+    /// Whether the opening names the company or the role as a person would: the company with or without its legal suffix
+    /// ("DataKrew" for "DataKrew Pvt. Ltd."), the title with or without its qualifiers ("Backend Developer" for "Backend
+    /// Developer (.NET - C#)", "Platform Engineer" for "Platform Engineer | Remote").
+    /// </summary>
+    internal static bool NamesCompanyOrRole(string opening, string company, string title)
+    {
+        var text = Normalize(opening);
+        return new[] { company, CoreCompany(company), title, CoreTitle(title) }
+            .Select(Normalize)
+            .Any(n => n.Length >= 3 && text.Contains(n, StringComparison.Ordinal));
+    }
+
+    private static string CoreCompany(string company)
+    {
+        var words = Regex.Replace(company, @"\([^)]*\)", " ").Split([' ', ',', '.'], StringSplitOptions.RemoveEmptyEntries).ToList();
+        while (words.Count > 1 && LegalSuffixes.Contains(words[^1])) words.RemoveAt(words.Count - 1);
+        return string.Join(' ', words);
+    }
+
+    private static string CoreTitle(string title)
+    {
+        var core = Regex.Replace(title, @"\([^)]*\)|\[[^\]]*\]", " ");
+        var cut = core.IndexOfAny(['|', ',', '–', '—']);
+        if (cut > 0) core = core[..cut];
+        var dash = core.IndexOf(" - ", StringComparison.Ordinal);
+        return dash > 0 ? core[..dash] : core;
+    }
+
+    /// <summary>Lower case, letters and digits only, single spaces (so "DataKrew's" and "back-end" still match).</summary>
+    private static string Normalize(string s) =>
+        Regex.Replace(Regex.Replace(s.ToLowerInvariant(), @"[^\p{L}\p{N}#+]+", " "), @"\s+", " ").Trim();
+
     /// <summary>Deterministic checks. Messages name paragraphs by position and configured phrases only, never letter text.</summary>
     internal static IReadOnlyList<string> Validate(CoverLetterOutput o, CoverLetterRules r)
     {
@@ -85,8 +125,7 @@ public static class CoverLetterTask
         var words = WordCount(o.Paragraphs);
         if (words > r.MaxWords) errors.Add($"The letter has {words} words; the limit for a {r.Tone} letter is {r.MaxWords}. Shorten it.");
 
-        var opening = string.Join(" ", o.Paragraphs.Take(2));
-        if (!opening.Contains(r.Company, StringComparison.OrdinalIgnoreCase) && !opening.Contains(r.Title, StringComparison.OrdinalIgnoreCase))
+        if (!NamesCompanyOrRole(string.Join(" ", o.Paragraphs.Take(2)), r.Company, r.Title))
             errors.Add("The opening must name the company or the role.");
 
         var all = string.Join("\n", o.Paragraphs);

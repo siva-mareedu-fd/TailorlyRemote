@@ -19,14 +19,16 @@ public sealed record PrepBehavioural(
     [property: JsonPropertyName("talking_points_from_resume")] IReadOnlyList<string> TalkingPoints);
 
 /// <param name="Resume">Résumé, profile and confirmed skills: the only allowed source of talking points.</param>
-/// <param name="ResumeAndJob">The résumé facts plus the job posting: the allowed source of topics and gaps.</param>
+/// <param name="ResumeAndJob">The résumé facts plus the job posting: the allowed source of numbers in topics and gaps.</param>
 public sealed record InterviewPrepRules(FactSource Resume, FactSource ResumeAndJob);
 
 /// <summary>
 /// <c>interview_prep</c> (PRD F10): likely technical topics, behavioural questions with talking points drawn only from
-/// the candidate's real experience, gaps to prepare and questions to ask. Charged to Documents. The truthfulness checks
-/// are tailoring's: a talking point may not state a number or name a term (employer, product, skill, credential) that is
-/// not in the résumé; topics and gaps may also use the job posting's terms. A violation goes back in the one repair turn.
+/// the candidate's real experience, gaps to prepare and questions to ask. Charged to Documents. Talking points are claims
+/// about the candidate, so they get tailoring's truthfulness checks: no number and no term (employer, product, skill,
+/// credential) that is not in the résumé. Topics and gaps predict the interview and claim nothing about the candidate, so
+/// they may name technologies the posting implies; they only may not state a number found in neither the résumé nor the
+/// posting. A violation goes back in the one repair turn.
 /// </summary>
 public static class InterviewPrepTask
 {
@@ -45,8 +47,7 @@ public static class InterviewPrepTask
         {
             Plain(errors, $"technical_topics[{i}].topic", o.TechnicalTopics[i].Topic);
             Plain(errors, $"technical_topics[{i}].why", o.TechnicalTopics[i].Why);
-            Grounded(errors, $"technical_topics[{i}]", $"{o.TechnicalTopics[i].Topic}\n{o.TechnicalTopics[i].Why}", r.ResumeAndJob,
-                "the résumé or the job posting");
+            NoNewNumbers(errors, $"technical_topics[{i}]", $"{o.TechnicalTopics[i].Topic}\n{o.TechnicalTopics[i].Why}", r.ResumeAndJob);
         }
         for (var i = 0; i < o.Behavioural.Count; i++)
         {
@@ -61,7 +62,7 @@ public static class InterviewPrepTask
         for (var i = 0; i < o.GapsToPrepare.Count; i++)
         {
             Plain(errors, $"gaps_to_prepare[{i}]", o.GapsToPrepare[i]);
-            Grounded(errors, $"gaps_to_prepare[{i}]", o.GapsToPrepare[i], r.ResumeAndJob, "the job posting");
+            NoNewNumbers(errors, $"gaps_to_prepare[{i}]", o.GapsToPrepare[i], r.ResumeAndJob);
         }
         for (var i = 0; i < o.QuestionsToAsk.Count; i++) Plain(errors, $"questions_to_ask[{i}]", o.QuestionsToAsk[i]);
         return errors;
@@ -72,6 +73,12 @@ public static class InterviewPrepTask
         if (FactGuard.HasMarkdown(text)) errors.Add($"{at} uses markdown or a bullet character; write plain text.");
         if (FactGuard.Pictographs(text).Count > 0) errors.Add($"{at} contains an emoji or pictograph.");
         if (FactGuard.Links(text).Count > 0) errors.Add($"{at} contains a link or email address.");
+    }
+
+    private static void NoNewNumbers(List<string> errors, string at, string text, FactSource facts)
+    {
+        if (FactGuard.NewNumbers(text, facts).Count > 0)
+            errors.Add($"{at} states a number that is not in the résumé or the job posting; use only those numbers.");
     }
 
     private static void Grounded(List<string> errors, string at, string text, FactSource facts, string where)
