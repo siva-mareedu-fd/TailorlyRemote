@@ -1,6 +1,8 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { ShortlistPage } from '@/features/shortlist/ShortlistPage';
 import { TailorPage } from '@/features/tailoring/TailorPage';
+import { AddJobPage } from '@/features/tracker/AddJobPage';
+import { TrackerPage } from '@/features/tracker/TrackerPage';
 import { AccountPage } from '@/pages/AccountPage';
 import { AdminPage } from '@/pages/AdminPage';
 import { AuthPage } from '@/pages/auth/AuthPage';
@@ -17,7 +19,6 @@ import { ErrorPage } from '@/pages/ErrorPage';
 import { JobRedirect } from '@/pages/JobRedirect';
 import { NotFoundPage } from '@/pages/NotFound';
 import { OnboardingPage } from '@/pages/OnboardingPage';
-import { PlaceholderPage } from '@/pages/Placeholder';
 import { PreferencesPage } from '@/pages/PreferencesPage';
 import { ResumePage } from '@/pages/ResumePage';
 import { UsagePage } from '@/pages/UsagePage';
@@ -36,23 +37,8 @@ const routes: RouteObject[] = [
       { path: 'digests/:id', element: <DigestDetailPage /> },
       { path: 'jobs/:id', element: <JobRedirect /> },
       { path: 'tailor/:userJobId', element: <TailorPage /> },
-      {
-        path: 'tracker',
-        element: (
-          <PlaceholderPage title="Tracker" sub="Saved → Tailored → Applied → Interviewing → Offer." milestone="M5" />
-        ),
-      },
-      {
-        path: 'add-job',
-        element: (
-          <PlaceholderPage
-            title="Add a job"
-            sub="Paste a job from LinkedIn, Naukri or anywhere else."
-            milestone="M5"
-            narrow
-          />
-        ),
-      },
+      { path: 'tracker', element: <TrackerPage /> },
+      { path: 'add-job', element: <AddJobPage /> },
       { path: 'resume', element: <ResumePage /> },
       { path: 'preferences', element: <PreferencesPage /> },
       { path: 'usage', element: <UsagePage /> },

@@ -18,6 +18,7 @@ import { Button, buttonVariants } from '@/components/ui/button';
 import { EligibilityChip } from '@/features/shortlist/EligibilityChip';
 import { cn } from '@/lib/utils';
 import { CoverLetterTab } from './CoverLetterTab';
+import { InterviewPrepTab } from './InterviewPrepTab';
 import { ResumeTab } from './ResumeTab';
 import { errorText } from './messages';
 import { PasteDescription } from './shared';
@@ -32,7 +33,7 @@ const tabs: [Tab, string][] = [
 
 /**
  * The tailoring workspace for one tracked job (design/tailorly-app.html #tailor): ATS match before → after, the stepper
- * Analysis → Confirm skills → Review changes → Download, and tabs for résumé changes, the cover letter and (M5) interview
+ * Analysis → Confirm skills → Review changes → Download, and tabs for résumé changes, the cover letter and interview
  * prep. The résumé tab ends in the sticky action bar that finalises and downloads.
  */
 export function TailorPage() {
@@ -85,11 +86,11 @@ export function TailorPage() {
     <>
       <div className="page" style={{ paddingBottom: 24 }}>
         <Link
-          to={uj.jobId ? `/shortlist?job=${uj.jobId}` : '/shortlist'}
+          to={uj.jobId && !uj.isByo ? `/shortlist?job=${uj.jobId}` : '/tracker'}
           className="row"
           style={{ marginBottom: 10, width: 'fit-content' }}
         >
-          <ArrowLeft size={16} aria-hidden="true" /> Back to shortlist
+          <ArrowLeft size={16} aria-hidden="true" /> {uj.jobId && !uj.isByo ? 'Back to shortlist' : 'Back to tracker'}
         </Link>
         <div className="page-title">
           <div>
@@ -97,7 +98,11 @@ export function TailorPage() {
             <div className="sub">
               {uj.companyName}
               {job.data?.locationText ? ` · ${job.data.locationText}` : ''}{' '}
-              {job.data && <EligibilityChip eligibility={job.data.eligibility} />}
+              {job.data ? (
+                <EligibilityChip eligibility={job.data.eligibility} />
+              ) : (
+                uj.assessment && <EligibilityChip eligibility={uj.assessment.eligibility} />
+              )}
             </div>
           </div>
           <div className="card flat" style={{ padding: '10px 14px' }}>
@@ -165,10 +170,7 @@ export function TailorPage() {
             <CoverLetterTab key={letter?.id ?? 'none'} userJobId={uj.id} letter={letter} onStarted={restart} />
           )
         ) : (
-          <div className="card">
-            <h2>Interview prep</h2>
-            <div className="empty">Interview prep arrives with the tracker. It will use only your real experience.</div>
-          </div>
+          <InterviewPrepTab userJobId={uj.id} onPasted={() => void userJob.refetch()} />
         )}
       </div>
       {tab === 'resume' && resumeDoc && (resumeDoc.edits.length > 0 || resumeDoc.status === 'ready') && (

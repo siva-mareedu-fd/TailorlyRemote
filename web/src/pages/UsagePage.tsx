@@ -21,7 +21,7 @@ function resetLabel(resetsOn: string) {
   );
 }
 
-/** Usage page (design: #usage): this month's two budgets (PRD F13). Per-task history joins in M5. */
+/** Usage page (design: #usage): this month's two budgets (PRD F13), tokens per day and the per-task breakdown. */
 export function UsagePage() {
   const usage = useUsage();
   if (usage.isPending) return <PageLoading />;
@@ -61,9 +61,66 @@ export function UsagePage() {
           </div>
         ))}
       </div>
-      <p className="help">
+      <Daily usage={u} />
+      <h3 className="k">By task</h3>
+      {u.byTask.length === 0 ? (
+        <p className="empty">No AI calls yet this month.</p>
+      ) : (
+        <div className="tablewrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Budget</th>
+                <th>Calls</th>
+                <th style={{ textAlign: 'right' }}>Tokens</th>
+              </tr>
+            </thead>
+            <tbody>
+              {u.byTask.map((t) => (
+                <tr key={`${t.task}-${t.bucket}`}>
+                  <td className="font-mono">{t.task}</td>
+                  <td>
+                    <span className="chip">{BUCKETS[t.bucket]?.title ?? t.bucket}</span>
+                  </td>
+                  <td className="font-mono">{nf.format(t.calls)}</td>
+                  <td className="font-mono" style={{ textAlign: 'right' }}>
+                    {nf.format(t.tokens)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="help mt-2.5">
         Cached prompt tokens count at a lower rate. Shared job analysis is paid by the platform and is not counted here.
       </p>
+    </div>
+  );
+}
+
+/** Tokens per day, last 30 days (Asia/Kolkata days). The bars are decorative; the total and peak are stated in text. */
+function Daily({ usage }: { usage: Usage }) {
+  const max = Math.max(1, ...usage.daily.map((d) => d.tokens));
+  const total = usage.daily.reduce((s, d) => s + d.tokens, 0);
+  const peak = usage.daily.reduce((a, b) => (b.tokens > a.tokens ? b : a), usage.daily[0]);
+  return (
+    <div className="card mb-[14px]">
+      <h2>Tokens per day</h2>
+      <p className="sub">
+        Last 30 days · {nf.format(total)} tokens
+        {peak && peak.tokens > 0 ? `, most on ${resetLabel(peak.date)} (${nf.format(peak.tokens)})` : ''}
+      </p>
+      <div className="bars" aria-hidden="true">
+        {usage.daily.map((d) => (
+          <i
+            key={d.date}
+            title={`${resetLabel(d.date)}: ${nf.format(d.tokens)}`}
+            style={{ height: `${(d.tokens / max) * 100}%` }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

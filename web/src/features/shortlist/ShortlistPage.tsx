@@ -20,6 +20,8 @@ import { Button } from '@/components/ui/button';
 import { salaryShort, stamp } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { EligibilityChip } from './EligibilityChip';
+import { useTrackJob } from '@/api/tailoring';
+import { errorText } from '@/features/tailoring/messages';
 import { useOpenTailoring } from '@/features/tailoring/useOpenTailoring';
 import { JobDetailPane } from './JobDetailPane';
 
@@ -32,15 +34,11 @@ const pills: { value: EligibilityFilter; label: string }[] = [
   { value: 'unclear', label: 'Unclear' },
 ];
 
-/** Shortcuts that act on the selected job; features that arrive later answer with a short note. */
-const later: Record<string, string> = {
-  s: 'Saving to the tracker is coming soon',
-};
-
 /**
  * Today's shortlist (design/tailorly-app.html #shortlist): jobs scored for the user, best fit first, in a master-detail
  * layout. Filters by eligibility, minimum score (defaults to the user's preference) and text; says how many jobs sit
- * below the minimum. Keyboard: / filter, j/k move, o open the source's apply link, t tailor, Esc back to the list. "Run now"
+ * below the minimum. Keyboard: / filter, j/k move, o open the source's apply link, t tailor, s save to the tracker, Esc
+ * back to the list. "Run now"
  * starts a manual search (3 a day) and shows its queued → running → ready/failed state.
  */
 export function ShortlistPage() {
@@ -48,6 +46,7 @@ export function ShortlistPage() {
   const say = useToast();
   const qc = useQueryClient();
   const tailoring = useOpenTailoring();
+  const track = useTrackJob();
   const [params, setParams] = useSearchParams();
   const prefs = usePreferences(me.emailVerified);
   const resumes = useResumes(me.emailVerified);
@@ -124,7 +123,8 @@ export function ShortlistPage() {
       else if (e.key === 'k' && i > 0) select(items[i - 1].id);
       else if (e.key === 'o' && i >= 0) window.open(items[i].applyUrl, '_blank', 'noopener,noreferrer');
       else if (e.key === 't' && i >= 0) tailoring.open(items[i]);
-      else if (later[e.key]) say(later[e.key]);
+      else if (e.key === 's' && i >= 0 && !items[i].tracked)
+        track.mutate(items[i].id, { onSuccess: () => say('Saved to tracker'), onError: (err) => say(errorText(err)) });
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);

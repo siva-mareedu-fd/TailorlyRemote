@@ -1,12 +1,17 @@
 import { ExternalLink, TriangleAlert } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import { isApiError } from '@/api/client';
 import { useJob, type JobDetail, type JobSummary } from '@/api/queries';
 import { Skeleton } from '@/components/Feedback';
+import { useToast } from '@/components/Toast';
+import { useTrackJob } from '@/api/tailoring';
+import { errorText } from '@/features/tailoring/messages';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { ago, approxInr, host, salaryShort } from '@/lib/format';
 import { cn } from '@/lib/utils';
 import { useOpenTailoring } from '@/features/tailoring/useOpenTailoring';
+import { useApplyPrompt } from '@/features/tracker/useApplyPrompt';
 import { EligibilityChip } from './EligibilityChip';
 
 const confidenceTone: Record<string, string> = { high: 'ok', medium: '', low: 'warn' };
@@ -30,6 +35,9 @@ export function JobDetailPane({
 }) {
   const detail = useJob(id);
   const tailoring = useOpenTailoring();
+  const track = useTrackJob();
+  const apply = useApplyPrompt();
+  const say = useToast();
   const [allSkillsFor, setAllSkillsFor] = useState<string | null>(null);
   const job: (JobSummary & Partial<JobDetail>) | null = detail.data ?? fallback;
 
@@ -99,13 +107,37 @@ export function JobDetailPane({
           <Button disabled={tailoring.pending} onClick={() => tailoring.open(job, 'cover')}>
             Cover letter
           </Button>
-          <Button disabled title="Coming soon">
-            Save <span className="kbd">s</span>
-          </Button>
-          <a className={buttonVariants()} href={job.applyUrl} target="_blank" rel="noopener noreferrer">
+          {job.tracked ? (
+            <Link className={buttonVariants()} to="/tracker">
+              On your tracker
+            </Link>
+          ) : (
+            <Button
+              disabled={track.isPending}
+              onClick={() =>
+                track.mutate(job.id, { onSuccess: () => say('Saved to tracker'), onError: (e) => say(errorText(e)) })
+              }
+            >
+              Save <span className="kbd">s</span>
+            </Button>
+          )}
+          <a
+            className={buttonVariants()}
+            href={job.applyUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() =>
+              apply.start({
+                title: job.title,
+                companyName: job.companyName,
+                jobId: job.id,
+                userJobId: job.tracked?.userJobId,
+              })
+            }
+          >
             Apply on {applyLabel} <ExternalLink size={14} aria-hidden="true" />
           </a>
-          <span className="help">The tracker board is coming soon.</span>
+          {apply.dialog}
         </div>
 
         <div className="sec">
