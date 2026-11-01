@@ -17,7 +17,7 @@ public sealed partial class TenancyGuardTests
     /// <summary>Entities with a user id that are deliberately not user-filtered.</summary>
     private static readonly Dictionary<Type, string> UnfilteredWithUserId = new()
     {
-        [typeof(AiUsage)] = "system ledger written by the AI runner; read only by admin endpoints (DatabaseDesign §9)",
+        [typeof(AiUsage)] = "system ledger written by the AI runner; read by admin endpoints and, filtered by hand, GET /usage (ReviewedUnfilteredReads)",
         [typeof(AuditLog)] = "system audit trail; read only by admin endpoints (DatabaseDesign §9)",
         [typeof(AiTaskConfig)] = "shared model routing; updated_by is the admin who last edited it",
         [typeof(IdentityUserRole<Guid>)] = "Identity store; read only through UserManager for the caller's own id",
@@ -31,6 +31,16 @@ public sealed partial class TenancyGuardTests
     {
         [("ResumeEndpoints.cs", "user_profiles")] =
             "résumé version counter: WHERE user_id = the caller's own id; UPDATE … RETURNING has no EF equivalent",
+    };
+
+    /// <summary>
+    /// Reads of the unfiltered entities above outside admin features and <see cref="SystemQueries"/>: (file, entity) → how the
+    /// file keeps other users' rows out. Nothing else does, so each one needs a test of its own.
+    /// </summary>
+    private static readonly Dictionary<(string File, string Entity), string> ReviewedUnfilteredReads = new()
+    {
+        [("UsageEndpoints.cs", nameof(AiUsage))] =
+            "WHERE user_id = the caller's id on both queries; IsolationTests.Usage_counts_only_the_callers_tokens",
     };
 
     /// <summary>Hangfire entry points that take a user id but deliberately do not act as that user, with the reason.</summary>
@@ -135,6 +145,48 @@ public sealed partial class TenancyGuardTests
     }
 
     [Fact]
+    public void Unfiltered_user_tables_are_read_only_by_admin_features_or_reviewed_code()
+    {
+        var found = new List<(string File, string Entity)>();
+        foreach (var file in SourceFiles().Where(f => Path.GetFileName(f) is not ("SystemQueries.cs" or "AppDbContext.cs")
+                                                     && !Relative(f).Contains($"Features{Path.DirectorySeparatorChar}Admin", StringComparison.Ordinal)))
+            foreach (Match m in UnfilteredRead().Matches(StripComments(File.ReadAllText(file))))
+                found.Add((Path.GetFileName(file), m.Groups["entity"].Value));
+
+        string.Join(", ", found.Distinct().Where(x => !ReviewedUnfilteredReads.ContainsKey(x)).Select(x => $"{x.File}: {x.Entity}"))
+            .Should().BeEmpty("these tables have no query filter: read them in an admin feature or SystemQueries, or review the read here");
+        ReviewedUnfilteredReads.Keys.Should().OnlyContain(k => found.Contains(k), "the reviewed list must not name reads that no longer exist");
+    }
+
+    [Fact]
+    public void Every_enqueued_job_that_takes_a_user_id_is_seen_by_the_ActAs_scan()
+    {
+        // Job entry points are what the code enqueues, schedules or registers as recurring; the ActAs scan below finds
+        // them by [AutomaticRetry], so a user job without that attribute would slip past it.
+        var assembly = typeof(AppDbContext).Assembly;
+        var entryPoints = SourceFiles()
+            .SelectMany(f => JobReference().Matches(StripComments(File.ReadAllText(f))))
+            .Select(m => (Type: m.Groups["type"].Value, Method: m.Groups["method"].Value))
+            .Distinct()
+            .ToList();
+        entryPoints.Should().Contain([("ParseResumeJob", "RunAsync"), ("PurgeDeletedAccountsJob", "PurgeUserAsync"),
+            ("SweepStuckWorkJob", "RunAsync")], "the scan must see enqueued and recurring jobs");
+
+        var unseen = new List<string>();
+        foreach (var (typeName, methodName) in entryPoints)
+        {
+            var methods = assembly.GetTypes().Where(t => t.Name == typeName)
+                .SelectMany(t => t.GetMethods().Where(m => m.Name == methodName)).ToList();
+            methods.Should().NotBeEmpty($"{typeName}.{methodName} is enqueued, so it must exist");
+            unseen.AddRange(methods
+                .Where(m => m.GetParameters().Any(p => p.ParameterType == typeof(Guid) && p.Name == "userId"))
+                .Where(m => !m.IsDefined(typeof(Hangfire.AutomaticRetryAttribute), inherit: false))
+                .Select(m => $"{typeName}.{methodName}"));
+        }
+        string.Join(", ", unseen).Should().BeEmpty("a job that takes a user id must declare [AutomaticRetry] so the ActAs scan checks it");
+    }
+
+    [Fact]
     public void Guards_see_the_source_tree()
     {
         var files = SourceFiles().Select(Path.GetFileName).ToList();
@@ -187,6 +239,14 @@ public sealed partial class TenancyGuardTests
     /// <summary>An <c>[AutomaticRetry]</c> job method: its name and parameter list (the body follows).</summary>
     [GeneratedRegex(@"\[AutomaticRetry[^\n]*\]\s*(?:\[[^\n]*\]\s*)*public\s+async\s+Task\w*(?:<[^>]*>)?\s+(?<name>\w+)\((?<args>[^)]*)\)")]
     private static partial Regex UserJob();
+
+    /// <summary>A read of an unfiltered entity that references users, through its DbSet or <c>Set&lt;T&gt;()</c>.</summary>
+    [GeneratedRegex(@"\b(?:db\.(?<entity>AiUsage|AuditLog)\b|Set<(?<entity>AiUsage|AuditLog)>\s*\()")]
+    private static partial Regex UnfilteredRead();
+
+    /// <summary>A Hangfire job reference: <c>Enqueue&lt;T&gt;(j =&gt; j.M(…))</c>, <c>Schedule&lt;T&gt;</c> or <c>AddOrUpdate&lt;T&gt;(id, j =&gt; j.M(…))</c>.</summary>
+    [GeneratedRegex(@"\b(?:Enqueue|Schedule|AddOrUpdate)<(?<type>\w+)>\([^;]*?=>\s*\w+\.(?<method>\w+)\(")]
+    private static partial Regex JobReference();
 
     [GeneratedRegex(@"^\s*//.*$", RegexOptions.Multiline)]
     private static partial Regex LineComment();

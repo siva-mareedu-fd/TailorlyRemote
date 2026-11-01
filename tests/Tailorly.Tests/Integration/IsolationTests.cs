@@ -58,18 +58,23 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
     private const string AdminPrefix = "/api/v1/admin/";
 
     private sealed record Owner(TestUser User, Guid ResumeId, Guid SkillId, string FileName, string Skill, Guid WatchedLinkId,
-        string Role, string BoardToken, Guid JobId, Guid DigestId, Guid UserJobId, Guid DocumentId, Guid ByoUserJobId, string ByoTitle);
+        string Role, string BoardToken, Guid JobId, Guid DigestId, Guid UserJobId, Guid DocumentId, Guid CoverLetterId,
+        Guid ByoUserJobId, string ByoTitle);
 
-    /// <summary>How to find user A's resource for a route with an id, by route prefix (longest prefix wins).</summary>
-    private static readonly (string Prefix, Func<Owner, Guid> Id)[] Resolvers =
+    /// <summary>
+    /// How to find user A's resources for a route with an id, by route prefix (longest prefix wins). The intruder tries every
+    /// id. The first must work for A on every GET under the prefix, so B's 404 is proven to be about ownership: a tailored
+    /// document comes first as a <em>ready</em> cover letter, or its download would be 404 just for not being ready.
+    /// </summary>
+    private static readonly (string Prefix, Func<Owner, Guid[]> Ids)[] Resolvers =
     [
-        ("/api/v1/resumes/{", o => o.ResumeId),
-        ("/api/v1/me/confirmed-skills/{", o => o.SkillId),
-        ("/api/v1/watched-companies/{", o => o.WatchedLinkId),
-        ("/api/v1/jobs/{", o => o.JobId),
-        ("/api/v1/digests/{", o => o.DigestId),
-        ("/api/v1/user-jobs/{", o => o.UserJobId),
-        ("/api/v1/tailored-documents/{", o => o.DocumentId),
+        ("/api/v1/resumes/{", o => [o.ResumeId]),
+        ("/api/v1/me/confirmed-skills/{", o => [o.SkillId]),
+        ("/api/v1/watched-companies/{", o => [o.WatchedLinkId]),
+        ("/api/v1/jobs/{", o => [o.JobId]),
+        ("/api/v1/digests/{", o => [o.DigestId]),
+        ("/api/v1/user-jobs/{", o => [o.UserJobId, o.ByoUserJobId]),
+        ("/api/v1/tailored-documents/{", o => [o.CoverLetterId, o.DocumentId]),
     ];
 
     /// <param name="Multipart">The endpoint only accepts multipart/form-data (otherwise routing answers 415 first).</param>
@@ -101,9 +106,9 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
 
     private static string Normalize(Route r) => $"{r.Method} {Constraint().Replace(r.Pattern, "")}";
 
-    private static Func<Owner, Guid>? ResolverFor(Route r) =>
+    private static Func<Owner, Guid[]>? ResolverFor(Route r) =>
         Resolvers.Where(x => r.Pattern.StartsWith(x.Prefix, StringComparison.Ordinal))
-            .OrderByDescending(x => x.Prefix.Length).Select(x => x.Id).FirstOrDefault();
+            .OrderByDescending(x => x.Prefix.Length).Select(x => x.Ids).FirstOrDefault();
 
     [Fact]
     public void Every_api_route_is_classified()
@@ -132,8 +137,8 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         {
             owner.User.Id.ToString(), owner.User.Email, owner.ResumeId.ToString(), owner.SkillId.ToString(), owner.FileName,
             owner.Skill, "Isolation Owner A", owner.Role, owner.BoardToken, owner.WatchedLinkId.ToString(), owner.JobId.ToString(),
-            owner.DigestId.ToString(), owner.UserJobId.ToString(), owner.DocumentId.ToString(), owner.ByoUserJobId.ToString(),
-            owner.ByoTitle,
+            owner.DigestId.ToString(), owner.UserJobId.ToString(), owner.DocumentId.ToString(), owner.CoverLetterId.ToString(),
+            owner.ByoUserJobId.ToString(), owner.ByoTitle,
         };
 
         var failures = new List<string>();
@@ -147,11 +152,13 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
             }
             else if (route.HasParameters)
             {
-                var id = ResolverFor(route)!(owner);
-                var path = Regex.Replace(route.Pattern, @"\{[^}]+\}", id.ToString());
-                var res = await CallAsync(intruder.Api, route, path);
-                if (res.StatusCode != HttpStatusCode.NotFound)
-                    failures.Add($"{route} → {(int)res.StatusCode} (expected 404)");
+                foreach (var id in ResolverFor(route)!(owner))
+                {
+                    var path = Regex.Replace(route.Pattern, @"\{[^}]+\}", id.ToString());
+                    var res = await CallAsync(intruder.Api, route, path);
+                    if (res.StatusCode != HttpStatusCode.NotFound)
+                        failures.Add($"{route} with {id} → {(int)res.StatusCode} (expected 404)");
+                }
             }
             else if (route.Method == "GET")
             {
@@ -161,6 +168,15 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
                 foreach (var m in markers.Where(m => body.Contains(m, StringComparison.OrdinalIgnoreCase)))
                     failures.Add($"{route} leaked user A's data ({m})");
             }
+        }
+        failures.Should().BeEmpty();
+
+        // The same ids work for A on every GET, so each 404 above was about ownership (this also shows B deleted nothing).
+        foreach (var route in ApiRoutes().Where(r => r is { Method: "GET", HasParameters: true, IsAdmin: false }))
+        {
+            var path = Regex.Replace(route.Pattern, @"\{[^}]+\}", ResolverFor(route)!(owner)[0].ToString());
+            var res = await owner.User.Api.GetAsync(path);
+            if (!res.IsSuccessStatusCode) failures.Add($"{route} → {(int)res.StatusCode} for the owner (the 404 for B proves nothing)");
         }
         failures.Should().BeEmpty();
 
@@ -221,12 +237,51 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         var owner = await CreateOwnerAsync(); // its parse charged the Documents bucket
         var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
 
-        static async Task<long> DocumentsUsed(TestUser u) => (await ApiClient.JsonAsync(await u.Api.GetAsync("/api/v1/usage")))
-            .GetProperty("buckets").EnumerateArray().Single(b => b.GetProperty("bucket").GetString() == "documents")
-            .GetProperty("used").GetInt64();
+        static async Task<(long Documents, int Tasks, long Daily)> UsageAsync(TestUser u)
+        {
+            var usage = await ApiClient.JsonAsync(await u.Api.GetAsync("/api/v1/usage"));
+            return (usage.GetProperty("buckets").EnumerateArray().Single(b => b.GetProperty("bucket").GetString() == "documents")
+                    .GetProperty("used").GetInt64(),
+                usage.GetProperty("byTask").GetArrayLength(),
+                usage.GetProperty("daily").EnumerateArray().Sum(d => d.GetProperty("tokens").GetInt64()));
+        }
 
-        (await DocumentsUsed(owner.User)).Should().BePositive();
-        (await DocumentsUsed(intruder)).Should().Be(0);
+        var a = await UsageAsync(owner.User);
+        a.Documents.Should().BePositive();
+        a.Tasks.Should().BePositive();
+        a.Daily.Should().BePositive();
+        // The breakdown reads ai_usage, a ledger without the query filter (TenancyGuardTests); only its own WHERE keeps A's
+        // rows out. Token counts carry none of the markers the route sweep looks for, so this is the test for it.
+        (await UsageAsync(intruder)).Should().Be((0L, 0, 0L));
+    }
+
+    [Fact]
+    public async Task Ids_in_a_request_body_never_resolve_to_another_users_resume()
+    {
+        var owner = await CreateOwnerAsync();
+        var intruder = await TestUsers.CreateVerifiedAsync(F, "isolation-b", "Isolation Intruder B");
+        var byo = await intruder.Api.PostAsync("/api/v1/jobs/byo", new { description = TailoringTestData.ByoDescription, title = "Intruder role" });
+        byo.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(byo));
+        var own = (await ApiClient.JsonAsync(byo)).GetProperty("id").GetGuid();
+        await F.Jobs.RunAllAsync();
+
+        // B's own tracked job, A's résumé id in the body: every AI start must refuse before queuing anything.
+        foreach (var (path, body) in new (string, object)[]
+                 {
+                     ($"/api/v1/user-jobs/{own}/analysis", new { resumeId = owner.ResumeId }),
+                     ($"/api/v1/user-jobs/{own}/tailored-resumes", new { resumeId = owner.ResumeId }),
+                     ($"/api/v1/user-jobs/{own}/cover-letters", new { tone = "concise", resumeId = owner.ResumeId }),
+                 })
+        {
+            var res = await intruder.Api.PostAsync(path, body);
+            res.StatusCode.Should().Be(HttpStatusCode.NotFound, path);
+            (await ApiClient.TextAsync(res)).Should().NotContain(owner.FileName);
+        }
+        (await Db.ScalarAsync<long>(fx.ConnectionString,
+                "SELECT (SELECT count(*) FROM ats_analyses WHERE resume_id = @r AND user_id <> @a) + (SELECT count(*) FROM tailored_documents WHERE resume_id = @r AND user_id <> @a)",
+                ("r", owner.ResumeId), ("a", owner.User.Id)))
+            .Should().Be(0, "nothing of B's may reference A's résumé");
+        F.Jobs.PendingCount.Should().Be(0, "no job was queued for A's résumé");
     }
 
     [Fact]
@@ -354,6 +409,13 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         await F.Jobs.RunAllAsync();
         (await ApiClient.JsonAsync(await a.Api.GetAsync($"/api/v1/tailored-documents/{documentId}")))
             .GetProperty("status").GetString().Should().Be("proposed");
+        // A ready cover letter: a stored file, so the download route is reachable for A.
+        var letter = await a.Api.PostAsync($"/api/v1/user-jobs/{userJobId}/cover-letters", new { tone = "concise" });
+        letter.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(letter));
+        var coverLetterId = (await ApiClient.JsonAsync(letter)).GetProperty("id").GetGuid();
+        await F.Jobs.RunAllAsync();
+        (await ApiClient.JsonAsync(await a.Api.GetAsync($"/api/v1/tailored-documents/{coverLetterId}")))
+            .GetProperty("status").GetString().Should().Be("ready");
         // Interview prep on the tracked job, and a pasted (BYO) job with its enrichment.
         (await a.Api.PostAsync($"/api/v1/user-jobs/{userJobId}/interview-prep", new { })).StatusCode.Should().Be(HttpStatusCode.Accepted);
         var byoTitle = "ZebraByo" + Guid.NewGuid().ToString("N")[..6];
@@ -364,7 +426,7 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         (await ApiClient.JsonAsync(await a.Api.GetAsync($"/api/v1/user-jobs/{userJobId}/interview-prep")))
             .GetProperty("status").GetString().Should().Be("ready");
         return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token, jobId, digest.GetProperty("id").GetGuid(),
-            userJobId, documentId, byoId, byoTitle);
+            userJobId, documentId, coverLetterId, byoId, byoTitle);
     }
 
     [Fact]

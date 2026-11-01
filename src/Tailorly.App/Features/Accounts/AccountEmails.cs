@@ -130,17 +130,27 @@ public sealed class AccountDeletionTokens(IDataProtectionProvider provider, Time
         _protector.Protect($"{userId:D}|{securityStamp}", clock.GetUtcNow().Add(Lifetime));
 
     /// <summary>True when the token is authentic, unexpired and matches the user's current security stamp.</summary>
-    public bool Validate(string? token, Guid userId, string? securityStamp)
+    public bool Validate(string? token, Guid userId, string? securityStamp) =>
+        securityStamp is not null && Payload(token) == $"{userId:D}|{securityStamp}";
+
+    /// <summary>
+    /// True when the token is authentic, unexpired and was issued for <paramref name="userId"/>, whatever the stamp: confirming
+    /// rotates the stamp, so this is what a second click on the same link can still prove.
+    /// </summary>
+    public bool WasIssuedFor(string? token, Guid userId) =>
+        Payload(token)?.StartsWith($"{userId:D}|", StringComparison.Ordinal) == true;
+
+    private string? Payload(string? token)
     {
-        if (string.IsNullOrWhiteSpace(token) || token.Length > 2000 || securityStamp is null) return false;
+        if (string.IsNullOrWhiteSpace(token) || token.Length > 2000) return null;
         try
         {
             var payload = _protector.Unprotect(token, out var expires);
-            return expires > clock.GetUtcNow() && payload == $"{userId:D}|{securityStamp}";
+            return expires > clock.GetUtcNow() ? payload : null;
         }
         catch (CryptographicException)
         {
-            return false;
+            return null;
         }
     }
 }

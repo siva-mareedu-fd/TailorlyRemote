@@ -140,6 +140,44 @@ public sealed class AccountTests(PostgresAppFixture fx)
     }
 
     [Fact]
+    public async Task Confirm_deletion_tells_an_anonymous_caller_nothing_about_an_account_without_its_own_link()
+    {
+        async Task<(Guid UserId, string Token)> DeletionLinkAsync(TestUser user)
+        {
+            (await user.Api.DeleteAsync("/api/v1/account")).StatusCode.Should().Be(HttpStatusCode.Accepted);
+            await F.Jobs.RunAllAsync();
+            var mail = F.Emails.To(user.Email).Last(m => m.Subject.Contains("deleting", StringComparison.Ordinal));
+            return ApiClient.ParseLink(mail.TextBody, "/confirm-deletion");
+        }
+
+        var a = await TestUsers.CreateVerifiedAsync(F, "delete-probe-a");
+        var b = await TestUsers.CreateVerifiedAsync(F, "delete-probe-b");
+        var (aId, aToken) = await DeletionLinkAsync(a);
+        var (_, bToken) = await DeletionLinkAsync(b);
+        var anon = await F.CreateApiClientAsync();
+        (await anon.PostAsync("/api/v1/account/confirm-deletion", new { userId = aId, token = aToken })).StatusCode
+            .Should().Be(HttpStatusCode.Accepted);
+        F.Jobs.Clear(); // keep A pending: the purge is not what this test is about
+
+        async Task<string> ProbeAsync(Guid userId, string token)
+        {
+            var res = await anon.PostAsync("/api/v1/account/confirm-deletion", new { userId, token });
+            res.StatusCode.Should().Be(HttpStatusCode.UnprocessableEntity, $"probe {userId} must look like any invalid link");
+            return (await ApiClient.JsonAsync(res)).GetProperty("detail").GetString()!;
+        }
+
+        // A pending account, an unknown id and another user's genuine token all get the same answer.
+        var unknown = await ProbeAsync(Guid.CreateVersion7(), "x");
+        (await ProbeAsync(aId, "x")).Should().Be(unknown);
+        (await ProbeAsync(aId, bToken)).Should().Be(unknown);
+
+        // The owner's own link opened again is still the idempotent 202.
+        var again = await anon.PostAsync("/api/v1/account/confirm-deletion", new { userId = aId, token = aToken });
+        again.StatusCode.Should().Be(HttpStatusCode.Accepted);
+        (await ApiClient.JsonAsync(again)).GetProperty("status").GetString().Should().Be("deletion_scheduled");
+    }
+
+    [Fact]
     public async Task Hourly_purge_only_removes_accounts_pending_deletion()
     {
         var keep = await TestUsers.CreateVerifiedAsync(F, "keep");

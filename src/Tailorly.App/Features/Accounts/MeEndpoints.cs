@@ -118,12 +118,14 @@ public static partial class MeEndpoints
             using (CurrentUser.ActAs(user.Id))
                 profile = await db.UserProfiles.FirstOrDefaultAsync(p => p.UserId == user.Id, ct);
 
-        if (user is null || profile is null)
-            throw FieldErrors.Single("token", "This link is invalid or has expired.");
-        if (profile.AccountStatus == AccountStatus.PendingDeletion)
-            return TypedResults.Accepted((string?)null, new DeletionStatusResponse("deletion_scheduled")); // link opened twice
-        if (!tokens.Validate(body.Token, user.Id, await users.GetSecurityStampAsync(user)))
-            throw FieldErrors.Single("token", "This link is invalid or has expired. Request deletion again from Account.");
+        // One answer for an unknown user, a bad token and a pending account without its own token: anonymous callers
+        // learn nothing about an account from its id.
+        var invalid = FieldErrors.Single("token", "This link is invalid or has expired. Request deletion again from Account.");
+        if (user is null || profile is null) throw invalid;
+        // Link opened twice. The stamp rotated on the first confirm, so only the token's authenticity can be checked.
+        if (profile.AccountStatus == AccountStatus.PendingDeletion && tokens.WasIssuedFor(body.Token, user.Id))
+            return TypedResults.Accepted((string?)null, new DeletionStatusResponse("deletion_scheduled"));
+        if (!tokens.Validate(body.Token, user.Id, await users.GetSecurityStampAsync(user))) throw invalid;
 
         var now = clock.GetUtcNow();
         profile.AccountStatus = AccountStatus.PendingDeletion;
