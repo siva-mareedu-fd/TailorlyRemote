@@ -7,13 +7,15 @@ namespace Tailorly.App.Infrastructure.Logging;
 /// are <c>QueryString</c> and names ending in <c>token</c>: the one-click unsubscribe link carries its signed token in the
 /// query string (ApiDesign §4.10), which ASP.NET's own request events would otherwise log. File names are blocked as well
 /// (names ending in <c>filename</c>, and ASP.NET's <c>FileDownloadName</c>): a résumé's file name usually carries the
-/// person's name, and ASP.NET logs it at Debug for every download.
+/// person's name, and ASP.NET logs it at Debug for every download. Two-step sign-in secrets are blocked by name
+/// (<c>SharedKey</c>, <c>AuthenticatorUri</c>, <c>RecoveryCodes</c>, <c>TwoFactorCode</c>, <c>Password</c>).
 /// </summary>
 public static class PiiFields
 {
     private static readonly string[] Prefixes = ["resume", "description", "content"];
     private static readonly string[] Suffixes = ["email", "token", "filename"];
-    private static readonly string[] Exact = ["email", "prompt", "response", "querystring", "filedownloadname"];
+    private static readonly string[] Exact = ["email", "prompt", "response", "querystring", "filedownloadname", "sharedkey",
+        "authenticatoruri", "recoverycodes", "twofactorcode", "password"];
 
     public static bool IsBlocked(string propertyName)
     {

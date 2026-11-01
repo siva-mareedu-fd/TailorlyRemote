@@ -85,6 +85,16 @@ public sealed class AuditLog
     public string? Meta { get; set; }
 }
 
+/// <summary><c>audit_log.action</c> values that code reads back (the rest are written only).</summary>
+public static class AuditActions
+{
+    /// <summary>A successful sign-in (actor = the user): the admin user list's "last sign-in".</summary>
+    public const string SignIn = "account.signin";
+
+    /// <summary>An admin alert email was sent; <c>entity_id</c> is the alert key, used to space out repeats.</summary>
+    public const string AlertSent = "alert.sent";
+}
+
 /// <summary>Status values of simple async resources (ApiDesign §3).</summary>
 public static class WorkStatus
 {

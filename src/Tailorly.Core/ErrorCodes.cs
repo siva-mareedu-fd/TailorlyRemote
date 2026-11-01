@@ -34,6 +34,12 @@ public static class ErrorCodes
     public const string TermsNotReviewed = "TERMS_NOT_REVIEWED";
     public const string AiUnavailable = "AI_UNAVAILABLE";
 
+    /// <summary>Sign-in: the password was right and the account has two-step sign-in; send the authenticator code. Not in ApiDesign §10 yet (DECISIONS.md).</summary>
+    public const string MfaRequired = "MFA_REQUIRED";
+
+    /// <summary>Admin endpoints: the admin has not turned on two-step sign-in while <c>Admin:RequireMfa</c> is on. Not in ApiDesign §10 yet.</summary>
+    public const string MfaNotEnabled = "MFA_NOT_ENABLED";
+
     /// <summary>Resource error code: the model's reply failed validation twice (after one repair). Not in ApiDesign §10 yet (DECISIONS.md).</summary>
     public const string AiInvalidOutput = "AI_INVALID_OUTPUT";
     public const string Timeout = "TIMEOUT";

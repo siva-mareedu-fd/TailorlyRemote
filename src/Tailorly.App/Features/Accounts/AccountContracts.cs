@@ -9,7 +9,8 @@ public sealed record RegisterResponse(Guid UserId);
 
 public sealed record VerifyEmailRequest(Guid UserId, string? Token);
 
-public sealed record LoginRequest(string? Email, string? Password);
+/// <param name="TwoFactorCode">Only for accounts with two-step sign-in: the authenticator code or a recovery code.</param>
+public sealed record LoginRequest(string? Email, string? Password, string? TwoFactorCode = null);
 
 public sealed record ForgotPasswordRequest(string? Email);
 
@@ -37,7 +38,8 @@ public sealed record MeResponse(
     bool NotificationEmailVerified,
     ConsentInfo? Consent,
     string AccountStatus,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    bool TwoFactorEnabled);
 
 public sealed record UpdateMeRequest(string? DisplayName, string? TimeZone, string? NotificationEmail);
 

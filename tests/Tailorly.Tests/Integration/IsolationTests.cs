@@ -52,6 +52,10 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ["POST /api/v1/runs"] = "starts a search for the caller",
         ["POST /api/v1/user-jobs"] = "tracks a job scored for the caller (another user's job id is 404)",
         ["POST /api/v1/jobs/byo"] = "adds a pasted job to the caller's tracker",
+        ["POST /api/v1/me/two-factor/setup"] = "new authenticator key for the caller",
+        ["POST /api/v1/me/two-factor/enable"] = "turns on the caller's two-step sign-in",
+        ["POST /api/v1/me/two-factor/disable"] = "turns off the caller's two-step sign-in (password required)",
+        ["POST /api/v1/me/two-factor/recovery-codes"] = "new recovery codes for the caller (password required)",
     };
 
     /// <summary>Admin routes: a signed-in user without the Admin role gets 403 on every one, whatever the id.</summary>

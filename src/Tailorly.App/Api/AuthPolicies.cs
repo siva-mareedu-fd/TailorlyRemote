@@ -11,9 +11,11 @@ namespace Tailorly.App.Api;
 /// <list type="bullet">
 /// <item><see cref="UserAny"/> (<c>user*</c>): signed in and the account is active.</item>
 /// <item><see cref="User"/> (<c>user</c>): <c>user*</c> plus a verified email.</item>
-/// <item><see cref="Admin"/>: <c>user</c> plus the Admin role.</item>
+/// <item><see cref="Admin"/>: <c>user</c> plus the Admin role, and two-step sign-in turned on while <c>Admin:RequireMfa</c>
+/// is true (SDD §14.2 "MFA recommended (TOTP via Identity)").</item>
 /// </list>
-/// Failures become problem details with a specific code (<c>ACCOUNT_DISABLED</c>, <c>EMAIL_NOT_VERIFIED</c>).
+/// Failures become problem details with a specific code (<c>ACCOUNT_DISABLED</c>, <c>EMAIL_NOT_VERIFIED</c>,
+/// <c>MFA_NOT_ENABLED</c>).
 /// </summary>
 public static class AuthPolicies
 {
@@ -30,16 +32,17 @@ public static class AuthPolicies
             .AddPolicy(UserAny, p => p.RequireAuthenticatedUser().AddRequirements(new AccountRequirement(RequireVerifiedEmail: false)))
             .AddPolicy(User, p => p.RequireAuthenticatedUser().AddRequirements(new AccountRequirement(RequireVerifiedEmail: true)))
             .AddPolicy(Admin, p => p.RequireAuthenticatedUser().RequireRole(AppRole.Admin)
-                .AddRequirements(new AccountRequirement(RequireVerifiedEmail: true)));
+                .AddRequirements(new AccountRequirement(RequireVerifiedEmail: true, AdminMfa: true)));
     }
 }
 
-public sealed record AccountRequirement(bool RequireVerifiedEmail) : IAuthorizationRequirement;
+/// <param name="AdminMfa">Also require two-step sign-in when <c>Admin:RequireMfa</c> is on.</param>
+public sealed record AccountRequirement(bool RequireVerifiedEmail, bool AdminMfa = false) : IAuthorizationRequirement;
 
 /// <summary>The signed-in user's account flags, loaded once per request.</summary>
 public sealed class AccountState(AppDbContext db, ICurrentUser currentUser)
 {
-    public sealed record Snapshot(bool EmailConfirmed, string AccountStatus, string? ConsentVersion);
+    public sealed record Snapshot(bool EmailConfirmed, string AccountStatus, string? ConsentVersion, bool TwoFactorEnabled);
 
     private Snapshot? _snapshot;
     private bool _loaded;
@@ -53,13 +56,13 @@ public sealed class AccountState(AppDbContext db, ICurrentUser currentUser)
             : await (from u in db.Users.AsNoTracking()
                      join p in db.UserProfiles.AsNoTracking() on u.Id equals p.UserId
                      where u.Id == id
-                     select new Snapshot(u.EmailConfirmed, p.AccountStatus, p.ConsentVersion)).FirstOrDefaultAsync(ct);
+                     select new Snapshot(u.EmailConfirmed, p.AccountStatus, p.ConsentVersion, u.TwoFactorEnabled)).FirstOrDefaultAsync(ct);
         _loaded = true;
         return _snapshot;
     }
 }
 
-internal sealed class AccountRequirementHandler : AuthorizationHandler<AccountRequirement>
+internal sealed class AccountRequirementHandler(IConfiguration config) : AuthorizationHandler<AccountRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AccountRequirement requirement)
     {
@@ -70,6 +73,8 @@ internal sealed class AccountRequirementHandler : AuthorizationHandler<AccountRe
             context.Fail(new AuthorizationFailureReason(this, ErrorCodes.AccountDisabled));
         else if (requirement.RequireVerifiedEmail && !state.EmailConfirmed)
             context.Fail(new AuthorizationFailureReason(this, ErrorCodes.EmailNotVerified));
+        else if (requirement.AdminMfa && !state.TwoFactorEnabled && config.GetValue("Admin:RequireMfa", true))
+            context.Fail(new AuthorizationFailureReason(this, ErrorCodes.MfaNotEnabled));
         else
             context.Succeed(requirement);
     }
@@ -90,6 +95,8 @@ internal sealed class ProblemAuthorizationResultHandler : IAuthorizationMiddlewa
                     "Account disabled", "This account is being deleted or has been suspended."),
                 ErrorCodes.EmailNotVerified => Problems.WriteAsync(http, StatusCodes.Status403Forbidden, code,
                     "Verify your email first", "Open the link we emailed you, or ask for a new one."),
+                ErrorCodes.MfaNotEnabled => Problems.WriteAsync(http, StatusCodes.Status403Forbidden, code,
+                    "Turn on two-step sign-in", "Admin pages need two-step sign-in. Turn it on in Account, then try again."),
                 _ => _default.HandleAsync(next, http, policy, result),
             };
         }

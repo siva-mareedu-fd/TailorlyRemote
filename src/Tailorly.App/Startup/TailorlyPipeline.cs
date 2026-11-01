@@ -51,6 +51,7 @@ public static class TailorlyPipeline
         api.MapCsrfEndpoints();
         api.MapAuthEndpoints();
         api.MapMeEndpoints();
+        api.MapTwoFactorEndpoints();
         api.MapResumeEndpoints();
         api.MapConfirmedSkillsEndpoints();
         api.MapUsageEndpoints();
@@ -63,7 +64,10 @@ public static class TailorlyPipeline
         api.MapTailoringEndpoints();
         api.MapInterviewPrepEndpoints();
         api.MapEmailLinkEndpoints();
-        api.MapAdminGroup().MapAdminReports();
+        var admin = api.MapAdminGroup();
+        admin.MapAdminReports();
+        admin.MapAdminSettings();
+        admin.MapAdminUsers();
 
         app.MapTailorlyHangfireDashboard();
 

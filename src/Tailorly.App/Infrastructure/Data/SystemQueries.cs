@@ -8,7 +8,7 @@ namespace Tailorly.App.Infrastructure.Data;
 /// addition.
 ///
 /// Allowed callers: digest dispatcher, purge job, stuck-work sweep, budget service, enrichment ceiling, admin queries (M2
-/// status and companies pages; more in M6).
+/// status and companies pages; M6 user list, suspension, alerts) and the deletion-log replay.
 /// </summary>
 public sealed class SystemQueries(AppDbContext db)
 {
@@ -228,4 +228,72 @@ public sealed class SystemQueries(AppDbContext db)
     /// </summary>
     public Task<int> DeleteUserCascadeAsync(Guid userId, CancellationToken ct) =>
         db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM asp_net_users WHERE id = {userId}", ct);
+
+    /// <summary>
+    /// Admin user list (ApiDesign §4.11): ids, flags and counts only, never names, emails or content. <paramref name="id"/> or
+    /// <paramref name="normalizedEmail"/> finds one account (an exact match, so the list never doubles as an email search).
+    /// </summary>
+    public async Task<(List<AdminUserRow> Rows, int Total)> AdminUsersAsync(string? status, Guid? id, string? normalizedEmail,
+        string periodKey, int page, int pageSize, CancellationToken ct)
+    {
+        var query = from u in db.Users.IgnoreQueryFilters().AsNoTracking()
+                    join p in db.UserProfiles.IgnoreQueryFilters().AsNoTracking() on u.Id equals p.UserId
+                    select new { u, p };
+        if (status is not null) query = query.Where(x => x.p.AccountStatus == status);
+        if (id is not null) query = query.Where(x => x.u.Id == id);
+        if (normalizedEmail is not null) query = query.Where(x => x.u.NormalizedEmail == normalizedEmail);
+
+        var total = await query.CountAsync(ct);
+        var adminRole = AppRole.Admin.ToUpperInvariant();
+        var rows = await query
+            .OrderByDescending(x => x.p.CreatedAt).ThenBy(x => x.u.Id)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new AdminUserRow(
+                x.u.Id,
+                x.p.AccountStatus,
+                x.u.EmailConfirmed,
+                x.u.TwoFactorEnabled,
+                db.UserRoles.Any(ur => ur.UserId == x.u.Id && db.Roles.Any(r => r.Id == ur.RoleId && r.NormalizedName == adminRole)),
+                x.p.CreatedAt,
+                db.AuditLog.Where(a => a.ActorUserId == x.u.Id && a.Action == AuditActions.SignIn).Max(a => (DateTimeOffset?)a.At),
+                db.Resumes.Count(r => r.UserId == x.u.Id),
+                db.UserJobs.Count(j => j.UserId == x.u.Id),
+                db.UserBudgetCounters.Where(c => c.UserId == x.u.Id && c.PeriodKey == periodKey).Sum(c => (long?)c.UsedTokens) ?? 0))
+            .ToListAsync(ct);
+        return (rows, total);
+    }
+
+    /// <summary>Admin suspend/unsuspend: moves an account from one status to another; 0 when it was not in <paramref name="from"/>.</summary>
+    public Task<int> SetAccountStatusAsync(Guid userId, string from, string to, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE user_profiles SET account_status = {to}, updated_at = now()
+            WHERE user_id = {userId} AND account_status = {from}
+            """, ct);
+
+    /// <summary>Admin alerts: scheduled digest runs that failed since a time (counts only).</summary>
+    public Task<int> FailedScheduledDigestsSinceAsync(DateTimeOffset since, CancellationToken ct) =>
+        db.Digests.IgnoreQueryFilters().AsNoTracking()
+            .CountAsync(d => d.Kind == DigestKinds.Scheduled && d.Status == WorkStatus.Failed && (d.FinishedAt ?? d.CreatedAt) >= since, ct);
+
+    /// <summary>
+    /// Deletion-log replay after a restore (SDD §13.4): an account the log says was deleted is put back into
+    /// <c>pending_deletion</c> so the purge removes it again. Returns false when the account is not in this database.
+    /// </summary>
+    public async Task<bool> MarkPendingDeletionAsync(Guid userId, CancellationToken ct) =>
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE user_profiles SET account_status = 'pending_deletion', updated_at = now() WHERE user_id = {userId}
+            """, ct) > 0;
 }
+
+/// <summary>One row of the admin user list: ids, flags and counts only.</summary>
+public sealed record AdminUserRow(
+    Guid Id,
+    string Status,
+    bool EmailVerified,
+    bool TwoFactorEnabled,
+    bool IsAdmin,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? LastSignInAt,
+    int ResumeCount,
+    int TrackedJobs,
+    long TokensUsedThisPeriod);

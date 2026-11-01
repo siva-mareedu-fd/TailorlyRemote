@@ -42,12 +42,42 @@ public sealed class DeletionLog(IOptions<DeletionLogOptions> options)
     }
 
     /// <summary>User ids listed in the log (the restore runbook replays the purge for each).</summary>
-    public IReadOnlyList<Guid> ReadAll() => File.Exists(FilePath)
-        ? File.ReadAllLines(FilePath)
+    public IReadOnlyList<Guid> ReadAll() => Read(FilePath);
+
+    /// <summary>User ids in a deletion log at <paramref name="path"/> (for example a copy fetched from the backup bucket).</summary>
+    public static IReadOnlyList<Guid> Read(string path) => File.Exists(path)
+        ? File.ReadAllLines(path)
             .Select(l => Guid.TryParse(l.Split(',')[0], out var g) ? g : Guid.Empty)
             .Where(g => g != Guid.Empty)
+            .Distinct()
             .ToList()
         : [];
+}
+
+/// <summary>
+/// Restore runbook step "replay the deletion log" (SDD §13.4): <c>Tailorly.App --replay-deletion-log [path]</c>. Every
+/// account the log lists that exists again after a restore is marked <c>pending_deletion</c> and purged at once (files,
+/// then rows), exactly as the first time. Idempotent: ids already gone are skipped. Prints counts only.
+/// </summary>
+public sealed partial class DeletionLogReplay(SystemQueries system, PurgeDeletedAccountsJob purge, DeletionLog log,
+    ILogger<DeletionLogReplay> logger)
+{
+    public async Task<(int Listed, int Purged)> RunAsync(string? path, CancellationToken ct)
+    {
+        var ids = path is null ? log.ReadAll() : DeletionLog.Read(path);
+        var purged = 0;
+        foreach (var id in ids)
+        {
+            if (!await system.MarkPendingDeletionAsync(id, ct)) continue; // not in this database: nothing came back
+            await purge.PurgeUserAsync(id, ct);
+            purged++;
+        }
+        LogReplayed(logger, ids.Count, purged);
+        return (ids.Count, purged);
+    }
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Deletion log replay: {Listed} id(s) listed, {Purged} restored account(s) purged again")]
+    private static partial void LogReplayed(ILogger logger, int listed, int purged);
 }
 
 /// <summary>Writes <c>audit_log</c> rows: ids and counts only, never PII or document text.</summary>

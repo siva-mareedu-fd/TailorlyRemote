@@ -14,4 +14,7 @@ public sealed class AppLinks(IOptions<AppOptions> options)
 {
     public string Spa(string path, IDictionary<string, string?> query) =>
         QueryHelpers.AddQueryString(options.Value.PublicBaseUrl.TrimEnd('/') + path, query);
+
+    /// <summary>The admin console (alert emails).</summary>
+    public string Admin() => options.Value.PublicBaseUrl.TrimEnd('/') + "/admin";
 }

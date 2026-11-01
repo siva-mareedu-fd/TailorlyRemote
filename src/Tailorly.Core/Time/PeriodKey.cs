@@ -11,6 +11,13 @@ public static class PeriodKey
         return local.ToString("yyyy-MM", CultureInfo.InvariantCulture);
     }
 
+    /// <summary>Start of the local day that contains <paramref name="utcNow"/>, as UTC (the enrichment ceiling's day).</summary>
+    public static DateTimeOffset DayStartUtc(DateTimeOffset utcNow, TimeZoneInfo zone)
+    {
+        var local = TimeZoneInfo.ConvertTime(utcNow, zone).Date;
+        return new DateTimeOffset(local, zone.GetUtcOffset(local)).ToUniversalTime();
+    }
+
     /// <summary>First day of the next period, as a local date (shown to the user as "resets on").</summary>
     public static DateOnly ResetsOn(DateTimeOffset utcNow, TimeZoneInfo india)
     {

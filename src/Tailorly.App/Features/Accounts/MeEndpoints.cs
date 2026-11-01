@@ -39,7 +39,8 @@ public static partial class MeEndpoints
             string.Equals(p.NotificationEmail, user.Email, StringComparison.OrdinalIgnoreCase) || p.NotificationEmailVerifiedAt is not null,
             p.ConsentVersion is { } v && p.ConsentedAt is { } at ? new ConsentInfo(v, at) : null,
             p.AccountStatus,
-            [.. roles.Order(StringComparer.Ordinal)]);
+            [.. roles.Order(StringComparer.Ordinal)],
+            user.TwoFactorEnabled);
     }
 
     private static async Task<AppUser> RequireUserAsync(UserManager<AppUser> users, ICurrentUser current) =>

@@ -10,6 +10,7 @@ using Serilog;
 using Tailorly.App.Ai;
 using Tailorly.App.Api;
 using Tailorly.App.Features.Accounts;
+using Tailorly.App.Features.Admin;
 using Tailorly.App.Features.Digests;
 using Tailorly.App.Features.Jobs;
 using Tailorly.App.Features.Health;
@@ -154,11 +155,15 @@ public static class TailorlyServices
         services.AddScoped<AuditWriter>();
         services.AddScoped<AccountEmailJob>();
         services.AddScoped<PurgeDeletedAccountsJob>();
+        services.AddScoped<DeletionLogReplay>();
         services.AddScoped<ParseResumeJob>();
         services.AddScoped<SweepStuckWorkJob>();
         AddSources(services, config);
         AddDigests(services, config);
         AddTailoring(services, config);
+        services.Configure<AlertOptions>(config.GetSection("Alerts"));
+        services.AddScoped<AlertChecks>();
+        services.AddScoped<AdminAlertsJob>();
 
         return builder;
     }

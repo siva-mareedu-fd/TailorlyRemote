@@ -158,8 +158,13 @@ public static partial class AuthEndpoints
         return TypedResults.NoContent();
     }
 
+    /// <summary>
+    /// Password first; an account with two-step sign-in then needs <c>twoFactorCode</c> (an authenticator code or a recovery
+    /// code). Without it the answer is <c>401 MFA_REQUIRED</c>, given only after the password was right, so it reveals
+    /// nothing to someone who does not know the password. Sign-ins are audited (actor id only) for the admin user list.
+    /// </summary>
     private static async Task<Ok<MeResponse>> Login(LoginRequest body, HttpContext http, UserManager<AppUser> users,
-        SignInManager<AppUser> signIn, AppDbContext db, TimeProvider clock, CancellationToken ct)
+        SignInManager<AppUser> signIn, AppDbContext db, AuditWriter audit, TimeProvider clock, CancellationToken ct)
     {
         var errors = new FieldErrors();
         var email = errors.Text("email", body.Email, 254, label: "Email");
@@ -170,14 +175,7 @@ public static partial class AuthEndpoints
         if (user is null) throw WrongCredentials();
 
         var result = await signIn.CheckPasswordSignInAsync(user, body.Password!, lockoutOnFailure: true);
-        if (result.IsLockedOut)
-        {
-            var end = await users.GetLockoutEndDateAsync(user) ?? clock.GetUtcNow().AddMinutes(15);
-            var seconds = Math.Max(1, (int)Math.Ceiling((end - clock.GetUtcNow()).TotalSeconds));
-            throw new ApiException(StatusCodes.Status429TooManyRequests, ErrorCodes.AccountLocked, "Too many failed sign-ins",
-                    "This account is locked for a few minutes. Try again later or reset your password.")
-                .WithHeader("Retry-After", seconds.ToString(CultureInfo.InvariantCulture));
-        }
+        if (result.IsLockedOut) throw await LockedAsync(users, user, clock);
         if (!result.Succeeded) throw WrongCredentials();
 
         using (CurrentUser.ActAs(user.Id))
@@ -188,11 +186,33 @@ public static partial class AuthEndpoints
                     "This account is being deleted or has been suspended.");
         }
 
+        if (await users.GetTwoFactorEnabledAsync(user))
+        {
+            if (string.IsNullOrWhiteSpace(body.TwoFactorCode))
+                throw new ApiException(StatusCodes.Status401Unauthorized, ErrorCodes.MfaRequired, "Enter your sign-in code",
+                    "Enter the 6-digit code from your authenticator app, or one of your recovery codes.");
+            if (body.TwoFactorCode.Length > 64 || !await TwoFactorEndpoints.VerifySignInCodeAsync(users, user, body.TwoFactorCode))
+            {
+                if (await users.IsLockedOutAsync(user)) throw await LockedAsync(users, user, clock);
+                throw FieldErrors.Single("twoFactorCode", "That code is not right. Use the newest code from your app.");
+            }
+        }
+
         await signIn.SignInAsync(user, isPersistent: true);
+        await audit.WriteAsync(AuditActions.SignIn, user.Id, "user", user.Id.ToString("D"), null, ct);
         http.User = await signIn.CreateUserPrincipalAsync(user);
         CsrfProtection.IssueTokens(http); // antiforgery tokens are bound to the signed-in user
         using (CurrentUser.ActAs(user.Id))
             return TypedResults.Ok(await MeEndpoints.BuildMeAsync(db, users, user, ct));
+    }
+
+    private static async Task<ApiException> LockedAsync(UserManager<AppUser> users, AppUser user, TimeProvider clock)
+    {
+        var end = await users.GetLockoutEndDateAsync(user) ?? clock.GetUtcNow().AddMinutes(15);
+        var seconds = Math.Max(1, (int)Math.Ceiling((end - clock.GetUtcNow()).TotalSeconds));
+        return new ApiException(StatusCodes.Status429TooManyRequests, ErrorCodes.AccountLocked, "Too many failed sign-ins",
+                "This account is locked for a few minutes. Try again later or reset your password.")
+            .WithHeader("Retry-After", seconds.ToString(CultureInfo.InvariantCulture));
     }
 
     private static ApiException WrongCredentials() => new(StatusCodes.Status401Unauthorized, ErrorCodes.Unauthenticated,

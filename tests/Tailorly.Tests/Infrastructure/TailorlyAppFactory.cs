@@ -44,6 +44,7 @@ public sealed class TailorlyAppFactory(string connectionString, IReadOnlyDiction
         builder.UseSetting("Ai:Provider", "Fake");
         builder.UseSetting("Fx:Provider", "Static");
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
+        builder.UseSetting("Admin:RequireMfa", "false"); // TwoFactorTests turns it on
         // Source clients: fast retries and timeouts, no rate limiting (the fake answers instantly).
         builder.UseSetting("Sources:RetryDelayMilliseconds", "1");
         builder.UseSetting("Sources:TimeoutSeconds", "1");
