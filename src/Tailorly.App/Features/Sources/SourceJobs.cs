@@ -242,13 +242,42 @@ public sealed partial class RetentionJob(AppDbContext db, SystemQueries system, 
         await dedupe.ResolveAsync(old.Concat(closed).ToHashSet(StringComparer.Ordinal), ct);
         var digests = await system.DeleteDigestsCreatedBeforeAsync(now.AddMonths(-12), ct);
         var audit = await db.Database.ExecuteSqlInterpolatedAsync($"DELETE FROM audit_log WHERE at < {now.AddMonths(-12)}", ct);
+        var usage = await RollUpAiUsageAsync(now.AddMonths(-13), ct);
         LogPurged(logger, "older than 60 days", old.Count);
         LogPurged(logger, "closed over 7 days", closed.Count);
         LogPurged(logger, "digests over 12 months", digests);
         LogPurged(logger, "audit rows over 12 months", audit);
+        LogRolledUp(logger, usage);
         return total + old.Count + closed.Count;
     }
 
+    /// <summary>Marks the monthly roll-up rows of <c>ai_usage</c> (DatabaseDesign §7), so they are never rolled up again.</summary>
+    public const string AiUsageRollUp = "monthly-rollup";
+
+    /// <summary>
+    /// <c>ai_usage</c> rows older than the cutoff become one row per period, task, model, bucket and outcome with
+    /// <c>user_id</c> NULL (DatabaseDesign §7, SDD §12.4: "aggregated, user link dropped"). Tokens and estimated cost are
+    /// summed; the call count is not kept (the table has no column for it). One statement, so it is atomic.
+    /// </summary>
+    public Task<int> RollUpAiUsageAsync(DateTimeOffset cutoff, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            WITH old AS (
+                DELETE FROM ai_usage
+                WHERE created_at < {cutoff} AND prompt_version IS DISTINCT FROM {AiUsageRollUp}
+                RETURNING task, model, bucket, period_key, input_tokens, output_tokens, cache_create_tokens, cache_read_tokens,
+                          counted_tokens, est_cost_usd, success, created_at)
+            INSERT INTO ai_usage (user_id, task, model, prompt_version, bucket, period_key, input_tokens, output_tokens,
+                                  cache_create_tokens, cache_read_tokens, counted_tokens, est_cost_usd, success, created_at)
+            SELECT NULL, task, model, {AiUsageRollUp}, bucket, period_key, sum(input_tokens)::int, sum(output_tokens)::int,
+                   sum(cache_create_tokens)::int, sum(cache_read_tokens)::int, sum(counted_tokens)::int, sum(est_cost_usd),
+                   success, date_trunc('month', min(created_at))
+            FROM old
+            GROUP BY task, model, bucket, period_key, success
+            """, ct);
+
     [LoggerMessage(Level = LogLevel.Information, Message = "Retention: deleted {Count} {What}")]
     private static partial void LogPurged(ILogger logger, string what, int count);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Retention: ai_usage over 13 months rolled up into {Count} monthly row(s)")]
+    private static partial void LogRolledUp(ILogger logger, int count);
 }

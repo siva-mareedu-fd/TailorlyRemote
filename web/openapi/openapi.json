@@ -630,6 +630,186 @@
         }
       }
     },
+    "/api/v1/me/two-factor": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "GetTwoFactor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/two-factor/setup": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "SetupTwoFactor",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorSetup"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/two-factor/enable": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "EnableTwoFactor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorRecoveryCodes"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/two-factor/disable": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "DisableTwoFactor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorStatus"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/me/two-factor/recovery-codes": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "operationId": "NewTwoFactorRecoveryCodes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TwoFactorPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TwoFactorRecoveryCodes"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/resumes": {
       "post": {
         "tags": [
@@ -2952,6 +3132,459 @@
           }
         }
       }
+    },
+    "/api/v1/admin/ai-config": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminListAiConfig",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AiTaskConfigDto"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/ai-config/{task}": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminUpdateAiConfig",
+        "parameters": [
+          {
+            "name": "task",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAiConfigRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiTaskConfigDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/flags": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminListFlags",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FeatureFlagDto"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/flags/{key}": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminUpdateFlag",
+        "parameters": [
+          {
+            "name": "key",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFlagRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureFlagDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invite-codes": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminListInviteCodes",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/InviteCodeDto"
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminCreateInviteCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInviteCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InviteCodeDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/invite-codes/{code}": {
+      "delete": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminDeleteInviteCode",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminListUsers",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/suspend": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminSuspendUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserRow"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/users/{id}/unsuspend": {
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminUnsuspendUser",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUserRow"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/usage": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "operationId": "AdminUsage",
+        "parameters": [
+          {
+            "name": "period",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUsageDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3316,6 +3949,254 @@
           },
           "digests": {
             "$ref": "#/components/schemas/StatusDigestsDto"
+          }
+        }
+      },
+      "AdminUsageDto": {
+        "required": [
+          "period",
+          "byTask",
+          "byUser",
+          "platformTokens"
+        ],
+        "type": "object",
+        "properties": {
+          "period": {
+            "type": "string"
+          },
+          "byTask": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUsageTaskDto"
+            }
+          },
+          "byUser": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUsageUserDto"
+            }
+          },
+          "platformTokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AdminUsageTaskDto": {
+        "required": [
+          "task",
+          "model",
+          "bucket",
+          "calls",
+          "errors",
+          "inputTokens",
+          "outputTokens",
+          "countedTokens",
+          "estCostUsd"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "errors": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "outputTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "countedTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "estCostUsd": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "AdminUsageUserDto": {
+        "required": [
+          "userId",
+          "calls",
+          "discoveryTokens",
+          "documentsTokens"
+        ],
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "discoveryTokens": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "documentsTokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AdminUserPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total",
+          "period"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AdminUserRow"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "period": {
+            "type": "string"
+          }
+        }
+      },
+      "AdminUserRow": {
+        "required": [
+          "id",
+          "status",
+          "emailVerified",
+          "twoFactorEnabled",
+          "isAdmin",
+          "createdAt",
+          "lastSignInAt",
+          "resumeCount",
+          "trackedJobs",
+          "tokensUsedThisPeriod"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "twoFactorEnabled": {
+            "type": "boolean"
+          },
+          "isAdmin": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSignInAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "resumeCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "trackedJobs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tokensUsedThisPeriod": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "AiTaskConfigDto": {
+        "required": [
+          "task",
+          "model",
+          "fallbackModel",
+          "maxTokens",
+          "temperature",
+          "bucket",
+          "enabled",
+          "updatedAt",
+          "updatedBy"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "fallbackModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "maxTokens": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "temperature": {
+            "type": "number",
+            "format": "double"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedBy": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "uuid"
           }
         }
       },
@@ -3900,6 +4781,36 @@
           }
         }
       },
+      "CreateInviteCodeRequest": {
+        "required": [
+          "code",
+          "maxUses",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "maxUses": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
       "CreateUserJobRequest": {
         "required": [
           "jobId"
@@ -4198,6 +5109,21 @@
           }
         }
       },
+      "FeatureFlagDto": {
+        "required": [
+          "key",
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "$ref": "#/components/schemas/JsonElement"
+          }
+        }
+      },
       "FindingDto": {
         "required": [
           "code",
@@ -4407,6 +5333,35 @@
           },
           "updatedAt": {
             "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "InviteCodeDto": {
+        "required": [
+          "code",
+          "maxUses",
+          "usedCount",
+          "expiresAt"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "maxUses": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "usedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "expiresAt": {
+            "type": [
+              "null",
+              "string"
+            ],
             "format": "date-time"
           }
         }
@@ -4759,6 +5714,12 @@
               "null",
               "string"
             ]
+          },
+          "twoFactorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -4773,7 +5734,8 @@
           "notificationEmailVerified",
           "consent",
           "accountStatus",
-          "roles"
+          "roles",
+          "twoFactorEnabled"
         ],
         "type": "object",
         "properties": {
@@ -4817,6 +5779,9 @@
             "items": {
               "type": "string"
             }
+          },
+          "twoFactorEnabled": {
+            "type": "boolean"
           }
         }
       },
@@ -6148,6 +7113,79 @@
           }
         }
       },
+      "TwoFactorCodeRequest": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TwoFactorPasswordRequest": {
+        "required": [
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "TwoFactorRecoveryCodes": {
+        "required": [
+          "recoveryCodes"
+        ],
+        "type": "object",
+        "properties": {
+          "recoveryCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "TwoFactorSetup": {
+        "required": [
+          "sharedKey",
+          "authenticatorUri"
+        ],
+        "type": "object",
+        "properties": {
+          "sharedKey": {
+            "type": "string"
+          },
+          "authenticatorUri": {
+            "type": "string"
+          }
+        }
+      },
+      "TwoFactorStatus": {
+        "required": [
+          "enabled",
+          "recoveryCodesLeft"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "recoveryCodesLeft": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "UnsubscribeResult": {
         "required": [
           "done"
@@ -6156,6 +7194,57 @@
         "properties": {
           "done": {
             "type": "boolean"
+          }
+        }
+      },
+      "UpdateAiConfigRequest": {
+        "required": [
+          "model",
+          "fallbackModel",
+          "maxTokens",
+          "temperature",
+          "bucket",
+          "enabled"
+        ],
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fallbackModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "maxTokens": {
+            "type": [
+              "null",
+              "integer"
+            ],
+            "format": "int32"
+          },
+          "temperature": {
+            "type": [
+              "null",
+              "number"
+            ],
+            "format": "double"
+          },
+          "bucket": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
           }
         }
       },
@@ -6169,6 +7258,24 @@
             "type": [
               "null",
               "string"
+            ]
+          }
+        }
+      },
+      "UpdateFlagRequest": {
+        "required": [
+          "value"
+        ],
+        "type": "object",
+        "properties": {
+          "value": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/JsonElement"
+              }
             ]
           }
         }

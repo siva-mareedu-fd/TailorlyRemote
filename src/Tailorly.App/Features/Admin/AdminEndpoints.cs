@@ -37,6 +37,16 @@ public static partial class AdminEndpoints
         return admin;
     }
 
+    /// <summary>Route values recorded as <c>audit_log.entity_id</c>. Invite codes (<c>{code}</c>) are secrets and never recorded.</summary>
+    private static readonly string[] AuditedRouteIds = ["key", "task", "linkId", "id"];
+
+    private const string AuditDetailsKey = "tailorly.audit.details";
+
+    /// <summary>
+    /// Adds details to this call's audit row (ids, field names, counts, flag values; never content, emails or codes).
+    /// </summary>
+    internal static void AuditDetails(this HttpContext http, object details) => http.Items[AuditDetailsKey] = details;
+
     /// <summary>Audits every admin call, including refused ones (SDD §14.2 "all admin actions audit-logged").</summary>
     private static async ValueTask<object?> AuditAsync(EndpointFilterInvocationContext ctx, EndpointFilterDelegate next)
     {
@@ -59,11 +69,12 @@ public static partial class AdminEndpoints
         finally
         {
             var route = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern.RawText ?? http.Request.Path.Value;
-            var id = http.Request.RouteValues.TryGetValue("key", out var k) ? k?.ToString()
-                : http.Request.RouteValues.TryGetValue("linkId", out var l) ? l?.ToString() : null;
+            var id = AuditedRouteIds.Select(n => http.Request.RouteValues.TryGetValue(n, out var v) ? v?.ToString() : null)
+                .FirstOrDefault(v => v is not null);
             var actor = http.RequestServices.GetRequiredService<ICurrentUser>().UserId;
+            var details = http.Items.TryGetValue(AuditDetailsKey, out var d) ? d : null;
             await http.RequestServices.GetRequiredService<AuditWriter>().WriteAsync(
-                "admin." + http.Request.Method.ToLowerInvariant(), actor, route, id, new { outcome }, CancellationToken.None);
+                "admin." + http.Request.Method.ToLowerInvariant(), actor, route, id, new { outcome, details }, CancellationToken.None);
         }
     }
 

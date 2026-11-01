@@ -77,7 +77,8 @@ public static class AdminReportsEndpoints
         }
     }
 
-    private static StatusDiskDto? Disk(string? root)
+    /// <summary>Usage of the disk that holds the document store (Postgres shares the VM disk in the Compose setup).</summary>
+    internal static StatusDiskDto? Disk(string? root)
     {
         try
         {
