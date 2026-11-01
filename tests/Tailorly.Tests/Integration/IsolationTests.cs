@@ -51,13 +51,14 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         ["POST /api/v1/watched-companies"] = "adds a board to the caller's watch list",
         ["POST /api/v1/runs"] = "starts a search for the caller",
         ["POST /api/v1/user-jobs"] = "tracks a job scored for the caller (another user's job id is 404)",
+        ["POST /api/v1/jobs/byo"] = "adds a pasted job to the caller's tracker",
     };
 
     /// <summary>Admin routes: a signed-in user without the Admin role gets 403 on every one, whatever the id.</summary>
     private const string AdminPrefix = "/api/v1/admin/";
 
     private sealed record Owner(TestUser User, Guid ResumeId, Guid SkillId, string FileName, string Skill, Guid WatchedLinkId,
-        string Role, string BoardToken, Guid JobId, Guid DigestId, Guid UserJobId, Guid DocumentId);
+        string Role, string BoardToken, Guid JobId, Guid DigestId, Guid UserJobId, Guid DocumentId, Guid ByoUserJobId, string ByoTitle);
 
     /// <summary>How to find user A's resource for a route with an id, by route prefix (longest prefix wins).</summary>
     private static readonly (string Prefix, Func<Owner, Guid> Id)[] Resolvers =
@@ -131,7 +132,8 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         {
             owner.User.Id.ToString(), owner.User.Email, owner.ResumeId.ToString(), owner.SkillId.ToString(), owner.FileName,
             owner.Skill, "Isolation Owner A", owner.Role, owner.BoardToken, owner.WatchedLinkId.ToString(), owner.JobId.ToString(),
-            owner.DigestId.ToString(), owner.UserJobId.ToString(), owner.DocumentId.ToString(),
+            owner.DigestId.ToString(), owner.UserJobId.ToString(), owner.DocumentId.ToString(), owner.ByoUserJobId.ToString(),
+            owner.ByoTitle,
         };
 
         var failures = new List<string>();
@@ -352,8 +354,17 @@ public sealed partial class IsolationTests(PostgresAppFixture fx)
         await F.Jobs.RunAllAsync();
         (await ApiClient.JsonAsync(await a.Api.GetAsync($"/api/v1/tailored-documents/{documentId}")))
             .GetProperty("status").GetString().Should().Be("proposed");
+        // Interview prep on the tracked job, and a pasted (BYO) job with its enrichment.
+        (await a.Api.PostAsync($"/api/v1/user-jobs/{userJobId}/interview-prep", new { })).StatusCode.Should().Be(HttpStatusCode.Accepted);
+        var byoTitle = "ZebraByo" + Guid.NewGuid().ToString("N")[..6];
+        var byo = await a.Api.PostAsync("/api/v1/jobs/byo", new { description = TailoringTestData.ByoDescription, title = byoTitle, companyName = "Zebra Byo Co" });
+        byo.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(byo));
+        var byoId = (await ApiClient.JsonAsync(byo)).GetProperty("id").GetGuid();
+        await F.Jobs.RunAllAsync();
+        (await ApiClient.JsonAsync(await a.Api.GetAsync($"/api/v1/user-jobs/{userJobId}/interview-prep")))
+            .GetProperty("status").GetString().Should().Be("ready");
         return new Owner(a, resumeId, skillId, fileName, skill, linkId, role, token, jobId, digest.GetProperty("id").GetGuid(),
-            userJobId, documentId);
+            userJobId, documentId, byoId, byoTitle);
     }
 
     [Fact]

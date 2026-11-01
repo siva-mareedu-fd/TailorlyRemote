@@ -154,7 +154,11 @@ public sealed class SystemQueries(AppDbContext db)
             .CountAsync(a => (a.Status == WorkStatus.Queued || a.Status == WorkStatus.Running) && a.UpdatedAt < cutoff, ct)
         + await db.TailoredDocuments.IgnoreQueryFilters().AsNoTracking()
             .CountAsync(d => (d.Status == TailoredStatus.Queued || d.Status == TailoredStatus.Running || d.Status == TailoredStatus.Finalizing)
-                             && d.UpdatedAt < cutoff, ct);
+                             && d.UpdatedAt < cutoff, ct)
+        + await db.InterviewPreps.IgnoreQueryFilters().AsNoTracking()
+            .CountAsync(p => (p.Status == WorkStatus.Queued || p.Status == WorkStatus.Running) && p.UpdatedAt < cutoff, ct)
+        + await db.UserJobs.IgnoreQueryFilters().AsNoTracking()
+            .CountAsync(u => (u.EnrichmentStatus == WorkStatus.Queued || u.EnrichmentStatus == WorkStatus.Running) && u.UpdatedAt < cutoff, ct);
 
     /// <summary>Stuck-work sweep: ATS analyses queued/running since before the cutoff become <c>failed</c>/<c>TIMEOUT</c>.</summary>
     public Task<int> FailStuckAnalysesAsync(DateTimeOffset cutoff, string timeoutCode, CancellationToken ct) =>
@@ -171,6 +175,20 @@ public sealed class SystemQueries(AppDbContext db)
         db.Database.ExecuteSqlInterpolatedAsync($"""
             UPDATE tailored_documents SET status = 'failed', error_code = {timeoutCode}, updated_at = now()
             WHERE status IN ('queued','running','finalizing') AND updated_at < {cutoff}
+            """, ct);
+
+    /// <summary>Stuck-work sweep: interview preps queued/running since before the cutoff become <c>failed</c>/<c>TIMEOUT</c>.</summary>
+    public Task<int> FailStuckInterviewPrepsAsync(DateTimeOffset cutoff, string timeoutCode, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE interview_preps SET status = 'failed', error_code = {timeoutCode}, updated_at = now()
+            WHERE status IN ('queued','running') AND updated_at < {cutoff}
+            """, ct);
+
+    /// <summary>Stuck-work sweep: BYO enrichments queued/running since before the cutoff become <c>failed</c>/<c>TIMEOUT</c>.</summary>
+    public Task<int> FailStuckByoEnrichmentsAsync(DateTimeOffset cutoff, string timeoutCode, CancellationToken ct) =>
+        db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE user_jobs SET enrichment_status = 'failed', enrichment_error_code = {timeoutCode}, updated_at = now()
+            WHERE enrichment_status IN ('queued','running') AND updated_at < {cutoff}
             """, ct);
 
     /// <summary>Retention sweep (daily): digests older than the cutoff; their items cascade (DatabaseDesign §7).</summary>

@@ -9,7 +9,8 @@ namespace Tailorly.App.Infrastructure.Ai;
 /// Replies the offline provider builds from the request for tasks whose answer must refer to the request itself (paragraph
 /// ids of the uploaded résumé, the job's company), so local development without an API key can run tailoring end to end.
 /// They are deliberately modest: requirements are judged by plain text search, edits only adjust punctuation, and the
-/// letter uses nothing but the job's title and company and the candidate's name.
+/// letter uses nothing but the job's title and company and the candidate's name, and interview prep quotes the job's
+/// skills and the résumé's own bullets.
 /// </summary>
 internal static partial class FakeReplies
 {
@@ -22,6 +23,7 @@ internal static partial class FakeReplies
             AiTaskNames.AtsAnalysis => Analysis(data, cached),
             AiTaskNames.ResumeTailor => Tailor(cached),
             AiTaskNames.CoverLetter => Letter(data, cached),
+            AiTaskNames.InterviewPrep => Prep(data, cached),
             _ => null,
         };
     }
@@ -89,11 +91,35 @@ internal static partial class FakeReplies
         return JsonSerializer.Serialize(new { paragraphs, word_count = paragraphs.Sum(p => p.Split(' ').Length), tone });
     }
 
+    private static string Prep(string job, string candidate)
+    {
+        var skills = Field(job, "Required skills").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(s => s != "not stated").ToList();
+        var known = Field(candidate, "Skills").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var topics = skills.Take(4).Select(s => new { topic = s, why = "the job posting lists it as required." }).ToList();
+        if (topics.Count < 2) topics = [new { topic = "the role's core work", why = "taken from the job posting." }, new { topic = "your recent projects", why = "taken from your résumé." }];
+        var bullets = CandidateBullet().Matches(candidate).Select(m => m.Groups["text"].Value.Trim()).Where(b => b.Length > 0).ToList();
+        if (bullets.Count == 0) bullets = ["Use a project from your résumé."];
+        string[] questions = ["Tell us about a piece of work you are proud of.", "Describe a problem you solved under time pressure."];
+        var behavioural = questions.Select((q, i) => new { question = q, talking_points_from_resume = new[] { bullets[i % bullets.Count] } });
+        return JsonSerializer.Serialize(new
+        {
+            technical_topics = topics,
+            behavioural,
+            gaps_to_prepare = skills.Where(s => !known.Contains(s)).Take(4),
+            questions_to_ask = new[] { "What does a typical week look like for this team?", "How do you measure success in this role?" },
+        });
+    }
+
     private static string Field(string text, string name)
     {
         var m = Regex.Match(text, "^" + Regex.Escape(name) + @":[ \t]*(?<v>[^\r\n]*)", RegexOptions.Multiline, TimeSpan.FromSeconds(1));
         return m.Success ? m.Groups["v"].Value.Trim() : "";
     }
+
+    [GeneratedRegex(@"^- (?<text>.+)$", RegexOptions.Multiline, 1000)]
+    private static partial Regex CandidateBullet();
 
     [GeneratedRegex(@"^\[(?<id>p\d+)\] \([a-z]+\) (?<text>.*)$", RegexOptions.Multiline, 1000)]
     private static partial Regex ResumeLine();

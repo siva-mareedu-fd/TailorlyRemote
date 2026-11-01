@@ -177,6 +177,8 @@ public static class TailorlyServices
         services.AddScoped<TailorResumeJob>();
         services.AddScoped<FinalizeResumeJob>();
         services.AddScoped<CoverLetterJob>();
+        services.AddScoped<InterviewPrepJob>();
+        services.AddScoped<Tailorly.App.Features.Tracker.ByoJobEnrichmentJob>();
         // Gotenberg on the internal network (Compose profile "pdf"); used only when pdf_export.enabled is on.
         services.AddHttpClient<PdfExport>((sp, c) =>
         {

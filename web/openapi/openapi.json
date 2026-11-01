@@ -128,6 +128,46 @@
         }
       }
     },
+    "/api/v1/jobs/byo": {
+      "post": {
+        "tags": [
+          "Tracker"
+        ],
+        "operationId": "AddByoJob",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ByoJobRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserJobDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/me/notification-email/verify": {
       "post": {
         "tags": [
@@ -1504,6 +1544,76 @@
             }
           }
         }
+      },
+      "get": {
+        "tags": [
+          "Tracker"
+        ],
+        "operationId": "ListUserJobs",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserJobPage"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/v1/user-jobs/{id}": {
@@ -1533,6 +1643,87 @@
                 }
               }
             }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Tracker"
+        ],
+        "operationId": "UpdateUserJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserJobRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserJobDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tracker"
+        ],
+        "operationId": "DeleteUserJob",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
           },
           "default": {
             "description": "Error (RFC 7807)",
@@ -2132,6 +2323,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/TailoredDocumentDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/user-jobs/{id}/interview-prep": {
+      "post": {
+        "tags": [
+          "Tailoring"
+        ],
+        "operationId": "StartInterviewPrep",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewPrepDto"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewPrepDto"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error (RFC 7807)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Tailoring"
+        ],
+        "operationId": "GetInterviewPrep",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InterviewPrepDto"
                 }
               }
             }
@@ -3279,6 +3560,41 @@
           }
         }
       },
+      "ByoJobRequest": {
+        "required": [
+          "description",
+          "url",
+          "companyName",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "description": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "companyName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "title": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ChangePasswordRequest": {
         "required": [
           "currentPassword",
@@ -4015,6 +4331,85 @@
       "IFormFile": {
         "type": "string",
         "format": "binary"
+      },
+      "InterviewPrepContentDto": {
+        "required": [
+          "technicalTopics",
+          "behavioural",
+          "gapsToPrepare",
+          "questionsToAsk"
+        ],
+        "type": "object",
+        "properties": {
+          "technicalTopics": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrepTopicDto"
+            }
+          },
+          "behavioural": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PrepQuestionDto"
+            }
+          },
+          "gapsToPrepare": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "questionsToAsk": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "InterviewPrepDto": {
+        "required": [
+          "id",
+          "userJobId",
+          "status",
+          "errorCode",
+          "content",
+          "updatedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "userJobId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "errorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/InterviewPrepContentDto"
+              }
+            ]
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
       },
       "JobDetailDto": {
         "required": [
@@ -4824,6 +5219,39 @@
             "type": "boolean"
           },
           "concurrencyToken": {
+            "type": "string"
+          }
+        }
+      },
+      "PrepQuestionDto": {
+        "required": [
+          "question",
+          "talkingPointsFromResume"
+        ],
+        "type": "object",
+        "properties": {
+          "question": {
+            "type": "string"
+          },
+          "talkingPointsFromResume": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "PrepTopicDto": {
+        "required": [
+          "topic",
+          "why"
+        ],
+        "type": "object",
+        "properties": {
+          "topic": {
+            "type": "string"
+          },
+          "why": {
             "type": "string"
           }
         }
@@ -6013,6 +6441,34 @@
           }
         }
       },
+      "UpdateUserJobRequest": {
+        "required": [
+          "status",
+          "notes",
+          "concurrencyToken"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "concurrencyToken": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "UsageBucketDto": {
         "required": [
           "bucket",
@@ -6044,12 +6500,30 @@
           }
         }
       },
+      "UsageDayDto": {
+        "required": [
+          "date",
+          "tokens"
+        ],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "tokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
       "UsageResponse": {
         "required": [
           "periodKey",
           "resetsOn",
           "buckets",
-          "warnings"
+          "warnings",
+          "byTask",
+          "daily"
         ],
         "type": "object",
         "properties": {
@@ -6066,6 +6540,103 @@
             }
           },
           "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "byTask": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageTaskDto"
+            }
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UsageDayDto"
+            }
+          }
+        }
+      },
+      "UsageTaskDto": {
+        "required": [
+          "task",
+          "bucket",
+          "calls",
+          "tokens"
+        ],
+        "type": "object",
+        "properties": {
+          "task": {
+            "type": "string"
+          },
+          "bucket": {
+            "type": "string"
+          },
+          "calls": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tokens": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "UserJobAssessmentDto": {
+        "required": [
+          "eligibility",
+          "eligibilityEvidence",
+          "workMode",
+          "summary",
+          "fitReasons",
+          "fitConfidence",
+          "matchedSkills",
+          "missingSkills"
+        ],
+        "type": "object",
+        "properties": {
+          "eligibility": {
+            "type": "string"
+          },
+          "eligibilityEvidence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "workMode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "summary": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "fitReasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fitConfidence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "matchedSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missingSkills": {
             "type": "array",
             "items": {
               "type": "string"
@@ -6139,6 +6710,8 @@
           "hasUserDescription",
           "descriptionAvailable",
           "enrichmentStatus",
+          "enrichmentErrorCode",
+          "assessment",
           "statusHistory",
           "documents",
           "concurrencyToken",
@@ -6225,6 +6798,22 @@
               "string"
             ]
           },
+          "enrichmentErrorCode": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "assessment": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/UserJobAssessmentDto"
+              }
+            ]
+          },
           "statusHistory": {
             "type": "array",
             "items": {
@@ -6244,6 +6833,35 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "UserJobPage": {
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "total"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserJobDto"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -6358,6 +6976,9 @@
       "name": "Digests"
     },
     {
+      "name": "Tracker"
+    },
+    {
       "name": "Account"
     },
     {
@@ -6368,9 +6989,6 @@
     },
     {
       "name": "Jobs"
-    },
-    {
-      "name": "Tracker"
     },
     {
       "name": "Tailoring"

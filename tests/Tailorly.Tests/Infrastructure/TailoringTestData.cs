@@ -107,6 +107,38 @@ public static class TailoringTestData
         return await ApiClient.JsonAsync(await u.Api.GetAsync($"/api/v1/tailored-documents/{id}"));
     }
 
+    /// <summary>A pasted job (as from LinkedIn) for the BYO tests: long enough, no link inside.</summary>
+    public const string ByoDescription =
+        "Brightwave is hiring a Platform Engineer to build backend services in C# and .NET on PostgreSQL. You will own REST APIs " +
+        "for payments, improve CI/CD and work with product teams. Kubernetes is a plus. Fully remote; we hire across APAC time zones.";
+
+    /// <summary>An interview_prep reply whose talking points quote the sample résumé.</summary>
+    public static object Prep(string talkingPoint = "Built REST APIs for the payments team using C# and PostgreSQL.") => new
+    {
+        technical_topics = new[]
+        {
+            new { topic = "PostgreSQL query tuning", why = "the job asks you to own PostgreSQL schemas and queries." },
+            new { topic = "REST API design", why = "the job ships REST APIs used by merchants." },
+        },
+        behavioural = new[]
+        {
+            new { question = "Tell us about an API you designed.", talking_points_from_resume = new[] { talkingPoint } },
+            new { question = "How do you keep releases safe?", talking_points_from_resume = new[] { "Maintained billing services and wrote integration tests for every release." } },
+        },
+        gaps_to_prepare = new[] { "Kubernetes" },
+        questions_to_ask = new[] { "How is on-call shared across time zones?", "What does success look like in this role?" },
+    };
+
+    /// <summary>Starts interview prep with a scripted reply, runs the jobs and returns it.</summary>
+    public static async Task<JsonElement> PrepAsync(TailorlyAppFactory f, TestUser u, Guid userJobId, params object[] replies)
+    {
+        foreach (var r in replies.Length > 0 ? replies : [Prep()]) MatchingTestData.Reply(f, AiTaskNames.InterviewPrep, r);
+        var res = await u.Api.PostAsync($"/api/v1/user-jobs/{userJobId}/interview-prep", new { });
+        res.StatusCode.Should().Be(HttpStatusCode.Accepted, await ApiClient.TextAsync(res));
+        await f.Jobs.RunAllAsync();
+        return await ApiClient.JsonAsync(await u.Api.GetAsync($"/api/v1/user-jobs/{userJobId}/interview-prep"));
+    }
+
     public static IEnumerable<JsonElement> Edits(JsonElement doc) => doc.GetProperty("edits").EnumerateArray();
 
     public static JsonElement EditFor(JsonElement doc, string paragraph) =>

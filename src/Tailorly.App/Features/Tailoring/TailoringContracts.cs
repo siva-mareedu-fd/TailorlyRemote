@@ -4,43 +4,7 @@ using Tailorly.Docx.Tailoring;
 
 namespace Tailorly.App.Features.Tailoring;
 
-// HTTP contract of ApiDesign §4.7 (the slice M4 needs) and §4.8.
-
-public sealed record UserJobSourceDto(string Key, string Name, string? AttributionUrl);
-
-/// <param name="ResumeStatus">The latest tailored résumé's status (queued … ready | failed), or null.</param>
-public sealed record UserJobDocumentsDto(string? AnalysisStatus, string? ResumeStatus, string? CoverLetterStatus, string? InterviewPrepStatus);
-
-public sealed record StatusChangeDto(string Status, DateTimeOffset At);
-
-/// <summary>A tracker entry (ApiDesign §4.7 <c>UserJob</c>).</summary>
-/// <param name="DescriptionAvailable">False when the listing's text is gone and nothing was pasted.</param>
-/// <param name="EnrichmentStatus">For a pasted description: <c>ready</c> once enriched, <c>queued</c> until the next AI action.</param>
-public sealed record UserJobDto(
-    Guid Id,
-    Guid? JobId,
-    bool IsByo,
-    string Title,
-    string CompanyName,
-    string? ApplyUrl,
-    UserJobSourceDto? Source,
-    string Status,
-    string? Notes,
-    int? FitScore,
-    int? AtsBefore,
-    int? AtsAfter,
-    bool HasUserDescription,
-    bool DescriptionAvailable,
-    string? EnrichmentStatus,
-    IReadOnlyList<StatusChangeDto> StatusHistory,
-    UserJobDocumentsDto Documents,
-    string ConcurrencyToken,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset UpdatedAt);
-
-public sealed record CreateUserJobRequest(Guid? JobId);
-
-public sealed record UserJobDescriptionRequest(string? Description);
+// HTTP contract of ApiDesign §4.8 (the tracker entry and its requests are in Features/Tracker).
 
 /// <summary>The five ATS components, each 0–1; null when the component had no data (it is left out of the score).</summary>
 public sealed record AtsComponentsDto(double? KeywordCoverage, double? RequirementsMatch, double? TitleSeniority,

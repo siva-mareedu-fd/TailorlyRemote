@@ -159,11 +159,13 @@ public sealed partial class SweepStuckWorkJob(SystemQueries system, TimeProvider
         var digests = await system.FailStuckDigestsAsync(cutoff, ErrorCodes.Timeout, ct);
         var analyses = await system.FailStuckAnalysesAsync(cutoff, ErrorCodes.Timeout, ct);
         var documents = await system.FailStuckTailoredDocumentsAsync(cutoff, ErrorCodes.Timeout, ct);
-        // Interview preps join this sweep with their table (M5).
-        if (resumes + digests + analyses + documents > 0) LogSwept(logger, resumes, digests, analyses, documents);
+        var preps = await system.FailStuckInterviewPrepsAsync(cutoff, ErrorCodes.Timeout, ct);
+        var byo = await system.FailStuckByoEnrichmentsAsync(cutoff, ErrorCodes.Timeout, ct);
+        if (resumes + digests + analyses + documents + preps + byo > 0) LogSwept(logger, resumes, digests, analyses, documents, preps, byo);
     }
 
     [LoggerMessage(Level = LogLevel.Warning,
-        Message = "Stuck-work sweep marked {ResumeCount} résumé(s), {DigestCount} digest run(s), {AnalysisCount} analyses and {DocumentCount} tailored document(s) as TIMEOUT")]
-    private static partial void LogSwept(ILogger logger, int resumeCount, int digestCount, int analysisCount, int documentCount);
+        Message = "Stuck-work sweep marked {ResumeCount} résumé(s), {DigestCount} digest run(s), {AnalysisCount} analyses, {DocumentCount} tailored document(s), {PrepCount} interview prep(s) and {ByoCount} BYO enrichment(s) as TIMEOUT")]
+    private static partial void LogSwept(ILogger logger, int resumeCount, int digestCount, int analysisCount, int documentCount, int prepCount,
+        int byoCount);
 }

@@ -12,6 +12,7 @@ public static class AiTaskNames
     public const string AtsAnalysis = "ats_analysis";
     public const string ResumeTailor = "resume_tailor";
     public const string CoverLetter = "cover_letter";
+    public const string InterviewPrep = "interview_prep";
 }
 
 /// <summary>

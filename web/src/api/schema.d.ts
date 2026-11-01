@@ -68,6 +68,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/jobs/byo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AddByoJob"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/me/notification-email/verify": {
         parameters: {
             query?: never;
@@ -507,7 +523,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["ListUserJobs"];
         put?: never;
         post: operations["TrackJob"];
         delete?: never;
@@ -526,10 +542,10 @@ export interface paths {
         get: operations["GetUserJob"];
         put?: never;
         post?: never;
-        delete?: never;
+        delete: operations["DeleteUserJob"];
         options?: never;
         head?: never;
-        patch?: never;
+        patch: operations["UpdateUserJob"];
         trace?: never;
     };
     "/api/v1/user-jobs/{id}/description": {
@@ -686,6 +702,22 @@ export interface paths {
         get?: never;
         put: operations["PutCoverLetterContent"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/user-jobs/{id}/interview-prep": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetInterviewPrep"];
+        put?: never;
+        post: operations["StartInterviewPrep"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1003,6 +1035,12 @@ export interface components {
             /** Format: double */
             formatHealth: null | number;
         };
+        ByoJobRequest: {
+            description: null | string;
+            url: null | string;
+            companyName: null | string;
+            title: null | string;
+        };
         ChangePasswordRequest: {
             currentPassword: null | string;
             newPassword: null | string;
@@ -1205,6 +1243,23 @@ export interface components {
         };
         /** Format: binary */
         IFormFile: string;
+        InterviewPrepContentDto: {
+            technicalTopics: components["schemas"]["PrepTopicDto"][];
+            behavioural: components["schemas"]["PrepQuestionDto"][];
+            gapsToPrepare: string[];
+            questionsToAsk: string[];
+        };
+        InterviewPrepDto: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userJobId: string;
+            status: string;
+            errorCode: null | string;
+            content: null | components["schemas"]["InterviewPrepContentDto"];
+            /** Format: date-time */
+            updatedAt: string;
+        };
         JobDetailDto: {
             description?: null | string;
             summary?: null | string;
@@ -1374,6 +1429,14 @@ export interface components {
             scheduleLocalTime: string;
             digestWhenEmpty: boolean;
             concurrencyToken: string;
+        };
+        PrepQuestionDto: {
+            question: string;
+            talkingPointsFromResume: string[];
+        };
+        PrepTopicDto: {
+            topic: string;
+            why: string;
         };
         ProfileEdits: {
             contact?: null | components["schemas"]["ParsedContact"];
@@ -1648,6 +1711,11 @@ export interface components {
             attributionText: null | string;
             attributionUrl: null | string;
         };
+        UpdateUserJobRequest: {
+            status: null | string;
+            notes: null | string;
+            concurrencyToken: null | string;
+        };
         UsageBucketDto: {
             bucket: string;
             /** Format: int64 */
@@ -1659,11 +1727,36 @@ export interface components {
             /** Format: int32 */
             percentUsed: number;
         };
+        UsageDayDto: {
+            date: string;
+            /** Format: int64 */
+            tokens: number;
+        };
         UsageResponse: {
             periodKey: string;
             resetsOn: string;
             buckets: components["schemas"]["UsageBucketDto"][];
             warnings: string[];
+            byTask: components["schemas"]["UsageTaskDto"][];
+            daily: components["schemas"]["UsageDayDto"][];
+        };
+        UsageTaskDto: {
+            task: string;
+            bucket: string;
+            /** Format: int32 */
+            calls: number;
+            /** Format: int64 */
+            tokens: number;
+        };
+        UserJobAssessmentDto: {
+            eligibility: string;
+            eligibilityEvidence: null | string;
+            workMode: null | string;
+            summary: null | string;
+            fitReasons: string[];
+            fitConfidence: null | string;
+            matchedSkills: string[];
+            missingSkills: string[];
         };
         UserJobDescriptionRequest: {
             description: null | string;
@@ -1695,6 +1788,8 @@ export interface components {
             hasUserDescription: boolean;
             descriptionAvailable: boolean;
             enrichmentStatus: null | string;
+            enrichmentErrorCode: null | string;
+            assessment: null | components["schemas"]["UserJobAssessmentDto"];
             statusHistory: components["schemas"]["StatusChangeDto"][];
             documents: components["schemas"]["UserJobDocumentsDto"];
             concurrencyToken: string;
@@ -1702,6 +1797,15 @@ export interface components {
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
+        };
+        UserJobPage: {
+            items: components["schemas"]["UserJobDto"][];
+            /** Format: int32 */
+            page: number;
+            /** Format: int32 */
+            pageSize: number;
+            /** Format: int32 */
+            total: number;
         };
         UserJobSourceDto: {
             key: string;
@@ -1846,6 +1950,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DigestDetailDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    AddByoJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ByoJobRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobDto"];
                 };
             };
             /** @description Error (RFC 7807) */
@@ -2943,6 +3080,41 @@ export interface operations {
             };
         };
     };
+    ListUserJobs: {
+        parameters: {
+            query?: {
+                status?: string[];
+                q?: string;
+                sort?: string;
+                page?: number;
+                pageSize?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobPage"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
     TrackJob: {
         parameters: {
             query?: never;
@@ -2995,6 +3167,70 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserJobDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    DeleteUserJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    UpdateUserJob: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserJobRequest"];
+            };
+        };
         responses: {
             /** @description OK */
             200: {
@@ -3433,6 +3669,77 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TailoredDocumentDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    GetInterviewPrep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewPrepDto"];
+                };
+            };
+            /** @description Error (RFC 7807) */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ApiProblem"];
+                };
+            };
+        };
+    };
+    StartInterviewPrep: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewPrepDto"];
+                };
+            };
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InterviewPrepDto"];
                 };
             };
             /** @description Error (RFC 7807) */

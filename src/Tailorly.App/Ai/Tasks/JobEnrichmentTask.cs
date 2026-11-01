@@ -43,7 +43,18 @@ public sealed record EnrichmentData(
     [property: JsonPropertyName("schema_version")] int SchemaVersion,
     [property: JsonPropertyName("eligibility_source")] string EligibilitySource,
     [property: JsonPropertyName("model_eligibility")] string ModelEligibility,
-    [property: JsonPropertyName("enrichment")] EnrichmentOutput Enrichment);
+    [property: JsonPropertyName("enrichment")] EnrichmentOutput Enrichment,
+    [property: JsonPropertyName("fit")] StoredFit? Fit = null);
+
+/// <summary>
+/// The <c>job_fit_score</c> judgement of a BYO job, kept with its enrichment in <c>user_jobs.user_enrichment</c> (a BYO job
+/// has no <c>jobs</c> row, so no <c>user_job_scores</c> row). The score itself is <c>user_jobs.fit_score</c>.
+/// </summary>
+public sealed record StoredFit(
+    [property: JsonPropertyName("reasons")] IReadOnlyList<string> Reasons,
+    [property: JsonPropertyName("matched_skills")] IReadOnlyList<string> MatchedSkills,
+    [property: JsonPropertyName("missing_skills")] IReadOnlyList<string> MissingSkills,
+    [property: JsonPropertyName("confidence")] string Confidence);
 
 /// <summary>The job fields sent to <c>job_enrichment</c>. The description is untrusted text from a job board.</summary>
 public sealed record EnrichmentJobInput(

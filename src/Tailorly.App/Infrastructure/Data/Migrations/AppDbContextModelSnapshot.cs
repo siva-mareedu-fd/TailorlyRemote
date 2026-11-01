@@ -841,6 +841,71 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                     b.ToTable("feature_flags", (string)null);
                 });
 
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.InterviewPrep", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Content")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("content");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("ErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("error_code");
+
+                    b.Property<string>("Model")
+                        .HasColumnType("text")
+                        .HasColumnName("model");
+
+                    b.Property<string>("PromptVersion")
+                        .HasColumnType("text")
+                        .HasColumnName("prompt_version");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("queued")
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<Guid>("UserJobId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_job_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_interview_preps");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_interview_preps_user_id");
+
+                    b.HasIndex("UserJobId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_interview_preps_user_job");
+
+                    b.ToTable("interview_preps", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_interview_preps_status", "status IN ('queued','running','ready','failed')");
+                        });
+                });
+
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.InviteCode", b =>
                 {
                     b.Property<string>("Code")
@@ -1594,6 +1659,14 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<string>("EnrichmentErrorCode")
+                        .HasColumnType("text")
+                        .HasColumnName("enrichment_error_code");
+
+                    b.Property<string>("EnrichmentStatus")
+                        .HasColumnType("text")
+                        .HasColumnName("enrichment_status");
+
                     b.Property<short?>("FitScore")
                         .HasColumnType("smallint")
                         .HasColumnName("fit_score");
@@ -1683,6 +1756,8 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                             t.HasCheckConstraint("ck_user_jobs_ats_after", "ats_after BETWEEN 0 AND 100");
 
                             t.HasCheckConstraint("ck_user_jobs_ats_before", "ats_before BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_user_jobs_enrichment_status", "enrichment_status IN ('queued','running','ready','failed')");
 
                             t.HasCheckConstraint("ck_user_jobs_fit_score", "fit_score BETWEEN 1 AND 10");
 
@@ -2173,6 +2248,23 @@ namespace Tailorly.App.Infrastructure.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_digest_items_asp_net_users_user_id");
+                });
+
+            modelBuilder.Entity("Tailorly.App.Infrastructure.Data.InterviewPrep", b =>
+                {
+                    b.HasOne("Tailorly.App.Infrastructure.Data.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_interview_preps_asp_net_users_user_id");
+
+                    b.HasOne("Tailorly.App.Infrastructure.Data.UserJob", null)
+                        .WithMany()
+                        .HasForeignKey("UserJobId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_interview_preps_user_jobs_user_job_id");
                 });
 
             modelBuilder.Entity("Tailorly.App.Infrastructure.Data.Job", b =>

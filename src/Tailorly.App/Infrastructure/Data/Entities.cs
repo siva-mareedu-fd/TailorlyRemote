@@ -510,8 +510,19 @@ public sealed class UserJob : IUserOwned
     /// <summary>A pasted description (BYO job, or a listing whose text is limited or gone). Never logged.</summary>
     public string? UserDescription { get; set; }
 
-    /// <summary>jsonb: the enrichment of <see cref="UserDescription"/> (same shape as <c>job_enrichment.data</c>).</summary>
+    /// <summary>
+    /// jsonb: the enrichment of <see cref="UserDescription"/> (same shape as <c>job_enrichment.data</c>); for a BYO job also
+    /// the fit judgement (<c>fit</c>: reasons, skills, confidence), since a BYO job has no <c>user_job_scores</c> row.
+    /// </summary>
     public string? UserEnrichment { get; set; }
+
+    /// <summary>
+    /// The background enrichment of a BYO job (<see cref="WorkStatus"/>); null when nothing was started in the background (a
+    /// pasted description on a listing is enriched on the next AI action).
+    /// </summary>
+    public string? EnrichmentStatus { get; set; }
+
+    public string? EnrichmentErrorCode { get; set; }
 
     public string Status { get; set; } = UserJobStatus.Saved;
     public string? Notes { get; set; }
@@ -551,6 +562,24 @@ public sealed class AtsAnalysis : IUserOwned
 
     /// <summary>jsonb: format findings with fix suggestions.</summary>
     public string? Findings { get; set; }
+
+    public string? Model { get; set; }
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+}
+
+/// <summary>Interview prep for a tracked job (DatabaseDesign §3.6, PRD F10): one per entry, regenerated in place.</summary>
+public sealed class InterviewPrep : IUserOwned
+{
+    public Guid Id { get; set; } = Guid.CreateVersion7();
+    public Guid UserJobId { get; set; }
+    public Guid UserId { get; set; }
+    public string Status { get; set; } = WorkStatus.Queued;
+    public string? ErrorCode { get; set; }
+
+    /// <summary>jsonb: <c>{schemaVersion, technicalTopics, behavioural, gapsToPrepare, questionsToAsk}</c>.</summary>
+    public string? Content { get; set; }
 
     public string? Model { get; set; }
     public string? PromptVersion { get; set; }

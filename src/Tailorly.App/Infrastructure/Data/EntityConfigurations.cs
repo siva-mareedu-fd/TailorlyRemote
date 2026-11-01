@@ -419,6 +419,7 @@ internal sealed class UserJobConfig : IEntityTypeConfiguration<UserJob>
             t.HasCheckConstraint("ck_user_jobs_fit_score", "fit_score BETWEEN 1 AND 10");
             t.HasCheckConstraint("ck_user_jobs_ats_before", "ats_before BETWEEN 0 AND 100");
             t.HasCheckConstraint("ck_user_jobs_ats_after", "ats_after BETWEEN 0 AND 100");
+            t.HasCheckConstraint("ck_user_jobs_enrichment_status", "enrichment_status IN ('queued','running','ready','failed')");
         });
         e.HasKey(x => x.Id);
         e.Property(x => x.Id).ValueGeneratedNever();
@@ -460,6 +461,23 @@ internal sealed class AtsAnalysisConfig : IEntityTypeConfiguration<AtsAnalysis>
         e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         e.HasOne<Resume>().WithMany().HasForeignKey(x => x.ResumeId).OnDelete(DeleteBehavior.Cascade);
         e.HasIndex(x => new { x.UserJobId, x.ResumeId }).IsUnique().HasDatabaseName("ux_ats_analyses_user_job_resume");
+    }
+}
+
+internal sealed class InterviewPrepConfig : IEntityTypeConfiguration<InterviewPrep>
+{
+    public void Configure(EntityTypeBuilder<InterviewPrep> e)
+    {
+        e.ToTable("interview_preps", t => t.HasCheckConstraint("ck_interview_preps_status", "status IN ('queued','running','ready','failed')"));
+        e.HasKey(x => x.Id);
+        e.Property(x => x.Id).ValueGeneratedNever();
+        e.Property(x => x.Status).HasDefaultValue(WorkStatus.Queued);
+        e.Property(x => x.Content).HasColumnType("jsonb");
+        e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+        e.Property(x => x.UpdatedAt).HasDefaultValueSql("now()");
+        e.HasOne<UserJob>().WithMany().HasForeignKey(x => x.UserJobId).OnDelete(DeleteBehavior.Cascade);
+        e.HasOne<AppUser>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        e.HasIndex(x => x.UserJobId).IsUnique().HasDatabaseName("ux_interview_preps_user_job");
     }
 }
 

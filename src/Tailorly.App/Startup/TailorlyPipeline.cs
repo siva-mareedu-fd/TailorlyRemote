@@ -9,6 +9,7 @@ using Tailorly.App.Features.Meta;
 using Tailorly.App.Features.Preferences;
 using Tailorly.App.Features.Resumes;
 using Tailorly.App.Features.Tailoring;
+using Tailorly.App.Features.Tracker;
 using Tailorly.App.Features.Usage;
 using Tailorly.App.Infrastructure.Jobs;
 
@@ -58,7 +59,9 @@ public static class TailorlyPipeline
         api.MapJobEndpoints();
         api.MapDigestEndpoints();
         api.MapUserJobEndpoints();
+        api.MapByoJobEndpoints();
         api.MapTailoringEndpoints();
+        api.MapInterviewPrepEndpoints();
         api.MapEmailLinkEndpoints();
         api.MapAdminGroup().MapAdminReports();
 

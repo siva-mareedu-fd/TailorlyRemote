@@ -41,6 +41,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options, ICurren
     public DbSet<UserJob> UserJobs => Set<UserJob>();
     public DbSet<AtsAnalysis> AtsAnalyses => Set<AtsAnalysis>();
     public DbSet<TailoredDocument> TailoredDocuments => Set<TailoredDocument>();
+    public DbSet<InterviewPrep> InterviewPreps => Set<InterviewPrep>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {

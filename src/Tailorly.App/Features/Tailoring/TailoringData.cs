@@ -143,6 +143,9 @@ public sealed class TailoringData(
                     result.Value with { Eligibility = resolved.Eligibility, EligibilityEvidence = resolved.Evidence });
                 await db.UserJobs.Where(u => u.Id == uj.Id).ExecuteUpdateAsync(s => s
                     .SetProperty(u => u.UserEnrichment, JsonSerializer.Serialize(stored, Json))
+                    // The BYO job marks itself ready once the fit score is stored too.
+                    .SetProperty(u => u.EnrichmentStatus, uj.EnrichmentStatus == WorkStatus.Running ? WorkStatus.Running : WorkStatus.Ready)
+                    .SetProperty(u => u.EnrichmentErrorCode, (string?)null)
                     .SetProperty(u => u.UpdatedAt, clock.GetUtcNow()), ct);
             }
             return new TailoringJob(uj.Title, uj.CompanyName, pasted, stored.Enrichment);

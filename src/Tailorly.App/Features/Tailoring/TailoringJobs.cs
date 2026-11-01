@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Tailorly.App.Ai;
 using Tailorly.App.Ai.Tasks;
+using Tailorly.App.Features.Tracker;
 using Tailorly.App.Infrastructure.Data;
 using Tailorly.Core;
 using Tailorly.Core.Ports;
