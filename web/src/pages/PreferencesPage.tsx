@@ -58,212 +58,215 @@ export function PreferencesPage() {
   const atLeastOne = () => say('Keep at least one option selected');
 
   return (
-    <div className="page narrow" style={{ paddingBottom: 0 }}>
-      <div className="page-title">
-        <div>
-          <h1>Preferences</h1>
-          <div className="sub">These filters apply to your shortlist and your daily digest.</div>
-        </div>
-      </div>
-
-      <div className="stack">
-        <div className="card">
-          <h2>Where to look</h2>
-          <p className="sub">Which jobs can appear.</p>
-          <div className="field">
-            <span className="lbl">Search scope</span>
-            <Segmented<Scope>
-              label="Search scope"
-              value={p.searchScope as Scope}
-              options={scopes}
-              onChange={(v) => set({ searchScope: v })}
-            />
-            <span className="help">
-              “India only” covers company career boards with India locations and jobs you add yourself.
-            </span>
+    <>
+      <div className="page narrow" style={{ paddingBottom: 0 }}>
+        <div className="page-title">
+          <div>
+            <h1>Preferences</h1>
+            <div className="sub">These filters apply to your shortlist and your daily digest.</div>
           </div>
-          <ChipsInput
-            label="Target roles"
-            values={p.targetRoles}
-            onChange={(v) => set({ targetRoles: v })}
-            error={field('targetRoles')}
-          />
-          <ChipsInput
-            label="Cities in India"
-            values={p.locations}
-            onChange={(v) => set({ locations: v })}
-            error={field('locations')}
-          />
-          <div className="grid2">
+        </div>
+
+        <div className="stack">
+          <div className="card">
+            <h2>Where to look</h2>
+            <p className="sub">Which jobs can appear.</p>
             <div className="field">
-              <span className="lbl">Work mode</span>
-              <MultiSegmented<WorkMode>
-                label="Work mode"
-                values={p.workModes as WorkMode[]}
-                options={workModes}
-                onChange={(v) => set({ workModes: v })}
+              <span className="lbl">Search scope</span>
+              <Segmented<Scope>
+                label="Search scope"
+                value={p.searchScope as Scope}
+                options={scopes}
+                onChange={(v) => set({ searchScope: v })}
+              />
+              <span className="help">
+                “India only” covers company career boards with India locations and jobs you add yourself.
+              </span>
+            </div>
+            <ChipsInput
+              label="Target roles"
+              values={p.targetRoles}
+              onChange={(v) => set({ targetRoles: v })}
+              error={field('targetRoles')}
+            />
+            <ChipsInput
+              label="Cities in India"
+              values={p.locations}
+              onChange={(v) => set({ locations: v })}
+              error={field('locations')}
+            />
+            <div className="grid2">
+              <div className="field">
+                <span className="lbl">Work mode</span>
+                <MultiSegmented<WorkMode>
+                  label="Work mode"
+                  values={p.workModes as WorkMode[]}
+                  options={workModes}
+                  onChange={(v) => set({ workModes: v })}
+                  onEmpty={atLeastOne}
+                />
+              </div>
+              <div className="field">
+                <span className="lbl">Job type</span>
+                <MultiSegmented<JobType>
+                  label="Job type"
+                  values={p.jobTypes as JobType[]}
+                  options={jobTypes}
+                  onChange={(v) => set({ jobTypes: v })}
+                  onEmpty={atLeastOne}
+                />
+              </div>
+            </div>
+            <div className="field">
+              <span className="lbl">Hiring model</span>
+              <MultiSegmented<HiringModel>
+                label="Hiring model"
+                values={p.hiringModels as HiringModel[]}
+                options={hiringModels}
+                onChange={(v) => set({ hiringModels: v })}
                 onEmpty={atLeastOne}
               />
             </div>
+          </div>
+
+          <div className="card">
+            <h2>Pay</h2>
+            <p className="sub">Annual amounts. Jobs in other currencies are shown with an approximate conversion.</p>
             <div className="field">
-              <span className="lbl">Job type</span>
-              <MultiSegmented<JobType>
-                label="Job type"
-                values={p.jobTypes as JobType[]}
-                options={jobTypes}
-                onChange={(v) => set({ jobTypes: v })}
-                onEmpty={atLeastOne}
+              <span className="lbl">Currency</span>
+              <Segmented<Currency>
+                label="Currency"
+                value={p.salaryCurrency as Currency}
+                options={currencies}
+                onChange={(v) => set({ salaryCurrency: v })}
               />
             </div>
-          </div>
-          <div className="field">
-            <span className="lbl">Hiring model</span>
-            <MultiSegmented<HiringModel>
-              label="Hiring model"
-              values={p.hiringModels as HiringModel[]}
-              options={hiringModels}
-              onChange={(v) => set({ hiringModels: v })}
-              onEmpty={atLeastOne}
-            />
-          </div>
-        </div>
-
-        <div className="card">
-          <h2>Pay</h2>
-          <p className="sub">Annual amounts. Jobs in other currencies are shown with an approximate conversion.</p>
-          <div className="field">
-            <span className="lbl">Currency</span>
-            <Segmented<Currency>
-              label="Currency"
-              value={p.salaryCurrency as Currency}
-              options={currencies}
-              onChange={(v) => set({ salaryCurrency: v })}
-            />
-          </div>
-          <div className="grid2">
-            <AmountField
-              id="smin"
-              label="Minimum"
-              value={p.salaryMin}
-              currency={p.salaryCurrency}
-              error={field('salaryMin')}
-              onChange={(v) => set({ salaryMin: v })}
-            />
-            <AmountField
-              id="smax"
-              label="Maximum"
-              value={p.salaryMax}
-              currency={p.salaryCurrency}
-              error={field('salaryMax')}
-              onChange={(v) => set({ salaryMax: v })}
-            />
-          </div>
-          <Setting
-            title="Show jobs that do not list a salary"
-            description="Only when the match score is at or above your minimum."
-          >
-            <Switch
-              label="Show jobs that do not list a salary"
-              checked={p.includeUnspecifiedSalary}
-              onChange={(v) => set({ includeUnspecifiedSalary: v })}
-            />
-          </Setting>
-        </div>
-
-        <div className="card">
-          <h2>Match quality</h2>
-          <p className="sub">Jobs below this score are hidden.</p>
-          <div className="field">
-            <div className="row between">
-              <label htmlFor="minScore">Minimum match score</label>
-              <span className="font-mono">{p.minMatchScore} / 10</span>
+            <div className="grid2">
+              <AmountField
+                id="smin"
+                label="Minimum"
+                value={p.salaryMin}
+                currency={p.salaryCurrency}
+                error={field('salaryMin')}
+                onChange={(v) => set({ salaryMin: v })}
+              />
+              <AmountField
+                id="smax"
+                label="Maximum"
+                value={p.salaryMax}
+                currency={p.salaryCurrency}
+                error={field('salaryMax')}
+                onChange={(v) => set({ salaryMax: v })}
+              />
             </div>
-            <input
-              type="range"
-              id="minScore"
-              min={1}
-              max={10}
-              value={p.minMatchScore}
-              onChange={(e) => set({ minMatchScore: Number(e.target.value) })}
-            />
-          </div>
-          <Setting
-            title="Show jobs with unclear eligibility in the email digest"
-            description="They always appear in the app with a warning."
-          >
-            <Switch
-              label="Show jobs with unclear eligibility in the email digest"
-              checked={p.showUnclearEligibility}
-              onChange={(v) => set({ showUnclearEligibility: v })}
-            />
-          </Setting>
-          <div className="field mt-3">
-            <label htmlFor="overlap">Time-zone overlap</label>
-            <select
-              className="select"
-              id="overlap"
-              value={p.timezoneOverlap ?? 'Any'}
-              onChange={(e) => set({ timezoneOverlap: e.target.value === 'Any' ? null : e.target.value })}
+            <Setting
+              title="Show jobs that do not list a salary"
+              description="Only when the match score is at or above your minimum."
             >
-              {overlapOptions.map((o) => (
-                <option key={o}>{o}</option>
-              ))}
-            </select>
-          </div>
-          <ChipsInput
-            label="Exclude companies"
-            values={p.excludedCompanies}
-            onChange={(v) => set({ excludedCompanies: v })}
-            error={field('excludedCompanies')}
-          />
-          <ChipsInput
-            label="Exclude keywords"
-            values={p.excludedKeywords}
-            onChange={(v) => set({ excludedKeywords: v })}
-            error={field('excludedKeywords')}
-          />
-        </div>
-
-        <WatchedCompaniesCard />
-
-        <div className="card">
-          <h2>Daily digest</h2>
-          <p className="sub">When your shortlist is prepared and emailed.</p>
-          <Setting
-            title="Send a daily digest"
-            description="Turn off to stop emails. You can still run the search yourself."
-          >
-            <Switch
-              label="Send a daily digest"
-              checked={p.scheduleEnabled}
-              onChange={(v) => set({ scheduleEnabled: v })}
-            />
-          </Setting>
-          <div className="grid2 mt-3">
-            <div className="field">
-              <label htmlFor="time">Time</label>
-              <input
-                className="input font-mono"
-                id="time"
-                type="time"
-                value={p.scheduleLocalTime}
-                aria-invalid={field('scheduleLocalTime') ? true : undefined}
-                onChange={(e) => set({ scheduleLocalTime: e.target.value })}
+              <Switch
+                label="Show jobs that do not list a salary"
+                checked={p.includeUnspecifiedSalary}
+                onChange={(v) => set({ includeUnspecifiedSalary: v })}
               />
-              <span className="help">Your time zone: {me.timeZone}</span>
-              {field('scheduleLocalTime') && <div className="err">{field('scheduleLocalTime')}</div>}
-            </div>
+            </Setting>
           </div>
-          <Setting title="Send a message when nothing new matches">
-            <Switch
-              label="Send a message when nothing new matches"
-              checked={p.digestWhenEmpty}
-              onChange={(v) => set({ digestWhenEmpty: v })}
+
+          <div className="card">
+            <h2>Match quality</h2>
+            <p className="sub">Jobs below this score are hidden.</p>
+            <div className="field">
+              <div className="row between">
+                <label htmlFor="minScore">Minimum match score</label>
+                <span className="font-mono">{p.minMatchScore} / 10</span>
+              </div>
+              <input
+                type="range"
+                id="minScore"
+                min={1}
+                max={10}
+                value={p.minMatchScore}
+                onChange={(e) => set({ minMatchScore: Number(e.target.value) })}
+              />
+            </div>
+            <Setting
+              title="Show jobs with unclear eligibility in the email digest"
+              description="They always appear in the app with a warning."
+            >
+              <Switch
+                label="Show jobs with unclear eligibility in the email digest"
+                checked={p.showUnclearEligibility}
+                onChange={(v) => set({ showUnclearEligibility: v })}
+              />
+            </Setting>
+            <div className="field mt-3">
+              <label htmlFor="overlap">Time-zone overlap</label>
+              <select
+                className="select"
+                id="overlap"
+                value={p.timezoneOverlap ?? 'Any'}
+                onChange={(e) => set({ timezoneOverlap: e.target.value === 'Any' ? null : e.target.value })}
+              >
+                {overlapOptions.map((o) => (
+                  <option key={o}>{o}</option>
+                ))}
+              </select>
+            </div>
+            <ChipsInput
+              label="Exclude companies"
+              values={p.excludedCompanies}
+              onChange={(v) => set({ excludedCompanies: v })}
+              error={field('excludedCompanies')}
             />
-          </Setting>
+            <ChipsInput
+              label="Exclude keywords"
+              values={p.excludedKeywords}
+              onChange={(v) => set({ excludedKeywords: v })}
+              error={field('excludedKeywords')}
+            />
+          </div>
+
+          <WatchedCompaniesCard />
+
+          <div className="card">
+            <h2>Daily digest</h2>
+            <p className="sub">When your shortlist is prepared and emailed.</p>
+            <Setting
+              title="Send a daily digest"
+              description="Turn off to stop emails. You can still run the search yourself."
+            >
+              <Switch
+                label="Send a daily digest"
+                checked={p.scheduleEnabled}
+                onChange={(v) => set({ scheduleEnabled: v })}
+              />
+            </Setting>
+            <div className="grid2 mt-3">
+              <div className="field">
+                <label htmlFor="time">Time</label>
+                <input
+                  className="input font-mono"
+                  id="time"
+                  type="time"
+                  value={p.scheduleLocalTime}
+                  aria-invalid={field('scheduleLocalTime') ? true : undefined}
+                  onChange={(e) => set({ scheduleLocalTime: e.target.value })}
+                />
+                <span className="help">Your time zone: {me.timeZone}</span>
+                {field('scheduleLocalTime') && <div className="err">{field('scheduleLocalTime')}</div>}
+              </div>
+            </div>
+            <Setting title="Send a message when nothing new matches">
+              <Switch
+                label="Send a message when nothing new matches"
+                checked={p.digestWhenEmpty}
+                onChange={(v) => set({ digestWhenEmpty: v })}
+              />
+            </Setting>
+          </div>
         </div>
       </div>
 
+      {/* Outside the narrow column: the bar spans the page, as in the prototype. */}
       <div className="savebar">
         {conflict ? (
           <Alert
@@ -302,7 +305,7 @@ export function PreferencesPage() {
           </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

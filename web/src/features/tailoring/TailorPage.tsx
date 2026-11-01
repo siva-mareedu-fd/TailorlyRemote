@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router';
 import { isApiError } from '@/api/client';
@@ -90,7 +90,7 @@ export function TailorPage() {
           className="row"
           style={{ marginBottom: 10, width: 'fit-content' }}
         >
-          <ArrowLeft size={16} aria-hidden="true" /> {uj.jobId && !uj.isByo ? 'Back to shortlist' : 'Back to tracker'}
+          <ChevronLeft size={16} aria-hidden="true" /> {uj.jobId && !uj.isByo ? 'Back to shortlist' : 'Back to tracker'}
         </Link>
         <div className="page-title">
           <div>

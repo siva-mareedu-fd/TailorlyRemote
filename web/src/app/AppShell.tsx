@@ -42,7 +42,7 @@ function Shell() {
               <Menu size={16} strokeWidth={2} />
             </Button>
           </SheetTrigger>
-          <strong>Tailorly</strong> <span className="chip ok">remote</span>
+          <strong>Tailorly</strong> <span className="chip border-signal-line bg-signal-soft text-signal">remote</span>
         </header>
         <SheetContent side="left" className="w-drawer pt-[env(safe-area-inset-top,0px)]">
           <SheetTitle className="sr-only">Menu</SheetTitle>

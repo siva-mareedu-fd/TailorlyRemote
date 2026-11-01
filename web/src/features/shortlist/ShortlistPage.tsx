@@ -283,13 +283,13 @@ export function ShortlistPage() {
             <span className="kbd">j</span> <span className="kbd">k</span> move
           </span>
           <span>
-            <span className="kbd">/</span> filter
+            <span className="kbd">s</span> save
+          </span>
+          <span>
+            <span className="kbd">t</span> tailor
           </span>
           <span>
             <span className="kbd">o</span> open source
-          </span>
-          <span>
-            <span className="kbd">Esc</span> back
           </span>
         </div>
       </section>

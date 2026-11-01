@@ -2,7 +2,8 @@ import { Moon, Sun } from 'lucide-react';
 import { NavLink } from 'react-router';
 import { BrandMark } from '@/components/BrandMark';
 import { Button } from '@/components/ui/button';
-import { useMeta, type Me } from '@/api/queries';
+import { useJobs, useMeta, useResumes, type Me } from '@/api/queries';
+import { useUserJobs } from '@/api/tracker';
 import { useTheme } from '@/lib/theme';
 import { cn } from '@/lib/utils';
 import { adminNav, mainNav, type NavItem } from './routes';
@@ -25,7 +26,7 @@ function shortName(name: string): string {
   return parts.length > 1 ? `${parts[0]} ${parts[parts.length - 1][0]}.` : name;
 }
 
-function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+function NavItemLink({ item, badge, onNavigate }: { item: NavItem; badge?: string | null; onNavigate?: () => void }) {
   return (
     <NavLink
       to={item.to}
@@ -39,6 +40,7 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       }
     >
       <span>{item.label}</span>
+      {badge && <span className="font-mono text-[11px] text-ink-muted">{badge}</span>}
     </NavLink>
   );
 }
@@ -78,19 +80,31 @@ export function Sidebar({
 }) {
   const { theme, toggle } = useTheme();
   const meta = useMeta();
+  // Counts from the prototype's sidebar: today's shortlist, tracker entries, the active résumé's version.
+  const jobs = useJobs({}, me.emailVerified);
+  const tracked = useUserJobs(me.emailVerified);
+  const resumes = useResumes(me.emailVerified);
+  const activeVersion = resumes.data?.find((r) => r.isActive)?.version;
+  const badges: Record<string, string | null> = {
+    '/shortlist': jobs.data ? String(jobs.data.total) : null,
+    '/tracker': tracked.data ? String(tracked.data.length) : null,
+    '/resume': activeVersion ? `v${activeVersion}` : null,
+  };
 
   return (
     <div className="flex h-full flex-col gap-[14px] overflow-auto bg-ink px-3 py-[18px] text-ink-text">
       <div className="px-2">
         <BrandMark />
-        <div className="mt-1 font-mono text-[10.5px] text-ink-muted" data-testid="api-version">
-          {meta.data ? `api v${meta.data.version}` : meta.isError ? 'api offline' : ' '}
-        </div>
+        {meta.isError && (
+          <div className="mt-1 font-mono text-[10.5px] text-ink-muted" role="status">
+            api offline
+          </div>
+        )}
       </div>
 
       <nav aria-label="Main" className="grid gap-0.5">
         {mainNav.map((item) => (
-          <NavItemLink key={item.to} item={item} onNavigate={onNavigate} />
+          <NavItemLink key={item.to} item={item} badge={badges[item.to]} onNavigate={onNavigate} />
         ))}
         {showAdmin && (
           <>

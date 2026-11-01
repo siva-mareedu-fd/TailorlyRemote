@@ -33,9 +33,10 @@ function poll(busy: boolean, startedAt: number): number | false {
 }
 
 /** Every tracker entry of the caller (pages of 100 until all are read), most recently updated first. */
-export function useUserJobs() {
+export function useUserJobs(enabled = true) {
   return useQuery({
     queryKey: trackerKeys.list,
+    enabled,
     queryFn: async () => {
       const all: UserJob[] = [];
       for (let page = 1; ; page++) {

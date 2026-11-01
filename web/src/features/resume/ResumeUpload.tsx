@@ -35,7 +35,7 @@ export function DropZone({ onFile, disabled }: { onFile: (f: File) => void; disa
         onDragLeave={() => setOver(false)}
         onDrop={onDrop}
       >
-        <Upload size={26} strokeWidth={2} aria-hidden="true" className="mx-auto" />
+        <Upload size={26} strokeWidth={2} aria-hidden="true" className="inline" />
         <b>Choose a .docx file</b>
         <span className="help">or drag it here</span>
       </label>

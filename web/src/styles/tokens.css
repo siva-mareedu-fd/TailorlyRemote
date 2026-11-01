@@ -7,10 +7,10 @@
 :root {
   --bg: #f7faf8; --surface: #ffffff; --surface-2: #eaf3ee; --border: #d5e3db;
   --text: #16150f; --muted: #6a675c;
-  --accent: #0e7a53; --accent-hover: #0b6544; --accent-soft: rgba(14,122,83,.10); --on-accent: #ffffff;
-  --amber: #9a5f00; --amber-soft: rgba(154,95,0,.12);
+  --accent: #0d734e; --accent-hover: #0b6544; --accent-soft: rgba(14,122,83,.10); --on-accent: #ffffff;
+  --amber: #8e5700; --amber-soft: rgba(154,95,0,.12);
   --red: #b3362f; --red-soft: rgba(179,54,47,.10);
-  --blue: #2563eb; --blue-soft: rgba(37,99,235,.10);
+  --blue: #225cdb; --blue-soft: rgba(37,99,235,.10);
   --ink: #14130f; --ink-text: #eceae1; --ink-muted: #9a978b; --ink-line: #2a2922; --ink-active: #23221b;
   --ink-card: #1b1a15;
   --signal: #3ddc97; --signal-soft: rgba(61,220,151,.12); --signal-line: #2c5a45;
