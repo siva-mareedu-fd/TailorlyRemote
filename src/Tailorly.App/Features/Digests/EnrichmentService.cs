@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -19,8 +20,10 @@ public sealed record EnrichmentOutcome(int Created, int Failed, bool CeilingHit)
 /// Shared job enrichment as a get-or-create step inside the per-user run (SDD §8.5, ADR-006): for candidate jobs without
 /// a <c>job_enrichment</c> row (best raw relevance first, at most <c>Enrichment:MaxPerRun</c>), call <c>job_enrichment</c>
 /// as a platform cost (no user is charged) and store the result for every user. Stops at the platform daily token
-/// ceiling. A concurrent run enriching the same job is harmless: the second insert is ignored. Eligibility is resolved
-/// with the hard rules (SDD §8.6) before it is stored. Logs ids and counts only.
+/// ceiling. Runs that start together (users on the same schedule slot) want the same jobs: within this process (ADR-001)
+/// the first run enriches a job and the others wait for it instead of paying for the same call (found by the M6 load
+/// test: 4 workers enriched every job 4 times). Across processes a duplicate is still harmless: the second insert is
+/// ignored. Eligibility is resolved with the hard rules (SDD §8.6) before it is stored. Logs ids and counts only.
 /// </summary>
 public sealed partial class EnrichmentService(
     AppDbContext db,
@@ -32,6 +35,9 @@ public sealed partial class EnrichmentService(
     ILogger<EnrichmentService> logger)
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+    /// <summary>Enrichments being made in this process, by job id; completed (never faulted) when the owner is done.</summary>
+    private static readonly ConcurrentDictionary<Guid, Task> InFlight = new();
 
     /// <param name="jobIdsByRelevance">Kept candidates, most relevant first.</param>
     /// <exception cref="AiTaskFailedException">A transient provider failure; the run should retry later.</exception>
@@ -57,7 +63,7 @@ public sealed partial class EnrichmentService(
             .ToDictionaryAsync(j => j.Id, ct);
 
         long spent = 0;
-        int created = 0, failed = 0, ceilingHit = 0;
+        int created = 0, failed = 0, ceilingHit = 0, waited = 0;
         AiTaskFailedException? transient = null;
         using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct);
         try
@@ -71,43 +77,65 @@ public sealed partial class EnrichmentService(
                         Interlocked.Exchange(ref ceilingHit, 1);
                         return;
                     }
-                    var j = jobs[id];
-                    var countries = CoverageReport.Countries(j.SourceMeta);
-                    var hint = EligibilityRules.Classify(countries, j.LocationText, j.Title, j.DescriptionText);
-                    var input = JobEnrichmentTask.BuildInput(
-                        new EnrichmentJobInput(j.Title, j.CompanyName, j.LocationText, j.WorkMode, j.EmploymentType, countries, j.DescriptionText),
-                        hint);
-
-                    await using var scope = scopes.CreateAsyncScope();
-                    var runner = scope.ServiceProvider.GetRequiredService<IAiTaskRunner>();
-                    AiTaskResult<EnrichmentOutput> result;
+                    var mine = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    var owner = InFlight.GetOrAdd(id, mine.Task);
+                    if (owner != mine.Task)
+                    {
+                        await owner.WaitAsync(token); // another run is enriching this job; its row serves this run too
+                        Interlocked.Increment(ref waited);
+                        return;
+                    }
                     try
                     {
-                        result = await runner.RunAsync(JobEnrichmentTask.Definition, input, userId: null, token);
-                    }
-                    catch (AiTaskFailedException ex) when (!ex.Transient)
-                    {
-                        Interlocked.Increment(ref failed);
-                        LogFailed(logger, id, ex.Code);
-                        return;
-                    }
-                    catch (AiTaskFailedException ex)
-                    {
-                        Interlocked.CompareExchange(ref transient, ex, null);
-                        await stop.CancelAsync();
-                        return;
-                    }
-                    Interlocked.Add(ref spent, result.CountedTokens);
+                        await using var scope = scopes.CreateAsyncScope();
+                        // Another run may have finished this job between our "missing" query and taking it over.
+                        if (await scope.ServiceProvider.GetRequiredService<AppDbContext>().JobEnrichment.AnyAsync(e => e.JobId == id, token))
+                        {
+                            Interlocked.Increment(ref waited);
+                            return;
+                        }
+                        var j = jobs[id];
+                        var countries = CoverageReport.Countries(j.SourceMeta);
+                        var hint = EligibilityRules.Classify(countries, j.LocationText, j.Title, j.DescriptionText);
+                        var input = JobEnrichmentTask.BuildInput(
+                            new EnrichmentJobInput(j.Title, j.CompanyName, j.LocationText, j.WorkMode, j.EmploymentType, countries, j.DescriptionText),
+                            hint);
 
-                    var output = result.Value;
-                    var evidence = JobEnrichmentTask.QuotedEvidence(output.EligibilityEvidence,
-                        $"{j.Title}\n{j.LocationText}\n{j.DescriptionText}");
-                    var resolved = EligibilityResolver.Resolve(hint, output.Eligibility, evidence);
-                    var data = new EnrichmentData(JobEnrichmentTask.SchemaVersion, resolved.Source, output.Eligibility,
-                        output with { Eligibility = resolved.Eligibility, EligibilityEvidence = resolved.Evidence });
-                    var inserted = await InsertAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(), id, data,
-                        result.Model, result.PromptVersion, CancellationToken.None);
-                    if (inserted) Interlocked.Increment(ref created);
+                        var runner = scope.ServiceProvider.GetRequiredService<IAiTaskRunner>();
+                        AiTaskResult<EnrichmentOutput> result;
+                        try
+                        {
+                            result = await runner.RunAsync(JobEnrichmentTask.Definition, input, userId: null, token);
+                        }
+                        catch (AiTaskFailedException ex) when (!ex.Transient)
+                        {
+                            Interlocked.Increment(ref failed);
+                            LogFailed(logger, id, ex.Code);
+                            return;
+                        }
+                        catch (AiTaskFailedException ex)
+                        {
+                            Interlocked.CompareExchange(ref transient, ex, null);
+                            await stop.CancelAsync();
+                            return;
+                        }
+                        Interlocked.Add(ref spent, result.CountedTokens);
+
+                        var output = result.Value;
+                        var evidence = JobEnrichmentTask.QuotedEvidence(output.EligibilityEvidence,
+                            $"{j.Title}\n{j.LocationText}\n{j.DescriptionText}");
+                        var resolved = EligibilityResolver.Resolve(hint, output.Eligibility, evidence);
+                        var data = new EnrichmentData(JobEnrichmentTask.SchemaVersion, resolved.Source, output.Eligibility,
+                            output with { Eligibility = resolved.Eligibility, EligibilityEvidence = resolved.Evidence });
+                        var inserted = await InsertAsync(scope.ServiceProvider.GetRequiredService<AppDbContext>(), id, data,
+                            result.Model, result.PromptVersion, CancellationToken.None);
+                        if (inserted) Interlocked.Increment(ref created);
+                    }
+                    finally
+                    {
+                        InFlight.TryRemove(new KeyValuePair<Guid, Task>(id, mine.Task));
+                        mine.TrySetResult();
+                    }
                 });
         }
         catch (OperationCanceledException) when (transient is not null && !ct.IsCancellationRequested)
@@ -122,6 +150,7 @@ public sealed partial class EnrichmentService(
         }
         if (ceilingHit == 1) LogCeiling(logger, spentBefore + spent, ceiling!.Value);
         LogEnriched(logger, created, failed, missing.Count);
+        if (waited > 0) LogShared(logger, waited);
         return new(created, failed, ceilingHit == 1);
     }
 
@@ -154,6 +183,9 @@ public sealed partial class EnrichmentService(
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Enrichment: {Created} created, {Failed} failed, of {Missing} missing")]
     private static partial void LogEnriched(ILogger logger, int created, int failed, int missing);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Enrichment: {Waited} job(s) were being enriched by another run; reused")]
+    private static partial void LogShared(ILogger logger, int waited);
 
     [LoggerMessage(Level = LogLevel.Warning, Message = "Enrichment of job {JobId} failed with {ErrorCode}")]
     private static partial void LogFailed(ILogger logger, Guid jobId, string errorCode);
