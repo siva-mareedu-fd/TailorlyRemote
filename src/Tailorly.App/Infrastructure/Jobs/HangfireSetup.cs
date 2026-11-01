@@ -68,6 +68,21 @@ public static class HangfireSetup
             DisplayStorageConnectionString = false,
         }).RequireAuthorization(AuthPolicies.Admin);
     }
+
+    /// <summary>
+    /// Audits the job dashboard's actions (requeue, delete, trigger: every POST under <see cref="DashboardPath"/>) like the
+    /// admin API calls (SDD §14.2 "all admin actions audit-logged"): the path and the status code, never the form body.
+    /// </summary>
+    public static void UseHangfireDashboardAudit(this WebApplication app) =>
+        app.UseWhen(http => HttpMethods.IsPost(http.Request.Method) && http.Request.Path.StartsWithSegments(DashboardPath),
+            branch => branch.Use(async (http, next) =>
+            {
+                await next(http);
+                var actor = http.RequestServices.GetRequiredService<ICurrentUser>().UserId;
+                await http.RequestServices.GetRequiredService<Features.Accounts.AuditWriter>().WriteAsync("admin.post",
+                    actor == Guid.Empty ? null : actor, DashboardPath, http.Request.Path.Value?[DashboardPath.Length..],
+                    new { status = http.Response.StatusCode }, CancellationToken.None);
+            }));
 }
 
 /// <summary>Second line of defence behind the endpoint policy: only signed-in Admins see the dashboard.</summary>

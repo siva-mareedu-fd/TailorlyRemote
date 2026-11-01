@@ -203,8 +203,7 @@ export function useCreateInviteCode() {
 export function useDeleteInviteCode() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (code: string) =>
-      call(() => api.DELETE('/api/v1/admin/invite-codes/{code}', { params: { path: { code } } })),
+    mutationFn: (code: string) => call(() => api.DELETE('/api/v1/admin/invite-codes', { body: { code } })),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'invite-codes'] }),
   });
 }

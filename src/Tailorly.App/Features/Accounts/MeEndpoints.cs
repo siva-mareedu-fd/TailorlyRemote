@@ -22,7 +22,8 @@ public static partial class MeEndpoints
         var account = api.MapGroup("/account").WithTags("Account");
         account.MapDelete("", RequestDeletion).WithName("RequestAccountDeletion").RequireAuthorization(AuthPolicies.User)
             .RequireRateLimiting(RateLimiting.AuthMail);
-        account.MapPost("/confirm-deletion", ConfirmDeletion).WithName("ConfirmAccountDeletion").AllowAnonymous();
+        account.MapPost("/confirm-deletion", ConfirmDeletion).WithName("ConfirmAccountDeletion").AllowAnonymous()
+            .RequireRateLimiting(RateLimiting.AuthLogin);
     }
 
     internal static async Task<MeResponse> BuildMeAsync(AppDbContext db, UserManager<AppUser> users, AppUser user, CancellationToken ct)

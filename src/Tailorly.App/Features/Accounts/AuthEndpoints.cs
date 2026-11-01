@@ -22,14 +22,16 @@ public static partial class AuthEndpoints
         var auth = api.MapGroup("/auth").WithTags("Auth");
 
         auth.MapPost("/register", Register).WithName("Register").AllowAnonymous().RequireRateLimiting(RateLimiting.AuthRegister);
-        auth.MapPost("/verify-email", VerifyEmail).WithName("VerifyEmail").AllowAnonymous();
+        auth.MapPost("/verify-email", VerifyEmail).WithName("VerifyEmail").AllowAnonymous()
+            .RequireRateLimiting(RateLimiting.AuthLogin); // anonymous token checks: per IP, like sign-in (M6 review)
         auth.MapPost("/resend-verification", ResendVerification).WithName("ResendVerification")
             .RequireAuthorization(AuthPolicies.UserAny).RequireRateLimiting(RateLimiting.AuthMail);
         auth.MapPost("/login", Login).WithName("Login").AllowAnonymous().RequireRateLimiting(RateLimiting.AuthLogin);
         auth.MapPost("/logout", Logout).WithName("Logout").RequireAuthorization(AuthPolicies.UserAny);
         auth.MapPost("/forgot-password", ForgotPassword).WithName("ForgotPassword").AllowAnonymous()
             .RequireRateLimiting(RateLimiting.AuthMail);
-        auth.MapPost("/reset-password", ResetPassword).WithName("ResetPassword").AllowAnonymous();
+        auth.MapPost("/reset-password", ResetPassword).WithName("ResetPassword").AllowAnonymous()
+            .RequireRateLimiting(RateLimiting.AuthLogin);
         auth.MapPost("/change-password", ChangePassword).WithName("ChangePassword").RequireAuthorization(AuthPolicies.User);
     }
 

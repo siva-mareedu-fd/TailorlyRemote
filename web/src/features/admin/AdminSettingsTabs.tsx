@@ -32,6 +32,12 @@ const FLAG_LABELS: Record<string, [string, string]> = {
   'pdf_export.enabled': ['PDF export', 'Flag: pdf_export.enabled (needs the converter container)'],
 };
 
+/** The prototype's order; flags it does not know come last. */
+const flagOrder = (key: string) => {
+  const i = Object.keys(FLAG_LABELS).indexOf(key);
+  return i < 0 ? Number.MAX_SAFE_INTEGER : i;
+};
+
 function useErrorToast() {
   const say = useToast();
   return (e: unknown) => say(isApiError(e) ? `${e.code}: ${e.userMessage}` : 'Something went wrong');
@@ -143,33 +149,35 @@ export function FlagsTab() {
   return (
     <>
       <div className="card">
-        {flags.data.map((f) => {
-          const [title, desc] = FLAG_LABELS[f.key] ?? [f.key, `Flag: ${f.key}`];
-          const isBool = typeof f.value === 'boolean';
-          return (
-            <div key={f.key} className="setting">
-              <div>
-                <div className="t">{title}</div>
-                <div className="d">{desc}</div>
+        {[...flags.data]
+          .sort((a, b) => flagOrder(a.key) - flagOrder(b.key))
+          .map((f) => {
+            const [title, desc] = FLAG_LABELS[f.key] ?? [f.key, `Flag: ${f.key}`];
+            const isBool = typeof f.value === 'boolean';
+            return (
+              <div key={f.key} className="setting">
+                <div>
+                  <div className="t">{title}</div>
+                  <div className="d">{desc}</div>
+                </div>
+                {isBool ? (
+                  <Switch
+                    label={title}
+                    checked={f.value === true}
+                    disabled={update.isPending}
+                    onChange={(v) =>
+                      update.mutate(
+                        { key: f.key, value: v },
+                        { onSuccess: () => say(`${title}: ${v ? 'on' : 'off'}`), onError: fail },
+                      )
+                    }
+                  />
+                ) : (
+                  <span className="font-mono text-sm">{JSON.stringify(f.value)}</span>
+                )}
               </div>
-              {isBool ? (
-                <Switch
-                  label={title}
-                  checked={f.value === true}
-                  disabled={update.isPending}
-                  onChange={(v) =>
-                    update.mutate(
-                      { key: f.key, value: v },
-                      { onSuccess: () => say(`${title}: ${v ? 'on' : 'off'}`), onError: fail },
-                    )
-                  }
-                />
-              ) : (
-                <span className="font-mono text-sm">{JSON.stringify(f.value)}</span>
-              )}
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
       <InviteCodes />
     </>
@@ -215,7 +223,13 @@ function InviteCodes() {
         </label>
         <label className="row" style={{ gap: 6 }}>
           <span className="help">Expires (optional)</span>
-          <input className="input" type="date" value={expires} onChange={(e) => setExpires(e.target.value)} />
+          <input
+            className="input"
+            style={{ width: 170 }}
+            type="date"
+            value={expires}
+            onChange={(e) => setExpires(e.target.value)}
+          />
         </label>
         <Button type="submit" variant="primary" disabled={create.isPending}>
           New code

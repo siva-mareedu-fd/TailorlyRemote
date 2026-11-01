@@ -37,7 +37,7 @@ public static partial class AdminEndpoints
         return admin;
     }
 
-    /// <summary>Route values recorded as <c>audit_log.entity_id</c>. Invite codes (<c>{code}</c>) are secrets and never recorded.</summary>
+    /// <summary>Route values recorded as <c>audit_log.entity_id</c>. Invite codes never travel in a route (they are secrets).</summary>
     private static readonly string[] AuditedRouteIds = ["key", "task", "linkId", "id"];
 
     private const string AuditDetailsKey = "tailorly.audit.details";

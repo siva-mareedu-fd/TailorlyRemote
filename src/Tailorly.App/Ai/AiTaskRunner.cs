@@ -85,9 +85,11 @@ public sealed partial class AiTaskRunner(
             var request = new ModelRequest(task.Name, cfg.Model, prompt.System, input.CacheableContext, messages,
                 cfg.MaxTokens, prompt.ModelSchema, options.Value.EffortFor(task.Name));
 
-            var sw = Stopwatch.StartNew();
             ModelResponse response;
             await concurrency.Gate.WaitAsync(ct);
+            // Started once the call holds a slot: ai_usage.latency_ms is the provider's latency, not the queue in front of
+            // the gate (the M6 load test measured 7.6 s for 2 s calls before this).
+            var sw = Stopwatch.StartNew();
             try
             {
                 response = await provider.SendAsync(request, ct);

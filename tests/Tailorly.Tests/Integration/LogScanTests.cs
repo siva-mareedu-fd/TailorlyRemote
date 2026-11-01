@@ -1,5 +1,6 @@
 using System.Net;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Tailorly.App.Ai;
 using Tailorly.Tests.Infrastructure;
 
@@ -102,6 +103,50 @@ public sealed class LogScanTests(PostgresAppFixture fx)
             deletionToken, "Built REST APIs for the payments team", $"{name}.docx" };
         ShouldNotContainAny(logs, secrets, "the logs");
         await ShouldNotBePersistedAsync(secrets);
+    }
+
+    /// <summary>
+    /// The M6 flows with verbose logging: two-step sign-in (setup, enable, sign-in with a code and a recovery code), the
+    /// admin console (invite code, user lookup by exact email in the query string, suspension, AI config) and an alert email.
+    /// No shared key, code, recovery code, invite code, email or password is logged or stored.
+    /// </summary>
+    [Fact]
+    public async Task No_two_step_secret_invite_code_or_email_reaches_the_logs_in_the_admin_flows()
+    {
+        await using var f = new TailorlyAppFactory(fx.ConnectionString, new Dictionary<string, string?>(Verbose)
+        {
+            ["Alerts:To"] = "ops-sentinel@example.test",
+            ["Alerts:DiskUsedPercent"] = "-1", // one alert for certain
+        });
+        var admin = await TestUsers.CreateAdminAsync(f, "logscan-admin");
+        var key = (await ApiClient.JsonAsync(await admin.Api.PostAsync("/api/v1/me/two-factor/setup"))).GetProperty("sharedKey").GetString()!;
+        var code = Totp.Code(key, DateTimeOffset.UtcNow);
+        var recovery = (await ApiClient.JsonAsync(await admin.Api.PostAsync("/api/v1/me/two-factor/enable", new { code })))
+            .GetProperty("recoveryCodes").EnumerateArray().Select(c => c.GetString()!).ToList();
+        await admin.Api.RefreshCsrfAsync();
+        var fresh = await f.CreateApiClientAsync();
+        (await fresh.PostAsync("/api/v1/auth/login", new { email = admin.Email, password = admin.Password, twoFactorCode = recovery[0] }))
+            .StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var invite = (await ApiClient.JsonAsync(await admin.Api.PostAsync("/api/v1/admin/invite-codes", new { maxUses = 3 })))
+            .GetProperty("code").GetString()!;
+        var user = await TestUsers.CreateVerifiedAsync(f, "logscan-user");
+        (await admin.Api.GetAsync($"/api/v1/admin/users?q={Uri.EscapeDataString(user.Email)}")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await admin.Api.PostAsync($"/api/v1/admin/users/{user.Id}/suspend")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await admin.Api.PostAsync($"/api/v1/admin/users/{user.Id}/unsuspend")).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await admin.Api.PutAsync("/api/v1/admin/ai-config/cover_letter", new { enabled = true })).StatusCode.Should().Be(HttpStatusCode.OK);
+        (await admin.Api.SendJsonAsync(HttpMethod.Delete, "/api/v1/admin/invite-codes", new { code = invite })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+        await using (var scope = f.Services.CreateAsyncScope())
+            await scope.ServiceProvider.GetRequiredService<Tailorly.App.Features.Admin.AdminAlertsJob>().RunAsync(CancellationToken.None);
+        f.Emails.Sent.Should().Contain(m => m.To == "ops-sentinel@example.test");
+
+        var logs = f.Logs.Lines.ToList();
+        logs.Should().Contain(l => l.Contains("Admin alert", StringComparison.Ordinal), "the alert itself is logged, by key");
+        var secrets = new[] { key, key.Replace(" ", "", StringComparison.Ordinal), code, invite, user.Email, admin.Email, admin.Password,
+            "ops-sentinel@example.test" }.Concat(recovery).ToList();
+        ShouldNotContainAny(logs, secrets, "the logs");
+        await ShouldNotBePersistedAsync(secrets);
+        await Db.ExecAsync(fx.ConnectionString, "DELETE FROM audit_log WHERE action = 'alert.sent'");
     }
 
     /// <summary>
@@ -294,7 +339,8 @@ public sealed class LogScanTests(PostgresAppFixture fx)
         f.Http.Requests.Should().BeEmpty("an invalid board token is refused before any request");
 
         var mine = (await PersistedText.AuditLogAsync(fx.ConnectionString))
-            .Where(r => r.Contains(admin.Id.ToString(), StringComparison.Ordinal)).ToList();
+            .Where(r => r.Contains(admin.Id.ToString(), StringComparison.Ordinal) && r.Contains("\"action\":\"admin.", StringComparison.Ordinal))
+            .ToList(); // sign-ins are audited too (account.signin)
         mine.Should().HaveCount(2, "both calls are audited, the refused one too")
             .And.OnlyContain(r => r.Contains("/admin/companies", StringComparison.Ordinal));
         var secrets = new[] { sentinel, admin.Email };

@@ -1038,22 +1038,6 @@ export interface paths {
         get: operations["AdminListInviteCodes"];
         put?: never;
         post: operations["AdminCreateInviteCode"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/admin/invite-codes/{code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
         delete: operations["AdminDeleteInviteCode"];
         options?: never;
         head?: never;
@@ -1460,6 +1444,9 @@ export interface components {
         };
         DecisionsRequest: {
             decisions: null | components["schemas"]["DecisionItem"][];
+        };
+        DeleteInviteCodeRequest: {
+            code: null | string;
         };
         DeletionStatusResponse: {
             status: string;
@@ -4864,12 +4851,14 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                code: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteInviteCodeRequest"];
+            };
+        };
         responses: {
             /** @description No Content */
             204: {

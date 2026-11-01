@@ -3368,24 +3368,22 @@
             }
           }
         }
-      }
-    },
-    "/api/v1/admin/invite-codes/{code}": {
+      },
       "delete": {
         "tags": [
           "Admin"
         ],
         "operationId": "AdminDeleteInviteCode",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteInviteCodeRequest"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "204": {
             "description": "No Content"
@@ -4861,6 +4859,20 @@
             "items": {
               "$ref": "#/components/schemas/DecisionItem"
             }
+          }
+        }
+      },
+      "DeleteInviteCodeRequest": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

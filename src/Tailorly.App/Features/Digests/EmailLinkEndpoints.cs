@@ -20,7 +20,7 @@ public static partial class EmailLinkEndpoints
         g.MapPost("/unsubscribe", Unsubscribe).WithName("Unsubscribe").WithMetadata(new SkipCsrfAttribute());
 
         api.MapPost("/me/notification-email/verify", VerifyNotificationEmail).WithName("VerifyNotificationEmail")
-            .WithTags("Account").AllowAnonymous();
+            .WithTags("Account").AllowAnonymous().RequireRateLimiting(RateLimiting.AuthLogin);
     }
 
     /// <summary>Never changes state (mail scanners open links): sends the browser to the SPA confirmation page.</summary>

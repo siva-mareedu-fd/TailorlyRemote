@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Tailorly.App.Ai;
 using Tailorly.App.Api;
@@ -33,7 +34,8 @@ public static partial class AdminSettingsEndpoints
         admin.MapPut("/flags/{key}", UpdateFlag).WithName("AdminUpdateFlag");
         admin.MapGet("/invite-codes", ListInviteCodes).WithName("AdminListInviteCodes");
         admin.MapPost("/invite-codes", CreateInviteCode).WithName("AdminCreateInviteCode");
-        admin.MapDelete("/invite-codes/{code}", DeleteInviteCode).WithName("AdminDeleteInviteCode");
+        // The code goes in the body, never the path: request paths are logged, and a code is a credential.
+        admin.MapDelete("/invite-codes", DeleteInviteCode).WithName("AdminDeleteInviteCode");
     }
 
     // ---------- AI task config ----------
@@ -134,8 +136,10 @@ public static partial class AdminSettingsEndpoints
             new InviteCodeDto(invite.Code, invite.MaxUses, invite.UsedCount, invite.ExpiresAt));
     }
 
-    private static async Task<NoContent> DeleteInviteCode(string code, AppDbContext db, CancellationToken ct)
+    private static async Task<NoContent> DeleteInviteCode([FromBody] DeleteInviteCodeRequest body, AppDbContext db, CancellationToken ct)
     {
+        var code = body.Code?.Trim();
+        if (string.IsNullOrEmpty(code)) throw FieldErrors.Single("code", "Code is required.");
         if (await db.InviteCodes.Where(i => i.Code == code).ExecuteDeleteAsync(ct) == 0) throw NotFound("invite code");
         return TypedResults.NoContent();
     }
@@ -186,3 +190,5 @@ public sealed record UpdateFlagRequest(JsonElement? Value);
 public sealed record InviteCodeDto(string Code, int MaxUses, int UsedCount, DateTimeOffset? ExpiresAt);
 
 public sealed record CreateInviteCodeRequest(string? Code, int? MaxUses, DateTimeOffset? ExpiresAt);
+
+public sealed record DeleteInviteCodeRequest(string? Code);

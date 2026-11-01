@@ -94,14 +94,14 @@ public sealed class AdminConsoleTests(PostgresAppFixture fx)
 
             (await admin.Api.PostAsync("/api/v1/admin/invite-codes", new { code })).StatusCode
                 .Should().Be(HttpStatusCode.UnprocessableEntity, "codes are unique");
-            (await admin.Api.DeleteAsync($"/api/v1/admin/invite-codes/{code}")).StatusCode.Should().Be(HttpStatusCode.NoContent);
-            (await admin.Api.DeleteAsync($"/api/v1/admin/invite-codes/{code}")).StatusCode.Should().Be(HttpStatusCode.NotFound);
+            (await admin.Api.SendJsonAsync(HttpMethod.Delete, "/api/v1/admin/invite-codes", new { code })).StatusCode.Should().Be(HttpStatusCode.NoContent);
+            (await admin.Api.SendJsonAsync(HttpMethod.Delete, "/api/v1/admin/invite-codes", new { code })).StatusCode.Should().Be(HttpStatusCode.NotFound);
 
             var audit = string.Join("\n", await Db.StringsAsync(Cs,
                 "SELECT action || ' ' || coalesce(entity, '') || ' ' || coalesce(entity_id, '') || ' ' || coalesce(meta::text, '') FROM audit_log WHERE actor_user_id = @u",
                 ("u", admin.Id)));
             audit.Should().Contain("admin.put /api/v1/admin/flags/{key} signup.require_invite_code").And.Contain("\"value\": \"true\"");
-            audit.Should().Contain("admin.delete /api/v1/admin/invite-codes/{code}").And.NotContain(code, "invite codes are secrets");
+            audit.Should().Contain("admin.delete /api/v1/admin/invite-codes").And.NotContain(code, "invite codes are secrets");
             audit.Should().Contain("VALIDATION_FAILED", "refused calls are audited too");
         }
         finally

@@ -43,6 +43,7 @@ public static class TailorlyPipeline
         app.UseAuthorization();
         app.UseRateLimiter();
         app.UseTailorlyCsrf();
+        app.UseHangfireDashboardAudit();
 
         app.MapTailorlyHealthEndpoints();
 
