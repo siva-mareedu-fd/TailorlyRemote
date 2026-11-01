@@ -96,6 +96,10 @@ jobs:
       POSTGRES_PASSWORD: ci-only
     steps:
       - uses: actions/checkout@v4
+      - name: Deploy scripts pass shellcheck
+        run: shellcheck -x -S warning deploy/*.sh
+      - name: Production Compose override is valid
+        run: IMAGE_REPO=ghcr.io/example TAG=ci SITE_ADDRESS=tailorly.example docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml config --quiet
       - name: Build images
         run: docker compose -f deploy/docker-compose.yml build
       - name: Smoke test the stack
@@ -108,3 +112,56 @@ jobs:
       - name: Logs on failure
         if: failure()
         run: docker compose -f deploy/docker-compose.yml logs --no-color
+
+  # ---- On main: publish images tagged with the git SHA, then deploy (SDD §13.3) ----
+  publish:
+    name: Publish images
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE_REPO: ghcr.io/${{ github.repository_owner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build and push
+        run: |
+          repo="$(echo "$IMAGE_REPO" | tr '[:upper:]' '[:lower:]')"
+          docker build -f deploy/Dockerfile -t "$repo/tailorly-app:${{ github.sha }}" .
+          docker build -f deploy/web.Dockerfile -t "$repo/tailorly-web:${{ github.sha }}" .
+          docker push "$repo/tailorly-app:${{ github.sha }}"
+          docker push "$repo/tailorly-web:${{ github.sha }}"
+
+  # Runs deploy/deploy.sh on the VM over SSH: pull → migrate → up -d → smoke test (/readyz + a scripted sign-in).
+  # Configure the "production" environment (with required reviewers if wanted) with:
+  #   vars:    DEPLOY_ENABLED=true, DEPLOY_HOST, DEPLOY_USER, DEPLOY_PATH (the repo checkout on the VM, e.g. /opt/tailorly)
+  #   secrets: DEPLOY_SSH_KEY (a key allowed only for this user), DEPLOY_KNOWN_HOSTS (ssh-keyscan output of the VM)
+  # The VM pulls from GHCR: log in once there with a read-only token (see deploy/runbooks/operator-runbook.md).
+  deploy:
+    name: Deploy to the VM
+    runs-on: ubuntu-latest
+    needs: [publish]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DEPLOY_ENABLED == 'true'
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy ${{ github.sha }}
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          HOST: ${{ vars.DEPLOY_HOST }}
+          USER: ${{ vars.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH }}
+          SHA: ${{ github.sha }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy -o StrictHostKeyChecking=yes "$USER@$HOST" \
+            "set -e; cd '$DEPLOY_PATH' && git fetch --quiet origin && git checkout --quiet --detach '$SHA' && TAG='$SHA' deploy/deploy.sh"

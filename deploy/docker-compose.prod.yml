@@ -1,0 +1,35 @@
+# Production settings for the single VM (SDD §13.2), on top of docker-compose.yml:
+#   docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.prod.yml …
+# The deploy scripts add this file when deploy/.env has TAILORLY_PROD=1. Compose "profiles" switch whole services on
+# and off (pdf, dev), so production settings live in this override instead.
+#
+# - Images come from the registry CI pushes to (IMAGE_REPO, tagged with the git SHA), never built on the VM.
+# - Memory limits follow the SDD guidance for a 2–4 GB VM.
+# - The certificate check of the admin alerts connects to Caddy inside the network, with the public name as SNI.
+
+services:
+  postgres:
+    mem_limit: 768m
+    shm_size: 128m
+
+  migrate:
+    image: ${IMAGE_REPO:?Set IMAGE_REPO in deploy/.env}/tailorly-app:${TAG:?Set TAG to the git SHA to deploy}
+    pull_policy: missing
+
+  app:
+    image: ${IMAGE_REPO:?Set IMAGE_REPO in deploy/.env}/tailorly-app:${TAG:?Set TAG to the git SHA to deploy}
+    pull_policy: missing
+    mem_limit: 1280m
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      Admin__RequireMfa: "true"
+      Alerts__CertificateHost: ${SITE_ADDRESS:?Set SITE_ADDRESS to the public domain}
+      Alerts__CertificateEndpoint: caddy:443
+
+  caddy:
+    image: ${IMAGE_REPO:?Set IMAGE_REPO in deploy/.env}/tailorly-web:${TAG:?Set TAG to the git SHA to deploy}
+    pull_policy: missing
+    mem_limit: 256m
+
+  gotenberg:
+    mem_limit: 640m

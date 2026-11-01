@@ -3,19 +3,30 @@
 #   ... --profile dev up -d                                               + Mailpit (http://localhost:8025)
 #   ... --profile pdf up -d                                               + Gotenberg (PDF export, off by default)
 # Configuration comes from deploy/.env (copy deploy/.env.example). Only caddy publishes ports.
+# Production adds docker-compose.prod.yml (registry images, limits): see deploy/runbooks/operator-runbook.md.
 
 name: tailorly
+
+# Docker log rotation for every service (SDD §15.2: Serilog JSON to stdout, rotated by Docker).
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
 
 x-app-env: &app-env
   ConnectionStrings__Default: "Host=postgres;Port=5432;Database=tailorly;Username=tailorly;Password=${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in deploy/.env}"
   ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
   App__PublicBaseUrl: https://${SITE_ADDRESS:-localhost}
   DeletionLog__Path: /data/deletion-log/deletions.log
+  # Written by deploy/backup.sh; a failed or missed backup becomes an admin alert.
+  Alerts__BackupStatusPath: /data/ops/backup-status.json
 
 services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *logging
     environment:
       POSTGRES_DB: tailorly
       POSTGRES_USER: tailorly
@@ -38,6 +49,7 @@ services:
       dockerfile: deploy/Dockerfile
     command: ["--migrate"]
     restart: "no"
+    logging: *logging
     env_file:
       - path: .env
         required: false
@@ -54,6 +66,7 @@ services:
   app:
     image: tailorly-app:${TAG:-local}
     restart: unless-stopped
+    logging: *logging
     env_file:
       - path: .env
         required: false
@@ -63,6 +76,7 @@ services:
       - documents:/data/storage
       - dpkeys:/data/keys       # cookie/antiforgery keys survive restarts and redeploys
       - deletionlog:/data/deletion-log   # off-DB deletion log (SDD §13.4); shipped off-VM with the backups
+      - ops:/data/ops                    # backup status written by deploy/backup.sh
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -74,6 +88,7 @@ services:
       context: ..
       dockerfile: deploy/web.Dockerfile
     restart: unless-stopped
+    logging: *logging
     environment:
       SITE_ADDRESS: ${SITE_ADDRESS:-localhost}
     ports:
@@ -92,6 +107,7 @@ services:
     image: gotenberg/gotenberg:8
     profiles: [pdf]
     restart: unless-stopped
+    logging: *logging
     networks: [internal]
 
   mailpit:
@@ -110,5 +126,6 @@ volumes:
   documents:
   dpkeys:
   deletionlog:
+  ops:
   caddy_data:
   caddy_config:
