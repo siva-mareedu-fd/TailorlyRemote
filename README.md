@@ -5,8 +5,33 @@
 Tailorly Remote helps developers in India find remote jobs that are actually open to them, and tailors their
 résumé (.docx) to each job without breaking formatting or inventing facts.
 
-**Status:** M5 (application tracker, interview prep, bring-your-own job, usage page). See
+**Status:** M6 (admin console, alerts, security hardening, backups and deployment, load test). The MVP milestones
+M0–M6 are built; see `CONFORMANCE.md` for the feature-by-feature report and the launch checklist, and
 `docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+
+### What works (M6)
+- **Admin console** (`/admin`): Status, Sources, Companies, **AI config** (model, max tokens and on/off per task; an
+  edit applies to the next call, the cache holds a row for 60 s at most), **Flags** with **invite codes**, **Users**
+  (ids, flags and counts only; find one account by its exact email or id; suspend / unsuspend) and **Usage** (calls
+  and tokens per task and model, and per user id, for any month). Every admin call and every job-dashboard POST is
+  written to `audit_log`.
+- **Two-step sign-in** (TOTP, any authenticator app) on the Account page, with 10 one-time recovery codes. The admin
+  console (API and job dashboard) requires it while `Admin__RequireMfa` is true: the default, and forced on in
+  production.
+- **Email alerts to the admin** every 5 minutes, repeated every 6 hours while a condition lasts: a source failing 3 times
+  in a row, failed or unsent digests, AI error rate over 10 % in 15 minutes, the platform enrichment ceiling, disk over
+  80 %, a failed or missing backup, and the TLS certificate (expiring within 14 days, or unreachable).
+- **Retention**: `ai_usage` older than 13 months is rolled up into monthly rows without the user (the daily sweep), next
+  to the existing job, digest and audit sweeps.
+- **Operations** (`deploy/`): nightly encrypted backups to object storage (`backup.sh`), the deletion log shipped every
+  15 minutes (`sync-deletion-log.sh`), a monthly restore test into a scratch database with the deletion-log replay
+  (`restore-test.sh`, `Tailorly.App --replay-deletion-log`), `deploy.sh` (pull → migrate → up → smoke test, `--rollback`),
+  the production override `docker-compose.prod.yml`, and a CI job that publishes images and deploys over SSH.
+  Runbooks: [operator](deploy/runbooks/operator-runbook.md), [restore](deploy/runbooks/restore-runbook.md),
+  [on-call](deploy/runbooks/on-call-checklist.md).
+- **Load test** (`Tailorly.Tests.Load.DigestLoadTests`, opt-in): 100 users on one schedule slot; results in
+  `tests/load-reports/`. It found that runs starting together enriched each job once per worker; enrichment now
+  single-flights per job.
 
 ### What works (M5)
 - **Tracker** (`/tracker`): a board with Saved, Tailored, Applied, Interviewing, Offer, Rejected and Withdrawn. Drag
@@ -222,6 +247,16 @@ errors (said open when restricted), JSON validity first try / after repair, fit 
 tokens. Model ids are passed with `--models`; production routing stays in `ai_task_config` and is changed only after
 the owner reviews a report.
 
+### Load test and operations checks (M6)
+```bash
+# 100 users on one slot, 2 s per model call (about 20 minutes); report in tests/load-reports/
+TAILORLY_LOAD_TEST=1 dotnet test --project tests/Tailorly.Tests --filter-class "*DigestLoadTests"
+#   TAILORLY_LOAD_USERS / _JOBS / _LATENCY_MS / _WORKERS / _AI_CONCURRENCY / _TIMEOUT_MIN to vary it
+
+# Backup → delete an account → restore test with the deletion-log replay, against the local stack (--profile dev up -d)
+MSYS_NO_PATHCONV=1 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$PWD:/work" -w /work   --network tailorly_internal docker:28-cli   sh -c 'apk add -q bash age rclone curl jq zip coreutils findutils grep sed gawk && bash tests/ops/backup-restore.sh'
+```
+
 ### Regenerate the TypeScript API client
 ```bash
 dotnet build src/Tailorly.App            # writes web/openapi/openapi.json (the committed contract snapshot)
@@ -258,6 +293,11 @@ following PRD Appendix A). No secrets live in the repository. `Ai__Provider=Fake
 | `CoverLetter__Tones__concise`, `CoverLetter__Tones__confident`, `CoverLetter__Cliches__0..n` | Word limit per tone (180 / 250); phrases letters must avoid (defaults in code) |
 | `Pdf__GotenbergUrl`, `Pdf__TimeoutSeconds` | Gotenberg for PDF export (used only with the `pdf_export.enabled` flag) |
 | `Fx__Provider`, `Fx__StaticRates__USD_INR` | `Frankfurter` (daily public rates, no key) or `Static`; the static rate is also the fallback |
+| `Admin__BootstrapEmail`, `Admin__RequireMfa` | Account that `--seed` makes Admin; admin pages need two-step sign-in while true (default true; false in Development and tests; forced on by `docker-compose.prod.yml`) |
+| `Alerts__To`, `Alerts__RepeatHours`, `Alerts__SourceConsecutiveFailures`, `Alerts__AiErrorRatePercent`, `Alerts__AiErrorMinCalls`, `Alerts__DiskUsedPercent`, `Alerts__BackupStatusPath`, `Alerts__BackupMaxAgeHours`, `Alerts__CertificateHost`, `Alerts__CertificateEndpoint`, `Alerts__CertificateMinDays`, `Alerts__Enabled` | Admin email alerts: recipients (default: every verified Admin), repeat interval (6 h) and thresholds (3 failures, 10 % over 15 min with at least 5 calls, 80 % disk, 26 h since the last backup, 14 days of certificate). No backup or certificate check unless its path or host is set (Compose and the prod override set them) |
+| `TAILORLY_PROD`, `IMAGE_REPO`, `TAG` | Deploy scripts: add `docker-compose.prod.yml`, the registry and the image tag (git SHA) |
+| `BACKUP_AGE_RECIPIENT`, `BACKUP_REMOTE`, `BACKUP_DIR`, `BACKUP_RETENTION_DAYS`, `BACKUP_LOCAL_DAYS`, `BACKUP_AGE_IDENTITY` | Backups: age public key, rclone destination, local staging, retention (30 / 3 days); the private key only for restores |
+| `SMOKE_EMAIL`, `SMOKE_PASSWORD` | Optional non-admin account for the deploy smoke test's scripted sign-in |
 
 Poll intervals are not configuration: they are `job_sources.poll_interval_minutes`, edited in Admin → Sources.
 
@@ -280,21 +320,18 @@ Published prototypes: [app](https://claude.ai/artifact/4tG96dUJXB3AVjk7GLFSo3) �
 [sign-in / sign-up](https://claude.ai/artifact/VD4jtxQ5wz4VPG1JCW2BYM).
 `CLAUDE.md` holds the standing instructions for Claude Code; `ClaudeCode_Prompts.md` has one prompt per milestone.
 
-## Restore runbook note (deletion log)
-After restoring a database backup, replay the purge for every user id in the deletion log
-(`/data/deletion-log/deletions.log`, copied by `backup.sh`): accounts deleted after the backup was taken would
-otherwise come back (SDD §13.4). The full runbook arrives with M6.
+## Production
+Deploying to the single VM, backups, alerts, rollback and capacity: [operator runbook](deploy/runbooks/operator-runbook.md).
+Restoring (and the monthly restore test): [restore runbook](deploy/runbooks/restore-runbook.md). On call:
+[checklist](deploy/runbooks/on-call-checklist.md). In short: CI pushes images tagged with the git SHA; on the VM
+`TAG=<sha> deploy/deploy.sh` pulls them, **runs the migrations first** (`docker compose run --rm migrate`), starts the
+app and smoke-tests it. After any restore, replay the deletion log (`Tailorly.App --replay-deletion-log`): accounts
+deleted after the backup would otherwise come back (SDD §13.4).
 
 ## Open items before launch
-- Written reply from Himalayas on whether a per-user matching service is permitted. Keep Himalayas disabled until confirmed.
-- We Work Remotely's terms could not be read automatically (403); review them in a browser before building/enabling it.
-- Label the eval sets (≥ 100 eligibility, ≥ 50 fit pairs, PRD §14.3) and run the AI quality gate before launch.
-- Adzuna is excluded from the MVP.
-- Confirm the default assumptions in PRD §17 (INR default, unclear-eligibility handling, tones, 600K/1.4M split).
-- Legal review of the privacy notice (résumé text is processed by an AI provider).
-- Formal colour-contrast check of the final palette.
-- The format-preservation suite uses 12 synthetic résumés (plus the opt-in run on local files). Add anonymised real
-  résumés as fixtures if you have them.
-- Label the tailoring eval set (items are `starter (unreviewed)`) and grow it before launch.
-- Build an eval case set for `interview_prep` (PRD Appendix C). Its truthfulness checks are covered by unit and
-  integration tests, but there is no labelled set yet.
+The launch checklist (PRD §17) with an owner for each open item is in [`CONFORMANCE.md`](CONFORMANCE.md) §5. In short:
+Himalayas' written confirmation (it stays disabled until then), We Work Remotely's terms (before its M7 adapter),
+labelled eval sets and the AI quality gate, legal review of the privacy notice (DPDP Act), the production VM with DNS,
+SPF/DKIM/DMARC, alert recipients and a first restore test there. Also: confirm the PRD §17 default assumptions (INR,
+unclear eligibility, tones, the 600K/1.4M split), add anonymised real résumés to the format-preservation fixtures, and
+build an `interview_prep` eval set.
