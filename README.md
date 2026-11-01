@@ -5,8 +5,23 @@
 Tailorly Remote helps developers in India find remote jobs that are actually open to them, and tailors their
 résumé (.docx) to each job without breaking formatting or inventing facts.
 
-**Status:** M4 (ATS Match Score, format-preserving résumé tailoring, cover letters). See
+**Status:** M5 (application tracker, interview prep, bring-your-own job, usage page). See
 `docs/PRD_TailorlyRemote.md` §15 for the milestone plan.
+
+### What works (M5)
+- **Tracker** (`/tracker`): a board with Saved, Tailored, Applied, Interviewing, Offer, Rejected and Withdrawn. Drag
+  cards between columns, or use the status dropdown on each card (keyboard). Any status can move to any other, and
+  every move is kept in the history. There is also a list view. **Details** holds notes, the history, the tailoring
+  workspace link, Apply and Remove. Cards keep their title, company, apply link and source after the listing expires.
+  Documents move a card from Saved to Tailored, and only from Saved.
+- **Save** (or `s`) on the Shortlist tracks a job. **Apply** opens the source's link in a new tab and asks "Did you
+  apply?" when you come back; Yes moves the card to Applied.
+- **Add a job** (`/add-job`): paste a job from LinkedIn, Naukri or a company site, with an optional title, company
+  and link. The link is only stored, never opened. The job is enriched (Documents budget) and scored against your
+  résumé (Discovery budget), then tailors like any other job.
+- **Interview prep** tab in the workspace: likely technical topics, behavioural questions with talking points taken
+  only from your résumé, gaps to prepare and questions to ask. Regenerate any time.
+- **Usage** page: both budgets, tokens per day for the last 30 days, and calls and tokens per task this month.
 
 ### What works (M4)
 - **ATS Match Score** (0–100, "estimated"): keyword coverage, requirements met/partial/missing with the résumé
@@ -129,7 +144,8 @@ filters and checks that a failed job's exception message reaches neither the log
 `DigestScheduleTests` (own database) covers claim idempotency across ticks and instances, IST/DST/midnight windows,
 retries, the fallback digest, the email and one-click unsubscribe; `UploadSafetyTests` and
 `DocxSafetyInspectorTests` cover macros, OLE, external links, zip bombs, nested archives, DOCTYPE, password protection
-and a PDF renamed to `.docx`.
+and a PDF renamed to `.docx`. `JourneyBcdTests` runs PRD Journeys B (digest email → tailor → Applied), C (pasted
+job) and D (Interviewing → prep) end to end; `ByoJobTests` asserts a BYO link causes no outbound request.
 
 ### Run everything with Docker Compose (recommended)
 ```bash
@@ -280,3 +296,5 @@ otherwise come back (SDD §13.4). The full runbook arrives with M6.
 - The format-preservation suite uses 12 synthetic résumés (plus the opt-in run on local files). Add anonymised real
   résumés as fixtures if you have them.
 - Label the tailoring eval set (items are `starter (unreviewed)`) and grow it before launch.
+- Build an eval case set for `interview_prep` (PRD Appendix C). Its truthfulness checks are covered by unit and
+  integration tests, but there is no labelled set yet.

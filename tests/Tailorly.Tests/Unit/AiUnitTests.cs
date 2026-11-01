@@ -189,6 +189,42 @@ public sealed class TailoringTaskTests
             .Should().BeEmpty("greetings, the job's own words and a month spelled out ('Jan 2021' in the résumé) are not invented facts");
     }
 
+    private static InterviewPrepRules PrepRules()
+    {
+        var resume = Tailorly.App.Features.Tailoring.TailoringData.Facts(Resume, null, [], "Acme Cloud", "Senior Backend Engineer");
+        var all = Tailorly.App.Features.Tailoring.TailoringData.Facts(Resume, null, [], "Acme Cloud", "Senior Backend Engineer",
+            "Build payment services in C# on AWS with Kubernetes.");
+        return new InterviewPrepRules(resume, all);
+    }
+
+    private static InterviewPrepOutput Prep(string talkingPoint = "Built REST APIs for the payments team using C# and PostgreSQL.",
+        string topic = "Kubernetes basics", string gap = "Kubernetes", string question = "How is on-call shared?") =>
+        new([new PrepTopic(topic, "the job lists it."), new PrepTopic("REST API design", "core to the role.")],
+            [new PrepBehavioural("Tell us about an API you built.", [talkingPoint]),
+             new PrepBehavioural("How do you keep releases safe?", ["Maintained billing services and wrote integration tests for every release."])],
+            [gap], [question, "What does success look like here?"]);
+
+    [Fact]
+    public void Interview_prep_talking_points_use_only_the_resume_while_topics_and_gaps_may_use_the_job()
+    {
+        InterviewPrepTask.Validate(Prep(), PrepRules()).Should().BeEmpty("Kubernetes is in the posting; the talking points quote the résumé");
+        InterviewPrepTask.Validate(Prep(talkingPoint: "Reduced settlement latency by 30% at Example Corp."), PrepRules())
+            .Should().BeEmpty("the number and the employer are the résumé's own");
+
+        var invented = InterviewPrepTask.Validate(Prep(talkingPoint: "Built REST APIs for 4,000 merchants at Stripe."), PrepRules());
+        invented.Should().Contain(e => e.StartsWith("behavioural[0].talking_points_from_resume[0] states a number", StringComparison.Ordinal))
+            .And.Contain(e => e.StartsWith("behavioural[0].talking_points_from_resume[0] names", StringComparison.Ordinal));
+        invented.Should().NotContain(e => e.Contains("4,000", StringComparison.Ordinal) || e.Contains("Stripe", StringComparison.Ordinal),
+            "messages carry positions, never the text");
+
+        InterviewPrepTask.Validate(Prep(talkingPoint: "Ran Kubernetes clusters for the payments team."), PrepRules())
+            .Should().ContainSingle(e => e.Contains("talking_points_from_resume", StringComparison.Ordinal), "a job skill is not the candidate's");
+        InterviewPrepTask.Validate(Prep(topic: "Terraform on GCP"), PrepRules())
+            .Should().ContainSingle(e => e.StartsWith("technical_topics[0]", StringComparison.Ordinal));
+        InterviewPrepTask.Validate(Prep(question: "**Ask** about the team 🚀 https://example.test"), PrepRules())
+            .Should().HaveCount(3, "markdown, emoji and a link in a question");
+    }
+
     [Fact]
     public void An_analysis_must_cite_existing_paragraphs_for_met_and_partial_requirements()
     {
