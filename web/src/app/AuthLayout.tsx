@@ -65,6 +65,9 @@ export function AuthLayout() {
         <footer className="flex justify-center gap-4 pt-2 text-[12.5px] text-muted">
           <Link to="/privacy">Privacy</Link>
           <Link to="/terms">Terms</Link>
+          <a href="https://himalayas.app" target="_blank" rel="noreferrer">
+            Job data from Himalayas
+          </a>
           <span>© Tailorly Remote</span>
         </footer>
       </section>
