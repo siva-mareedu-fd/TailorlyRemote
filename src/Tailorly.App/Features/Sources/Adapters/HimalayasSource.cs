@@ -20,7 +20,8 @@ namespace Tailorly.App.Features.Sources.Adapters;
 /// <item>Salaries are in the stated <c>salaryPeriod</c> (annual, monthly, hourly…), not annual; the currency may be null.</item>
 /// <item><c>guid</c> is the job's Himalayas URL. <c>applicationLink</c> is used unchanged for Apply (API terms).</item>
 /// </list>
-/// Ships disabled until Himalayas confirms in writing that a per-user matching service is permitted (PRD Appendix D).
+/// Himalayas confirmed in writing on 2026-11-07 that per-user matching and digests are permitted if the Himalayas credit and
+/// link stay on each job (DECISIONS.md). It still ships disabled in the seed; enable it in Admin → Sources.
 /// </summary>
 public sealed class HimalayasSource(IHttpClientFactory http, IOptions<SourcesOptions> options) : IFeedSource
 {
