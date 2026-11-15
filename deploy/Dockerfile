@@ -1,6 +1,6 @@
 # Tailorly.App: API + Hangfire server in one process (ADR-001). Build context: repository root.
 
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:11.0 AS build
 WORKDIR /src
 COPY global.json Directory.Build.props Directory.Packages.props ./
 COPY src/Tailorly.Core/Tailorly.Core.csproj src/Tailorly.Core/
