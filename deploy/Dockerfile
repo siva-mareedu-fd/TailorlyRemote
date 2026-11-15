@@ -12,7 +12,7 @@ COPY src/ src/
 RUN dotnet publish src/Tailorly.App/Tailorly.App.csproj -c Release -o /app --no-restore \
     -p:OpenApiGenerateDocuments=false -p:UseAppHost=false
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:11.0 AS runtime
 # tzdata + ICU: user-facing time uses IANA zones; the app's startup self-test fails fast without them (SDD §13.2).
 # curl: container health check only.
 RUN apt-get update \
