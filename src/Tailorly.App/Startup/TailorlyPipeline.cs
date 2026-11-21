@@ -15,7 +15,7 @@ using Tailorly.App.Infrastructure.Jobs;
 
 namespace Tailorly.App.Startup;
 
-/// <summary>HTTP pipeline. Order matters: correlation id first so every log line and error body carries it.</summary>
+/// <summary>Summary - HTTP pipeline. Order matters: correlation id first so every log line and error body carries it.</summary>
 public static class TailorlyPipeline
 {
     public static WebApplication UseTailorly(this WebApplication app)
